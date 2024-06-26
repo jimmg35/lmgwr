@@ -4,22 +4,24 @@ import pandas as pd
 
 from src.dataset.impl import SpatialDataset
 from src.dataset.interface import ISpatialDatasetParams, IFieldInfo
+from src.log.timestamp import current_time_str
 
+log_path = os.path.join(os.getcwd(), 'logs',  f'{current_time_str()}-log')
+if os.path.exists(log_path) is False:
+    os.makedirs(log_path)
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     handlers=[
-                        logging.FileHandler("debkkug.log"),  # 日志输出到文件
-                        logging.StreamHandler()           # 日志输出到控制台
+                        logging.FileHandler(
+                            os.path.join(log_path, 'record.log')),
+                        logging.StreamHandler()
                     ])
 logger = logging.getLogger(__name__)
 
 
-current_directory = os.getcwd()
-print(f"Current working directory: {current_directory}")
-
 if __name__ == '__main__':
-    synthetic_data = pd.read_csv(r'./src/dataset/data/synthetic_dataset.csv')
+    synthetic_data = pd.read_csv(r'./data/synthetic_dataset.csv')
 
     spatialDataset = SpatialDataset(
         ISpatialDatasetParams(
