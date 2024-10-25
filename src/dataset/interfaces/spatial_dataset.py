@@ -22,12 +22,6 @@ class IFieldInfo:
 
 
 @dataclass
-class ISpatialDatasetParams:
-    fieldInfo: IFieldInfo
-    data: DataFrame
-
-
-@dataclass
 class IDataset:
     dataPoints: List[IDataPoint] | None
     fieldInfo: IFieldInfo | None

@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.dataset.interfaces.interface import ISpatialDatasetParams, IFieldInfo
+from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.log.timestamp import current_time_str
 from src.model.gwr import GWR
 
@@ -25,16 +25,16 @@ if __name__ == '__main__':
     synthetic_data = pd.read_csv(r'./data/synthetic_dataset.csv')
 
     spatialDataset = SpatialDataset(
-        ISpatialDatasetParams(
-            fieldInfo=IFieldInfo(
-                predictor_fields=['temperature', 'moisture'],
-                response_field='pm25',
-                coordinate_x_field='coor_x',
-                coordinate_y_field='coor_y'
-            ), data=synthetic_data
-        )
+        synthetic_data,
+        IFieldInfo(
+            predictor_fields=['temperature', 'moisture'],
+            response_field='pm25',
+            coordinate_x_field='coor_x',
+            coordinate_y_field='coor_y'
+        ),
+        isSpherical=True
     )
 
     # spatialDataset.
 
-    gwr = GWR()
+    gwr = GWR(spatialDataset)
