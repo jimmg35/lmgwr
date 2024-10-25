@@ -2,9 +2,10 @@ import os
 import logging
 import pandas as pd
 
-from src.dataset.impl import SpatialDataset
-from src.dataset.interface import ISpatialDatasetParams, IFieldInfo
+from src.dataset.spatial_dataset import SpatialDataset
+from src.dataset.interfaces.interface import ISpatialDatasetParams, IFieldInfo
 from src.log.timestamp import current_time_str
+from src.model.gwr import GWR
 
 log_path = os.path.join(os.getcwd(), 'logs',  f'{current_time_str()}-log')
 if os.path.exists(log_path) is False:
@@ -33,3 +34,7 @@ if __name__ == '__main__':
             ), data=synthetic_data
         )
     )
+
+    # spatialDataset.
+
+    gwr = GWR()

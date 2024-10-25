@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from typing import List
 from pandas import DataFrame
-from abc import abstractmethod
 
 
 @dataclass
