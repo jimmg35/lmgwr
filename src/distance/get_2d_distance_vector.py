@@ -1,13 +1,13 @@
 import numpy as np
 from numpy.typing import NDArray
 from typing import Any, Optional, Literal, TypeAlias
-from ..dataset.spatial_dataset import SpatialDataset
+from dataset.spatial_dataset import SpatialDataset
 from .haversine_distance.haversine_distance import haversine_distance
 from .euclidean_distance.euclidean_distance import euclidean_distance
-from numba import njit
+# from numba import njit
 
 
-@njit
+# @njit
 def get_2d_distance_vector(index: int, dataset: SpatialDataset) -> NDArray[Any]:
     """
     Calculate the distance vector for a specific point in a spatial dataset.

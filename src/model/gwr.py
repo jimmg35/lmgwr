@@ -1,5 +1,5 @@
 
-from spglm.glm import GLM, GLMResults
+# from spglm.glm import GLM, GLMResults
 from ..dataset.interfaces.spatial_dataset import IDataset
 from ..dataset.spatial_dataset import SpatialDataset
 
