@@ -1,12 +1,11 @@
 import numpy as np
-from numpy.typing import NDArray
-from typing import Any, Optional, Literal, TypeAlias
+import numpy.typing as npt
 from dataset.spatial_dataset import SpatialDataset
 from .haversine_distance.haversine_distance import haversine_distance
 from .euclidean_distance.euclidean_distance import euclidean_distance
 
 
-def get_2d_distance_vector(index: int, dataset: SpatialDataset) -> NDArray[np.float64]:
+def get_2d_distance_vector(index: int, dataset: SpatialDataset) -> npt.NDArray[np.float64]:
     """
     Calculate the distance vector for a specific point in a spatial dataset.
 
@@ -19,7 +18,7 @@ def get_2d_distance_vector(index: int, dataset: SpatialDataset) -> NDArray[np.fl
         dataset (SpatialDataset): The spatial dataset containing all data points.
 
     Returns:
-        NDArray[Any]: A numpy array containing the distances from the target point
+        npt.NDArray[Any]: A numpy array containing the distances from the target point
                       to every other point in the dataset.
 
     Raises:

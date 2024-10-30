@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 from typing import List
 from pandas import DataFrame
@@ -8,7 +9,7 @@ from pandas import DataFrame
 @dataclass
 class IDataPoint:
     y: float
-    X: np.ndarray
+    X: npt.NDArray[np.float64]
     coordinate_x: float
     coordinate_y: float
 

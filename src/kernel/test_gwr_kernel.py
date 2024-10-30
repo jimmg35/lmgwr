@@ -1,5 +1,6 @@
 
 import pytest
+import numpy as np
 import pandas as pd
 from dataset.spatial_dataset import SpatialDataset
 from dataset.interfaces.spatial_dataset import IFieldInfo
@@ -30,23 +31,57 @@ def euclidean_dataset():
     return dataset
 
 
-def test_gwr_kernel(euclidean_dataset):
+def test_gwr_kernel_euclidean_triangular(euclidean_dataset):
     gwrKernel = GwrKernel(euclidean_dataset, 100, 'triangular')
-    gwrKernel.get_weighted_matrix_by_id(0)
-    # distances = get_2d_distance_vector(0, euclidean_dataset)
-    # expected_distances = np.array([0., 1414.21, 2828.43,  707.11, 2121.32])
-    # np.testing.assert_array_almost_equal(
-    #     distances, expected_distances, decimal=2)
+    wi = gwrKernel.get_weighted_matrix_by_id(0)
+    expected_wi = np.array([
+        [1],
+        [0.9],
+        [0.8],
+        [0.7],
+        [0.6]
+    ])
+    np.testing.assert_array_almost_equal(
+        wi, expected_wi, decimal=2)
 
-# synthetic_data = pd.read_csv(r'../../data/synthetic_dataset.csv')
 
-# spatialDataset = SpatialDataset(
-#     synthetic_data,
-#     IFieldInfo(
-#         predictor_fields=['temperature', 'moisture'],
-#         response_field='pm25',
-#         coordinate_x_field='coor_x',
-#         coordinate_y_field='coor_y'
-#     ),
-#     isSpherical=True
-# )
+def test_gwr_kernel_euclidean_uniform(euclidean_dataset):
+    gwrKernel = GwrKernel(euclidean_dataset, 100, 'uniform')
+    wi = gwrKernel.get_weighted_matrix_by_id(0)
+    expected_wi = np.array([
+        [0.5],
+        [0.5],
+        [0.5],
+        [0.5],
+        [0.5]
+    ])
+    np.testing.assert_array_almost_equal(
+        wi, expected_wi, decimal=2)
+
+
+def test_gwr_kernel_euclidean_gaussian(euclidean_dataset):
+    gwrKernel = GwrKernel(euclidean_dataset, 100, 'gaussian')
+    wi = gwrKernel.get_weighted_matrix_by_id(0)
+    expected_wi = np.array([
+        [1],
+        [0.99501248],
+        [0.98019867],
+        [0.95599748],
+        [0.92311635]
+    ])
+    np.testing.assert_array_almost_equal(
+        wi, expected_wi, decimal=2)
+
+
+def test_gwr_kernel_euclidean_bisquare(euclidean_dataset):
+    gwrKernel = GwrKernel(euclidean_dataset, 40, 'bisquare')
+    wi = gwrKernel.get_weighted_matrix_by_id(0)
+    expected_wi = np.array([
+        [1],
+        [0.87890625],
+        [0.5625],
+        [0.19140625],
+        [0.]
+    ])
+    np.testing.assert_array_almost_equal(
+        wi, expected_wi, decimal=2)
