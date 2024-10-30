@@ -4,11 +4,9 @@ from typing import Any, Optional, Literal, TypeAlias
 from dataset.spatial_dataset import SpatialDataset
 from .haversine_distance.haversine_distance import haversine_distance
 from .euclidean_distance.euclidean_distance import euclidean_distance
-# from numba import njit
 
 
-# @njit
-def get_2d_distance_vector(index: int, dataset: SpatialDataset) -> NDArray[Any]:
+def get_2d_distance_vector(index: int, dataset: SpatialDataset) -> NDArray[np.float64]:
     """
     Calculate the distance vector for a specific point in a spatial dataset.
 
@@ -44,18 +42,22 @@ def get_2d_distance_vector(index: int, dataset: SpatialDataset) -> NDArray[Any]:
     target_x = target_point.coordinate_x
     target_y = target_point.coordinate_y
 
+    distance_function = haversine_distance if dataset.isSpherical else euclidean_distance
+
     for i in range(num_points):
         current_point = dataset.dataPoints[i]
-        current_x = current_point.coordinate_x
-        current_y = current_point.coordinate_y
+        destination_x = current_point.coordinate_x
+        destination_y = current_point.coordinate_y
 
-        if dataset.isSpherical:
-            # Calculate Haversine distance for spherical data
-            distances[i] = haversine_distance(
-                target_y, target_x, current_y, current_x)
-        else:
-            # Calculate Euclidean distance for Cartesian data
-            distances[i] = euclidean_distance(
-                target_x, target_y, current_x, current_y)
+        distances[i] = distance_function(
+            target_x, target_y, destination_x, destination_y)
+        # if dataset.isSpherical:
+        #     # Calculate Haversine distance for spherical data
+        #     distances[i] = haversine_distance(
+        #         target_y, target_x, destination_y, destination_x)
+        # else:
+        #     # Calculate Euclidean distance for Cartesian data
+        #     distances[i] = euclidean_distance(
+        #         target_x, target_y, destination_x, destination_y)
 
     return distances

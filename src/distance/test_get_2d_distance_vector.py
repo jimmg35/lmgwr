@@ -3,8 +3,8 @@
 import numpy as np
 import pandas as pd
 import pytest
+from dataset.spatial_dataset import SpatialDataset, IFieldInfo
 from .get_2d_distance_vector import get_2d_distance_vector
-from dataset.spatial_dataset import SpatialDataset, IDataPoint, IFieldInfo
 
 
 @pytest.fixture

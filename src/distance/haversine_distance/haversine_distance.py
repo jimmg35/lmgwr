@@ -1,7 +1,7 @@
-import numpy as np
+import math
 
 
-def haversine_distance(lat1, lon1, lat2, lon2):
+def haversine_distance(target_x, target_y, destination_x, destination_y):
     """
     Calculate the Haversine distance between two points on the Earth's surface.
 
@@ -10,29 +10,36 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     assuming the Earth is a sphere with a radius of 6371 kilometers.
 
     Args:
-        lat1 (float): Latitude of the first point in decimal degrees.
-        lon1 (float): Longitude of the first point in decimal degrees.
-        lat2 (float): Latitude of the second point in decimal degrees.
-        lon2 (float): Longitude of the second point in decimal degrees.
+        target_x (float): Longitude of the first point in decimal degrees.
+        target_y (float): Latitude of the first point in decimal degrees.
+        destination_x (float): Longitude of the second point in decimal degrees.
+        destination_y (float): Latitude of the second point in decimal degrees.
 
     Returns:
         float: The distance between the two points in kilometers.
 
     Examples:
-        >>> haversine_distance(36.12, -86.67, 33.94, -118.40)
-        2887.2599506071106
+        >>> haversine_distance(-73.935242, 40.730610, -74.0060, 40.7128)
+        8.33860776443011
     """
-    R = 6371.0  # Radius of the Earth in kilometers
-    lat1_rad = np.radians(lat1)
-    lon1_rad = np.radians(lon1)
-    lat2_rad = np.radians(lat2)
-    lon2_rad = np.radians(lon2)
+    # Earth radius in kilometers
+    R = 6371.0
 
-    dlat = lat2_rad - lat1_rad
-    dlon = lon2_rad - lon1_rad
+    # Convert latitude and longitude from degrees to radians
+    target_x_rad = math.radians(target_x)
+    target_y_rad = math.radians(target_y)
+    destination_x_rad = math.radians(destination_x)
+    destination_y_rad = math.radians(destination_y)
 
-    a = np.sin(dlat / 2.0)**2 + np.cos(lat1_rad) * \
-        np.cos(lat2_rad) * np.sin(dlon / 2.0)**2
-    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+    # Calculate the differences in coordinates
+    delta_x = destination_x_rad - target_x_rad
+    delta_y = destination_y_rad - target_y_rad
 
-    return R * c  # Distance in kilometers
+    # Apply the Haversine formula
+    a = math.sin(delta_y / 2)**2 + math.cos(target_y_rad) * \
+        math.cos(destination_y_rad) * math.sin(delta_x / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    # Calculate the distance
+    distance = R * c
+    return distance

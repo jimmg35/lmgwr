@@ -3,10 +3,12 @@
 __author__ = "Taylor Oshan tayoshan@gmail.com"
 
 import numpy as np
+import pandas as pd
 from numpy.typing import NDArray
 from typing import Any, Optional, Literal, TypeAlias
-from ..dataset.spatial_dataset import SpatialDataset
-from numba import njit
+from dataset.spatial_dataset import SpatialDataset
+from dataset.interfaces.spatial_dataset import IFieldInfo
+from distance.get_2d_distance_vector import get_2d_distance_vector
 
 
 KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
@@ -22,43 +24,45 @@ class GwrKernel(object):
 
     """
     dataset: SpatialDataset | None = None
-    bandwidth: float | None = None
+    bandwidth: float
     kernel_type: KernelFunctionType = "triangular"
-
-    kernel: Optional[NDArray[Any]] = None
 
     def __init__(self, dataset: SpatialDataset, bandwidth: float, kernel_type: KernelFunctionType = 'triangular') -> None:
         self.dataset = dataset
         self.bandwidth = bandwidth
-        self.kernel_function = self.__get_kernel_function(kernel_type)
+        self.kernel_type = kernel_type
 
-    def __get_distance_vector(self, index: int) -> None:
+    def get_weighted_matrix_by_id(self, index: int) -> None:
+        distance_vector = self.__get_distance_vector(index)
+        weighted_matrix = self.__calculate_weighted_matrix(
+            distance_vector
+        )
+        print(distance_vector)
+        print(weighted_matrix)
+
+    def __get_distance_vector(self, index: int) -> NDArray[np.float64]:
         if self.dataset is None:
             raise ValueError("Dataset is not setup in Kernel")
         if self.dataset.dataPoints is None:
             raise ValueError("DataPoints are not setup in Kernel")
+        return get_2d_distance_vector(index, self.dataset).reshape(-1)
 
-        # self.dataset.dataPoints[index].coordinate_x
-        # self.dataset.dataPoints[index].coordinate_y
-
-        # return local_cdist(index, self.dataset).reshape(-1)
-
-    def __get_kernel_function(self, kernel_type: KernelFunctionType):
-        # if kernel_type == 'triangular':
-        #     return 1 - zs
-        # elif kernel_type == 'uniform':
-        #     return np.ones(zs.shape) * 0.5
-        # elif kernel_type == 'quadratic':
-        #     return (3. / 4) * (1 - zs**2)
-        # elif kernel_type == 'quartic':
-        #     return (15. / 16) * (1 - zs**2)**2
-        # elif kernel_type == 'gaussian':
-        #     return np.exp(-0.5 * (zs)**2)
-        # elif kernel_type == 'bisquare':
-        #     return (1 - (zs)**2)**2
-        # elif kernel_type == 'exponential':
-        #     return np.exp(-zs)
-        # else:
+    def __calculate_weighted_matrix(self, distance_vector: NDArray[np.float64]) -> NDArray[np.float64]:
+        zs: NDArray[np.float64] = distance_vector / self.bandwidth
+        if self.kernel_type == 'triangular':
+            return 1 - zs
+        elif self.kernel_type == 'uniform':
+            return np.ones(zs.shape) * 0.5
+        elif self.kernel_type == 'quadratic':
+            return (3. / 4) * (1 - zs**2)
+        elif self.kernel_type == 'quartic':
+            return (15. / 16) * (1 - zs**2)**2
+        elif self.kernel_type == 'gaussian':
+            return np.exp(-0.5 * (zs)**2)
+        elif self.kernel_type == 'bisquare':
+            return (1 - (zs)**2)**2
+        elif self.kernel_type == 'exponential':
+            return np.exp(-zs)
         raise ValueError('Unsupported kernel function')
 
     # def __init__(self, i, data, bw=None, fixed=True, function='triangular',
@@ -130,3 +134,20 @@ class GwrKernel(object):
     #         NDArray: The spatial weighted matrix for the data point.
     #     """
     #     return self.kernel
+
+
+if __name__ == '__main__':
+    synthetic_data = pd.read_csv(r'./data/synthetic_dataset.csv')
+
+    spatialDataset = SpatialDataset(
+        synthetic_data,
+        IFieldInfo(
+            predictor_fields=['temperature', 'moisture'],
+            response_field='pm25',
+            coordinate_x_field='coor_x',
+            coordinate_y_field='coor_y'
+        ),
+        isSpherical=True
+    )
+
+    gwrKernel = GwrKernel(spatialDataset, 100, 'triangular')

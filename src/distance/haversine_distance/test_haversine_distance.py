@@ -2,31 +2,27 @@ import pytest
 from haversine_distance import haversine_distance
 
 
-def test_haversine_distance():
-    # Test case 1: Distance between the same points should be 0
-    assert haversine_distance(0, 0, 0, 0) == 0.0
+def test_same_point():
+    # Test the same point; the distance should be 0
+    assert haversine_distance(0, 0, 0, 0) == 0
 
-    # Test case 2: Distance between known points (New York to Los Angeles)
-    # New York (40.7128° N, 74.0060° W) and Los Angeles (34.0522° N, 118.2437° W)
-    ny_lat, ny_lon = 40.7128, -74.0060
-    la_lat, la_lon = 34.0522, -118.2437
-    # Approximate distance in kilometers
-    expected_distance = pytest.approx(3936.98, 0.1)
-    assert haversine_distance(ny_lat, ny_lon, la_lat,
-                              la_lon) == expected_distance
 
-    # Test case 3: Check distance between points near the equator
-    assert haversine_distance(0, 0, 0, 1) == pytest.approx(
-        111.32, 0.1)  # 1 degree longitude ~ 111.32 km at the equator
+def test_known_distance():
+    # Test with two known points (e.g., New York City to San Francisco)
+    nyc_lat, nyc_lon = 40.7128, -74.0060
+    sf_lat, sf_lon = 37.7749, -122.4194
+    distance = haversine_distance(nyc_lon, nyc_lat, sf_lon, sf_lat)
+    # Expected distance is approximately 4129 km
+    assert abs(distance - 4129) < 1
 
-    # Test case 4: Check distance between the North Pole and the Equator
-    north_pole_lat, north_pole_lon = 90, 0
-    equator_lat, equator_lon = 0, 0
-    # Half the Earth's circumference in km
-    expected_distance = pytest.approx(10007.54, 0.1)
-    assert haversine_distance(
-        north_pole_lat, north_pole_lon, equator_lat, equator_lon) == expected_distance
 
-    # Test case 5: Check distance between antipodal points (opposite sides of the globe)
-    # Earth's diameter in kilometers
-    assert haversine_distance(0, 0, -0, 180) == pytest.approx(20015.08, 0.1)
+def test_equator_distance():
+    # Test two points on the equator with a 90-degree difference in longitude
+    # Expected distance is approximately half Earth's circumference
+    assert abs(haversine_distance(0, 0, 90, 0) - 10007.5) < 1
+
+
+def test_poles_distance():
+    # Test the distance between the North and South Poles, should be close to twice Earth's radius
+    # Expected distance is approximately half Earth's circumference
+    assert abs(haversine_distance(0, 90, 0, -90) - 20015) < 1
