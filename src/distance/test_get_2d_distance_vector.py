@@ -14,8 +14,7 @@ def euclidean_dataset():
         'temperature': [22, 24, 19, 21, 23],
         'moisture': [70, 65, 80, 75, 68],
         'pm25': [10, 12, 8, 9, 11],
-        'coor_x': [250000, 251000, 252000, 250500, 251500],  # X coordinates
-        # Y coordinates
+        'coor_x': [250000, 251000, 252000, 250500, 251500],
         'coor_y': [2650000, 2651000, 2652000, 2650500, 2651500]
     })
     field_info = IFieldInfo(
@@ -39,8 +38,8 @@ def spherical_dataset():
         'temperature': [22, 24, 19, 21, 23],
         'moisture': [70, 65, 80, 75, 68],
         'pm25': [10, 12, 8, 9, 11],
-        'coor_x': [121.5, 121.6, 121.7, 121.55, 121.65],  # Longitude
-        'coor_y': [25.0, 25.1, 25.2, 25.05, 25.15]         # Latitude
+        'coor_x': [121.5, 121.6, 121.7, 121.55, 121.65],
+        'coor_y': [25.0, 25.1, 25.2, 25.05, 25.15]
     })
     field_info = IFieldInfo(
         predictor_fields=['temperature', 'moisture'],
@@ -65,7 +64,6 @@ def test_euclidean_distance(euclidean_dataset):
 
 def test_haversine_distance(spherical_dataset):
     distances = get_2d_distance_vector(0, spherical_dataset)
-    print(distances)
     expected_distances = np.array([0., 15, 30,  7.5, 22.5])
     np.testing.assert_array_almost_equal(
         distances, expected_distances, decimal=2)
