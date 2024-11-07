@@ -1,0 +1,3 @@
+# GWR Module
+
+::: model.gwr
