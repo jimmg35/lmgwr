@@ -1,5 +1,5 @@
 import pytest
-from haversine_distance import haversine_distance
+from src.distance.haversine_distance.haversine_distance import haversine_distance
 
 
 def test_same_point():

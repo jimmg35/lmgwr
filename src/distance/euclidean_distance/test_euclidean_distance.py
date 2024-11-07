@@ -1,5 +1,5 @@
 import pytest
-from euclidean_distance import euclidean_distance
+from src.distance.euclidean_distance.euclidean_distance import euclidean_distance
 
 
 def test_distance_between_two_points():

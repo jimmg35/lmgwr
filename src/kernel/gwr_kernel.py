@@ -5,10 +5,10 @@ __author__ = "Taylor Oshan tayoshan@gmail.com"
 import numpy as np
 import pandas as pd
 import numpy.typing as npt
-from typing import Any, Optional, Literal, TypeAlias
-from dataset.spatial_dataset import SpatialDataset
-from dataset.interfaces.spatial_dataset import IFieldInfo
-from distance.get_2d_distance_vector import get_2d_distance_vector
+from typing import Literal, TypeAlias
+from src.dataset.spatial_dataset import SpatialDataset
+from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.distance.get_2d_distance_vector import get_2d_distance_vector
 
 
 KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',

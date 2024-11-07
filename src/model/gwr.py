@@ -1,7 +1,7 @@
 
 # from spglm.glm import GLM, GLMResults
-from ..dataset.interfaces.spatial_dataset import IDataset
-from ..dataset.spatial_dataset import SpatialDataset
+from src.dataset.interfaces.spatial_dataset import IDataset
+from src.dataset.spatial_dataset import SpatialDataset
 
 
 class GWR():

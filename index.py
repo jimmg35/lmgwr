@@ -1,24 +1,12 @@
-import os
-import logging
 import pandas as pd
 
+from src.log.logger import create_logger
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
-from src.log.timestamp import current_time_str
 from src.model.gwr import GWR
+from src.kernel.gwr_kernel import GwrKernel
 
-log_path = os.path.join(os.getcwd(), 'logs',  f'{current_time_str()}-log')
-if os.path.exists(log_path) is False:
-    os.makedirs(log_path)
-
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    handlers=[
-                        logging.FileHandler(
-                            os.path.join(log_path, 'record.log')),
-                        logging.StreamHandler()
-                    ])
-logger = logging.getLogger(__name__)
+create_logger()
 
 
 if __name__ == '__main__':
@@ -35,6 +23,6 @@ if __name__ == '__main__':
         isSpherical=True
     )
 
-    # spatialDataset.
+    
 
     gwr = GWR(spatialDataset)
