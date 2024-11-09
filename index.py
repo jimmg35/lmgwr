@@ -23,6 +23,5 @@ if __name__ == '__main__':
         isSpherical=True
     )
 
-    
-
-    gwr = GWR(spatialDataset)
+    kernel = GwrKernel(spatialDataset, 100, 'triangular')
+    gwr = GWR(spatialDataset, kernel)
