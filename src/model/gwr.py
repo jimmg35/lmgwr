@@ -49,9 +49,13 @@ class GWR:
         # Iterate over each data point to estimate local regression coefficients
         for index in tqdm(range(len(self.dataset.dataPoints)), desc="GWR Fitting", unit="datapoints"):
             # Estimates of local OLS model.
-            betas, xtx_inv_xt, wi = self.__estimate_beta_by_index(index)
+            beta, _, wi = self.__estimate_beta_by_index(index)
             # update estimates of each datapoint.
-            self.dataset.update_estimates_by_index(index)
+            self.dataset.update_estimates_by_index(index, beta, wi)
+
+        print(self.dataset.betas[0])
+        aa = np.array(self.dataset.betas)
+        print(aa.shape)
 
         raise NotImplementedError("Method not implemented yet")
 
@@ -84,10 +88,10 @@ class GWR:
         xT = (self.dataset.x_matrix * wi).T
         xtx = np.dot(xT, self.dataset.x_matrix)
         xtx_inv_xt: npt.NDArray[np.float64] = linalg.solve(xtx, xT)
-        betas: npt.NDArray[np.float64] = np.dot(xtx_inv_xt, self.dataset.y)
+        beta: npt.NDArray[np.float64] = np.dot(xtx_inv_xt, self.dataset.y)
 
         # Return betas, inverse matrix for inspection, and weight vector for trace calculations
         # betas:      (number of independent vars, 1)
         # xtx_inv_xt: (number of independent vars, number of datapoints)
         # wi:         (number of datapoints, 1)
-        return betas, xtx_inv_xt, wi
+        return beta, xtx_inv_xt, wi

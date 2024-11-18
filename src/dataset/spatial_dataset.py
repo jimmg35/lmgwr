@@ -25,13 +25,16 @@ class SpatialDataset(IDataset):
         y (npt.NDArray[np.float64]): A column vector of response values extracted from the data points.
     """
 
+    # Raw Data in Different formats.
     dataPoints: List[IDataPoint] | None = None
     fieldInfo: IFieldInfo | None = None
     isSpherical: bool = False
     x_matrix: npt.NDArray[np.float64]
     y: npt.NDArray[np.float64]
-    betas: npt.NDArray[np.float64]
-    wi: npt.NDArray[np.float64]
+
+    # Estimated values
+    betas: List[npt.NDArray[np.float64] | None]
+    W: List[npt.NDArray[np.float64] | None]
 
     def __init__(self, data: DataFrame, fieldInfo: IFieldInfo, isSpherical: bool = False) -> None:
         """
@@ -64,14 +67,8 @@ class SpatialDataset(IDataset):
         self.y = np.array([[data_point.y] for data_point in self.dataPoints])
 
         # Initializing the estimates storing variables.
-        self.betas: npt.NDArray[np.float64] = np.empty(
-            (len(self.dataPoints), 1), dtype=np.float64)
-        self.wi: npt.NDArray[np.float64] = np.empty(
-            (len(self.dataPoints), 1), dtype=np.float64)
-
-        # Ensure the initialized values are null.
-        self.betas.fill(np.nan)
-        self.wi.fill(np.nan)
+        self.betas = [None for i in range(0, len(self.dataPoints))]
+        self.W = [None for i in range(0, len(self.dataPoints))]
 
     def _verify_fields(self, data: pd.DataFrame) -> None:
         """
@@ -150,10 +147,11 @@ class SpatialDataset(IDataset):
     def update_estimates_by_index(
         self,
         index: int,
-        betas: npt.NDArray[np.float64],
+        beta: npt.NDArray[np.float64],
         wi: npt.NDArray[np.float64]
     ):
-        raise NotImplementedError("Method not implemented yet")
+        self.betas[index] = beta
+        self.W[index] = wi
 
 
 if __name__ == '__main__':
