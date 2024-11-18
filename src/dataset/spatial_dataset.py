@@ -30,6 +30,8 @@ class SpatialDataset(IDataset):
     isSpherical: bool = False
     x_matrix: npt.NDArray[np.float64]
     y: npt.NDArray[np.float64]
+    betas: npt.NDArray[np.float64]
+    wi: npt.NDArray[np.float64]
 
     def __init__(self, data: DataFrame, fieldInfo: IFieldInfo, isSpherical: bool = False) -> None:
         """
@@ -48,13 +50,28 @@ class SpatialDataset(IDataset):
         Raises:
             ValueError: If any required fields specified in `fieldInfo` are missing from the dataset.
         """
+        # Parse Pandas dataframe into datapoint structure.
         self.fieldInfo = fieldInfo
         self._verify_fields(data)
         self.dataPoints = self._create_data_points(data)
+
+        # Indicates if the coordinates system of this dataset is projected or not.
         self.isSpherical = isSpherical
+
+        # Transforming the datapoints into the matrix form.
         self.x_matrix = np.vstack(
             [data_point.X for data_point in self.dataPoints])
         self.y = np.array([[data_point.y] for data_point in self.dataPoints])
+
+        # Initializing the estimates storing variables.
+        self.betas: npt.NDArray[np.float64] = np.empty(
+            (len(self.dataPoints), 1), dtype=np.float64)
+        self.wi: npt.NDArray[np.float64] = np.empty(
+            (len(self.dataPoints), 1), dtype=np.float64)
+
+        # Ensure the initialized values are null.
+        self.betas.fill(np.nan)
+        self.wi.fill(np.nan)
 
     def _verify_fields(self, data: pd.DataFrame) -> None:
         """
@@ -129,6 +146,14 @@ class SpatialDataset(IDataset):
         except Exception as e:
             logging.error(f"Error creating data points: {e}")
             raise e
+
+    def update_estimates_by_index(
+        self,
+        index: int,
+        betas: npt.NDArray[np.float64],
+        wi: npt.NDArray[np.float64]
+    ):
+        raise NotImplementedError("Method not implemented yet")
 
 
 if __name__ == '__main__':

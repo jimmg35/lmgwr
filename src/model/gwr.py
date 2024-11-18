@@ -3,6 +3,7 @@ import numpy.typing as npt
 from scipy import linalg
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
+from tqdm import tqdm
 
 
 class GWR:
@@ -46,8 +47,11 @@ class GWR:
             raise ValueError("DataPoints are not set up in the dataset")
 
         # Iterate over each data point to estimate local regression coefficients
-        for index in range(len(self.dataset.dataPoints)):
+        for index in tqdm(range(len(self.dataset.dataPoints)), desc="GWR Fitting", unit="datapoints"):
+            # Estimates of local OLS model.
             betas, xtx_inv_xt, wi = self.__estimate_beta_by_index(index)
+            # update estimates of each datapoint.
+            self.dataset.update_estimates_by_index(index)
 
         raise NotImplementedError("Method not implemented yet")
 
@@ -75,17 +79,15 @@ class GWR:
             ValueError: If there is an error in matrix calculations.
         """
 
-        wi = self.kernel.get_weighted_matrix_by_id(index)
-        
+        wi: npt.NDArray[np.float64] = self.kernel.get_weighted_matrix_by_id(
+            index)
+        xT = (self.dataset.x_matrix * wi).T
+        xtx = np.dot(xT, self.dataset.x_matrix)
+        xtx_inv_xt: npt.NDArray[np.float64] = linalg.solve(xtx, xT)
+        betas: npt.NDArray[np.float64] = np.dot(xtx_inv_xt, self.dataset.y)
 
-
-
-
-        wi = self.kernel.get_weighted_matrix_by_id(index)  # Spatial weights for the current data point
-        xT = (self.dataset.x_matrix * wi).T  # Weighted predictor matrix transpose (X^T * W)
-        xtx = np.dot(xT, self.dataset.x_matrix)  # X^T * W * X
-        xtx_inv_xt = linalg.solve(xtx, xT)  # Solve for (X^T * W * X)^-1 * (X^T * W)
-        betas = np.dot(xtx_inv_xt, self.dataset.y)  # Compute the local coefficients (betas)
-        
         # Return betas, inverse matrix for inspection, and weight vector for trace calculations
+        # betas:      (number of independent vars, 1)
+        # xtx_inv_xt: (number of independent vars, number of datapoints)
+        # wi:         (number of datapoints, 1)
         return betas, xtx_inv_xt, wi
