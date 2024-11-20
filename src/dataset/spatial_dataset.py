@@ -36,7 +36,13 @@ class SpatialDataset(IDataset):
     betas: List[npt.NDArray[np.float64] | None]
     W: List[npt.NDArray[np.float64] | None]
 
-    def __init__(self, data: DataFrame, fieldInfo: IFieldInfo, isSpherical: bool = False) -> None:
+    def __init__(
+        self,
+        data: DataFrame,
+        fieldInfo: IFieldInfo,
+        isSpherical: bool = False,
+        intercept: bool = True
+    ) -> None:
         """
         Initializes the SpatialDataset with provided data and field information.
 
@@ -65,6 +71,18 @@ class SpatialDataset(IDataset):
         self.x_matrix = np.vstack(
             [data_point.X for data_point in self.dataPoints])
         self.y = np.array([[data_point.y] for data_point in self.dataPoints])
+
+        # print(self.x_matrix.std(axis=0))
+        # print("================================")
+        self.x_matrix = (self.x_matrix - self.x_matrix.mean(axis=0)
+                         ) / self.x_matrix.std(axis=0)
+        self.y = self.y.reshape((-1, 1))
+        self.y = (self.y - self.y.mean(axis=0)) / self.y.std(axis=0)
+
+        if intercept:
+            # Add a column of ones as the first column for the intercept
+            self.x_matrix = np.hstack(
+                (np.ones((self.x_matrix.shape[0], 1)), self.x_matrix))
 
         # Initializing the estimates storing variables.
         self.betas = [None for i in range(0, len(self.dataPoints))]

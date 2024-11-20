@@ -4,6 +4,12 @@ from scipy import linalg
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from tqdm import tqdm
+import warnings
+
+
+import numpy.linalg as la
+from scipy import sparse as sp
+from spreg.utils import spdot, spmultiply
 
 
 class GWR:
@@ -47,17 +53,46 @@ class GWR:
             raise ValueError("DataPoints are not set up in the dataset")
 
         # Iterate over each data point to estimate local regression coefficients
-        for index in tqdm(range(len(self.dataset.dataPoints)), desc="GWR Fitting", unit="datapoints"):
+        # for index in tqdm(range(len(self.dataset.dataPoints)), desc="GWR Fitting", unit="datapoints"):
+        y_hats = []
+        betas = []
+        for index in range(0, len(self.dataset.dataPoints)):
             # Estimates of local OLS model.
             beta, _, wi = self.__estimate_beta_by_index(index)
             # update estimates of each datapoint.
             self.dataset.update_estimates_by_index(index, beta, wi)
 
-        print(self.dataset.betas[0])
-        aa = np.array(self.dataset.betas)
-        print(aa.shape)
+            y_hat = np.dot(self.dataset.x_matrix[index], beta)
+            y_hats.append(y_hat)
+            betas.append(beta)
 
-        raise NotImplementedError("Method not implemented yet")
+        y_hats = np.array(y_hats)
+        residules = self.dataset.y - y_hats
+
+        # print(residules.shape)
+        print(np.abs(residules).sum())
+        print(betas)
+
+        betas = np.array(betas)
+        # print(betas)
+
+        def _compute_betas(y, x):
+            xT = x.T
+            xtx = spdot(xT, x)
+            xtx_inv = la.inv(xtx)
+            xtx_inv = sp.csr_matrix(xtx_inv)
+            xTy = spdot(xT, y, array_out=False)
+            betas = spdot(xtx_inv, xTy)
+            return betas
+
+        ols_betas = _compute_betas(self.dataset.y, self.dataset.x_matrix)
+        ols_y_hat = np.dot(self.dataset.x_matrix, ols_betas)
+        ols_residules = self.dataset.y - ols_y_hat
+        # print(np.abs(ols_residules).sum())
+
+        return
+        # raise warnings.warn(
+        #     "The fit function hasn't fully completed yet.", category=UserWarning)
 
     def __estimate_beta_by_index(self, index: int):
         """
