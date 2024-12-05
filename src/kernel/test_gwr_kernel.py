@@ -2,9 +2,9 @@
 import pytest
 import numpy as np
 import pandas as pd
-from dataset.spatial_dataset import SpatialDataset
-from dataset.interfaces.spatial_dataset import IFieldInfo
-from .gwr_kernel import GwrKernel
+from src.dataset.spatial_dataset import SpatialDataset
+from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.kernel.gwr_kernel import GwrKernel
 
 
 @pytest.fixture

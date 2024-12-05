@@ -1,8 +1,8 @@
 import numpy as np
 import numpy.typing as npt
-from dataset.spatial_dataset import SpatialDataset
-from .haversine_distance.haversine_distance import haversine_distance
-from .euclidean_distance.euclidean_distance import euclidean_distance
+from src.dataset.spatial_dataset import SpatialDataset
+from src.distance.haversine_distance.haversine_distance import haversine_distance
+from src.distance.euclidean_distance.euclidean_distance import euclidean_distance
 
 
 def get_2d_distance_vector(index: int, dataset: SpatialDataset) -> npt.NDArray[np.float64]:

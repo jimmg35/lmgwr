@@ -1,51 +1,117 @@
+import numpy as np
+import numpy.typing as npt
+from scipy import linalg
+from src.dataset.spatial_dataset import SpatialDataset
+from src.kernel.gwr_kernel import GwrKernel
+from tqdm import tqdm
+import warnings
 
-# from spglm.glm import GLM, GLMResults
-from ..dataset.interfaces.spatial_dataset import IDataset
-from ..dataset.spatial_dataset import SpatialDataset
+
+import numpy.linalg as la
+from scipy import sparse as sp
+from spreg.utils import spdot, spmultiply
 
 
-class GWR():
+class GWR:
     """
     A class for performing Geographically Weighted Regression (GWR) using a spatial dataset.
 
+    This class manages the process of fitting a GWR model, which allows for spatially varying
+    relationships between predictors and the response variable. It relies on a spatial dataset
+    and a kernel for generating location-based weights.
+
     Attributes:
         dataset (SpatialDataset): The spatial dataset used for the GWR analysis.
+        kernel (GwrKernel): The kernel function that defines spatial weights for each location.
     """
+    dataset: SpatialDataset
+    kernel: GwrKernel
 
-    dataset: SpatialDataset | None = None
-
-    def __init__(self, dataset: SpatialDataset) -> None:
+    def __init__(self, dataset: SpatialDataset, kernel: GwrKernel) -> None:
         """
-        Initializes the GWR model with the given dataset.
+        Initializes the GWR model with the specified spatial dataset and kernel.
 
         Args:
-            dataset (SpatialDataset): The spatial dataset to be used for the GWR model.
+            dataset (SpatialDataset): The spatial dataset containing data points and field information.
+            kernel (GwrKernel): A kernel instance used to calculate spatial weights for each data point.
         """
         self.dataset = dataset
+        self.kernel = kernel
 
     def fit(self) -> None:
         """
-        Fit the GWR model with the provided dataset and specified bandwidth.
+        Fit the GWR model with the provided dataset and spatial weights based on the kernel.
 
-        This method should implement the algorithm to fit the GWR model to the dataset.
+        This method iterates over each data point in the dataset and calculates local regression
+        coefficients using spatial weights, implementing the core concept of GWR.
 
         Raises:
-            NotImplementedError: If the method is not yet implemented.
+            ValueError: If `dataPoints` are not set up in the dataset.
+            NotImplementedError: If the method's fitting logic is not fully implemented.
         """
-        raise NotImplementedError("Method not implemented yet")
+        if self.dataset.dataPoints is None:
+            raise ValueError("DataPoints are not set up in the dataset")
 
-    def __build_weight_matrix(self, index: int, bandwidth: float) -> None:
+        # Iterate over each data point to estimate local regression coefficients
+        # for index in tqdm(range(len(self.dataset.dataPoints)), desc="GWR Fitting", unit="datapoints"):
+        y_hats = []
+        betas = []
+        wis = []
+        for index in range(0, len(self.dataset.dataPoints)):
+            # Estimates of local OLS model.
+            beta, _, wi = self.__estimate_beta_by_index(index)
+            # update estimates of each datapoint.
+            # self.dataset.update_estimates_by_index(index, beta, wi)
+            y_hat = np.dot(self.dataset.x_matrix[index], beta)
+            y_hats.append(y_hat)
+            betas.append(beta)
+            wis.append(wi)
+
+        y_hats = np.array(y_hats)
+        betas = np.array(betas)
+        wis = np.array(wis)
+        residules = self.dataset.y - y_hats
+
+        print(y_hats.shape)
+        print(residules.shape)
+
+        return
+        # raise warnings.warn(
+        #     "The fit function hasn't fully completed yet.", category=UserWarning)
+
+    def __estimate_beta_by_index(self, index: int):
         """
-        Build the spatial weight matrix for a particular datapoint.
+        Estimates local regression coefficients (betas) for a specified data point.
 
-        This method should create a weight matrix that reflects the spatial relationship 
-        between data points, typically based on geographic proximity.
+        This method calculates the coefficients by using weighted least squares regression.
+        Spatial weights are obtained from the kernel for the given data point index.
 
         Args:
-            index (int): The index of the target data point.
-            bandwidth (float): The bandwidth value for calculating weights (it can be manually configured).
+            index (int): The index of the data point for which to estimate the coefficients.
+
+        Returns:
+            tuple: A tuple containing the local regression coefficients (betas), the matrix (xtx_inv_xt) used
+                   to compute the coefficients, and the weight vector (wi) for further analysis.
+
+        Steps:
+            1. Obtain the spatial weight vector `wi` for the current data point using the kernel.
+            2. Weight the predictor matrix `x_matrix` by `wi` and transpose it to prepare for WLS.
+            3. Calculate (X^T * W * X) and its inverse, then multiply by (X^T * W) to solve for betas.
+            4. Return the estimated coefficients, the inverse matrix, and the weight vector.
 
         Raises:
-            NotImplementedError: If the method is not yet implemented.
+            ValueError: If there is an error in matrix calculations.
         """
-        raise NotImplementedError("Method not implemented yet")
+
+        wi: npt.NDArray[np.float64] = self.kernel.get_weighted_matrix_by_id(
+            index)
+        xT = (self.dataset.x_matrix * wi).T
+        xtx = np.dot(xT, self.dataset.x_matrix)
+        xtx_inv_xt: npt.NDArray[np.float64] = linalg.solve(xtx, xT)
+        beta: npt.NDArray[np.float64] = np.dot(xtx_inv_xt, self.dataset.y)
+
+        # Return betas, inverse matrix for inspection, and weight vector for trace calculations
+        # betas:      (number of independent vars, 1)
+        # xtx_inv_xt: (number of independent vars, number of datapoints)
+        # wi:         (number of datapoints, 1)
+        return beta, xtx_inv_xt, wi
