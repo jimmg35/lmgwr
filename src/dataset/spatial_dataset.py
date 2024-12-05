@@ -33,8 +33,10 @@ class SpatialDataset(IDataset):
     y: npt.NDArray[np.float64]
 
     # Estimated values
-    betas: List[npt.NDArray[np.float64] | None]
-    W: List[npt.NDArray[np.float64] | None]
+    # betas: List[npt.NDArray[np.float64] | None]
+    # W: List[npt.NDArray[np.float64] | None]
+    # y_hats
+    # residules: NDArray[Any]
 
     def __init__(
         self,
@@ -72,8 +74,7 @@ class SpatialDataset(IDataset):
             [data_point.X for data_point in self.dataPoints])
         self.y = np.array([[data_point.y] for data_point in self.dataPoints])
 
-        # print(self.x_matrix.std(axis=0))
-        # print("================================")
+        # Standardize the columns
         self.x_matrix = (self.x_matrix - self.x_matrix.mean(axis=0)
                          ) / self.x_matrix.std(axis=0)
         self.y = self.y.reshape((-1, 1))
@@ -84,9 +85,18 @@ class SpatialDataset(IDataset):
             self.x_matrix = np.hstack(
                 (np.ones((self.x_matrix.shape[0], 1)), self.x_matrix))
 
-        # Initializing the estimates storing variables.
-        self.betas = [None for i in range(0, len(self.dataPoints))]
-        self.W = [None for i in range(0, len(self.dataPoints))]
+        # # Initializing the estimates storing variables.
+        # self.betas = [None for i in range(0, len(self.dataPoints))]
+        # self.W = [None for i in range(0, len(self.dataPoints))]
+
+    # def update_estimates_by_index(
+    #     self,
+    #     index: int,
+    #     beta: npt.NDArray[np.float64],
+    #     wi: npt.NDArray[np.float64]
+    # ):
+    #     self.betas[index] = beta
+    #     self.W[index] = wi
 
     def _verify_fields(self, data: pd.DataFrame) -> None:
         """
@@ -161,15 +171,6 @@ class SpatialDataset(IDataset):
         except Exception as e:
             logging.error(f"Error creating data points: {e}")
             raise e
-
-    def update_estimates_by_index(
-        self,
-        index: int,
-        beta: npt.NDArray[np.float64],
-        wi: npt.NDArray[np.float64]
-    ):
-        self.betas[index] = beta
-        self.W[index] = wi
 
 
 if __name__ == '__main__':
