@@ -54,8 +54,9 @@ class GWR:
 
         # Iterate over each data point to estimate local regression coefficients
         # for index in tqdm(range(len(self.dataset.dataPoints)), desc="GWR Fitting", unit="datapoints"):
-        y_hats = []
+
         betas = []
+        y_hats = []
         wis = []
         for index in range(0, len(self.dataset.dataPoints)):
             # Estimates of local OLS model.
@@ -67,13 +68,10 @@ class GWR:
             betas.append(beta)
             wis.append(wi)
 
-        y_hats = np.array(y_hats)
         betas = np.array(betas)
-        wis = np.array(wis)
+        y_hats = np.array(y_hats)
         residules = self.dataset.y - y_hats
-
-        print(y_hats.shape)
-        print(residules.shape)
+        wis = np.array(wis)
 
         return
         # raise warnings.warn(
