@@ -13,7 +13,7 @@ run:
 # Export the conda environment to a file. 
 # (includes all dependencies and python version)
 exportCondaEnv:
-	conda env export -n gwr -f environment-linux.yml
+	conda env export -n lmgwr -f environment-linux.yml
 # Create a new conda environment from the file.
 importCondaEnv:
 	conda env create -f environment-linux.yml
