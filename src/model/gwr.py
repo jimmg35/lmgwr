@@ -4,7 +4,7 @@ from scipy import linalg
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from tqdm import tqdm
-import warnings
+import logging
 
 
 import numpy.linalg as la
@@ -59,10 +59,7 @@ class GWR:
         y_hats = []
         wis = []
         for index in range(0, len(self.dataset.dataPoints)):
-            # Estimates of local OLS model.
             beta, _, wi = self.__estimate_beta_by_index(index)
-            # update estimates of each datapoint.
-            # self.dataset.update_estimates_by_index(index, beta, wi)
             y_hat = np.dot(self.dataset.x_matrix[index], beta)
             y_hats.append(y_hat)
             betas.append(beta)
@@ -73,9 +70,7 @@ class GWR:
         residules = self.dataset.y - y_hats
         wis = np.array(wis)
 
-        return
-        # raise warnings.warn(
-        #     "The fit function hasn't fully completed yet.", category=UserWarning)
+        logging.debug("The fit function hasn't fully completed yet.")
 
     def __estimate_beta_by_index(self, index: int):
         """

@@ -5,7 +5,7 @@ __author__ = "Taylor Oshan tayoshan@gmail.com"
 import numpy as np
 import pandas as pd
 import numpy.typing as npt
-from typing import Literal, TypeAlias
+from typing import Literal, TypeAlias, Dict
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.distance.get_2d_distance_vector import get_2d_distance_vector
@@ -30,6 +30,7 @@ class GwrKernel(object):
     dataset: SpatialDataset | None = None
     bandwidth: float
     kernel_type: KernelFunctionType = "triangular"
+    weighted_matrix_cache: Dict[int, npt.NDArray[np.float64]] = {}
 
     def __init__(self, dataset: SpatialDataset, bandwidth: float, kernel_type: KernelFunctionType = 'triangular') -> None:
         """
@@ -44,8 +45,25 @@ class GwrKernel(object):
         self.dataset = dataset
         self.bandwidth = bandwidth
         self.kernel_type = kernel_type
+        self.weighted_matrix_cache = {}
+
+        if self.dataset.dataPoints is not None:
+            for i in range(0, len(self.dataset.dataPoints)):
+                wi = self.__calculate_weighted_matrix_by_id(i)
+                self.weighted_matrix_cache[i] = wi
 
     def get_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64]:
+        """
+        Returns the weighted matrix for all data points.
+
+        This function retrieves the weighted matrix for all data points in the dataset.
+
+        Returns:
+            Dict[int, npt.NDArray[np.float64]]: A dictionary of weighted matrices for each data point.
+        """
+        return self.weighted_matrix_cache[index]
+
+    def __calculate_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64]:
         """
         Computes the weighted matrix for a specific data point by index.
 
