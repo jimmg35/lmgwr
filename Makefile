@@ -5,9 +5,13 @@
 unittest:
 	PYTHONPATH=./src pytest
 
+
 # Run the main script.
-run:
-	python index.py
+gwrDemo:
+	python script-gwr-demo.py
+
+lmgwrDemo:
+	python script-lmgwr-demo.py
 
 
 # Export the conda environment to a file. 

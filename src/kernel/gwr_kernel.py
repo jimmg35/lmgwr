@@ -28,11 +28,11 @@ class GwrKernel(object):
         kernel_type (KernelFunctionType): The type of kernel function to use for weight calculations.
     """
     dataset: SpatialDataset | None = None
-    bandwidth: float
+    bandwidth: float | None = None
     kernel_type: KernelFunctionType = "triangular"
     weighted_matrix_cache: Dict[int, npt.NDArray[np.float64]] = {}
 
-    def __init__(self, dataset: SpatialDataset, bandwidth: float, kernel_type: KernelFunctionType = 'triangular') -> None:
+    def __init__(self, dataset: SpatialDataset, bandwidth: float | None = None, kernel_type: KernelFunctionType = 'triangular') -> None:
         """
         Initializes the GwrKernel with a dataset, bandwidth, and kernel type.
 
@@ -77,6 +77,9 @@ class GwrKernel(object):
             npt.NDArray[np.float64]: A 2D array representing the weighted matrix for 
                 the specified data point.
         """
+        if self.bandwidth is None:
+            raise ValueError("Bandwidth is not set up in Kernel")
+
         distance_vector = self.__get_distance_vector(index)
         weighted_matrix = self.__calculate_weighted_matrix(
             distance_vector
@@ -125,6 +128,9 @@ class GwrKernel(object):
         Raises:
             ValueError: If the kernel function type is unsupported.
         """
+        if self.bandwidth is None:
+            raise ValueError("Bandwidth is not set up in Kernel")
+
         zs: npt.NDArray[np.float64] = distance_vector / self.bandwidth
         if self.kernel_type == 'triangular':
             return 1 - zs
