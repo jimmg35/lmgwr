@@ -24,6 +24,6 @@ if __name__ == '__main__':
         isSpherical=True
     )
 
-    kernel = GwrKernel(spatialDataset, 118, 'bisquare')
+    kernel = GwrKernel(spatialDataset, 'bisquare')
+    kernel.update_bandwidth(100)
     gwr = GWR(spatialDataset, kernel)
-    gwr.fit()

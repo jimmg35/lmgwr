@@ -3,7 +3,7 @@
 
 # Run unit test for all test scripts.
 unittest:
-	PYTHONPATH=./src pytest
+	export PYTHONPATH=$(PWD) && echo $(PYTHONPATH) && pytest
 
 
 # Run the main script.

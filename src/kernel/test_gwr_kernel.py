@@ -32,7 +32,8 @@ def euclidean_dataset():
 
 
 def test_gwr_kernel_euclidean_triangular(euclidean_dataset):
-    gwrKernel = GwrKernel(euclidean_dataset, 100, 'triangular')
+    gwrKernel = GwrKernel(euclidean_dataset, 'triangular')
+    gwrKernel.update_bandwidth(100)
     wi = gwrKernel.get_weighted_matrix_by_id(0)
     expected_wi = np.array([
         [1],
@@ -46,7 +47,8 @@ def test_gwr_kernel_euclidean_triangular(euclidean_dataset):
 
 
 def test_gwr_kernel_euclidean_uniform(euclidean_dataset):
-    gwrKernel = GwrKernel(euclidean_dataset, 100, 'uniform')
+    gwrKernel = GwrKernel(euclidean_dataset, 'uniform')
+    gwrKernel.update_bandwidth(100)
     wi = gwrKernel.get_weighted_matrix_by_id(0)
     expected_wi = np.array([
         [0.5],
@@ -60,7 +62,8 @@ def test_gwr_kernel_euclidean_uniform(euclidean_dataset):
 
 
 def test_gwr_kernel_euclidean_gaussian(euclidean_dataset):
-    gwrKernel = GwrKernel(euclidean_dataset, 100, 'gaussian')
+    gwrKernel = GwrKernel(euclidean_dataset, 'gaussian')
+    gwrKernel.update_bandwidth(100)
     wi = gwrKernel.get_weighted_matrix_by_id(0)
     expected_wi = np.array([
         [1],
@@ -74,7 +77,8 @@ def test_gwr_kernel_euclidean_gaussian(euclidean_dataset):
 
 
 def test_gwr_kernel_euclidean_bisquare(euclidean_dataset):
-    gwrKernel = GwrKernel(euclidean_dataset, 40, 'bisquare')
+    gwrKernel = GwrKernel(euclidean_dataset, 'bisquare')
+    gwrKernel.update_bandwidth(40)
     wi = gwrKernel.get_weighted_matrix_by_id(0)
     expected_wi = np.array([
         [1],

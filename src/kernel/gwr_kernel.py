@@ -31,8 +31,9 @@ class GwrKernel(object):
     bandwidth: float | None = None
     kernel_type: KernelFunctionType = "triangular"
     weighted_matrix_cache: Dict[int, npt.NDArray[np.float64]] = {}
+    distance_vector_cache: Dict[int, npt.NDArray[np.float64]] = {}
 
-    def __init__(self, dataset: SpatialDataset, bandwidth: float | None = None, kernel_type: KernelFunctionType = 'triangular') -> None:
+    def __init__(self, dataset: SpatialDataset, kernel_type: KernelFunctionType = 'triangular') -> None:
         """
         Initializes the GwrKernel with a dataset, bandwidth, and kernel type.
 
@@ -43,14 +44,20 @@ class GwrKernel(object):
                 defaults to 'triangular'.
         """
         self.dataset = dataset
-        self.bandwidth = bandwidth
         self.kernel_type = kernel_type
         self.weighted_matrix_cache = {}
+        self.distance_vector_cache = {}
+
+    def update_bandwidth(self, bandwidth: float) -> None:
+        if self.dataset is None:
+            raise ValueError(
+                "GwrKernel: Dataset is not setup in Kernel, Couldn't update the bandwidth")
+
+        self.bandwidth = bandwidth
 
         if self.dataset.dataPoints is not None:
             for i in range(0, len(self.dataset.dataPoints)):
-                wi = self.__calculate_weighted_matrix_by_id(i)
-                self.weighted_matrix_cache[i] = wi
+                self.__update_weighted_matrix_by_id(i)
 
     def get_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64]:
         """
@@ -63,7 +70,7 @@ class GwrKernel(object):
         """
         return self.weighted_matrix_cache[index]
 
-    def __calculate_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64]:
+    def __update_weighted_matrix_by_id(self, index: int) -> None:
         """
         Computes the weighted matrix for a specific data point by index.
 
@@ -80,15 +87,13 @@ class GwrKernel(object):
         if self.bandwidth is None:
             raise ValueError("Bandwidth is not set up in Kernel")
 
-        distance_vector = self.__get_distance_vector(index)
-        weighted_matrix = self.__calculate_weighted_matrix(
+        distance_vector = self.__calculate_distance_vector(index)
+        self.__calculate_weighted_matrix(
+            index,
             distance_vector
         )
-        if self.kernel_type == 'bisquare':
-            weighted_matrix[(distance_vector >= self.bandwidth)] = 0
-        return weighted_matrix.reshape(-1, 1)
 
-    def __get_distance_vector(self, index: int) -> npt.NDArray[np.float64]:
+    def __calculate_distance_vector(self, index: int) -> npt.NDArray[np.float64]:
         """
         Retrieves the distance vector for a specific data point index.
 
@@ -109,9 +114,21 @@ class GwrKernel(object):
             raise ValueError("Dataset is not setup in Kernel")
         if self.dataset.dataPoints is None:
             raise ValueError("DataPoints are not setup in Kernel")
-        return get_2d_distance_vector(index, self.dataset).reshape(-1)
 
-    def __calculate_weighted_matrix(self, distance_vector: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        # retrieve the distance vector from the cache if it exists
+        if index in self.distance_vector_cache:
+            return self.distance_vector_cache[index]
+
+        # or calculate and store the distance vector in the cache
+        distance_vector_i = get_2d_distance_vector(
+            index,
+            self.dataset
+        ).reshape(-1)
+        self.distance_vector_cache[index] = distance_vector_i
+
+        return distance_vector_i
+
+    def __calculate_weighted_matrix(self, index: int, distance_vector: npt.NDArray[np.float64]):
         """
         Calculates the weighted matrix based on the kernel function and distance vector.
 
@@ -131,22 +148,32 @@ class GwrKernel(object):
         if self.bandwidth is None:
             raise ValueError("Bandwidth is not set up in Kernel")
 
+        weighted_matrix: npt.NDArray[np.float64] = np.zeros(
+            distance_vector.shape)
         zs: npt.NDArray[np.float64] = distance_vector / self.bandwidth
+
         if self.kernel_type == 'triangular':
-            return 1 - zs
+            weighted_matrix = 1 - zs
         elif self.kernel_type == 'uniform':
-            return np.ones(zs.shape) * 0.5
+            weighted_matrix = np.ones(zs.shape) * 0.5
         elif self.kernel_type == 'quadratic':
-            return (3. / 4) * (1 - zs**2)
+            weighted_matrix = (3. / 4) * (1 - zs**2)
         elif self.kernel_type == 'quartic':
-            return (15. / 16) * (1 - zs**2)**2
+            weighted_matrix = (15. / 16) * (1 - zs**2)**2
         elif self.kernel_type == 'gaussian':
-            return np.exp(-0.5 * (zs)**2)
+            weighted_matrix = np.exp(-0.5 * (zs)**2)
         elif self.kernel_type == 'bisquare':
-            return (1 - (zs)**2)**2
+            weighted_matrix = (1 - (zs)**2)**2
         elif self.kernel_type == 'exponential':
-            return np.exp(-zs)
-        raise ValueError('Unsupported kernel function')
+            weighted_matrix = np.exp(-zs)
+        else:
+            raise ValueError('Unsupported kernel function')
+
+        if self.kernel_type == 'bisquare':
+            weighted_matrix[(distance_vector >= self.bandwidth)] = 0
+
+        # store the weighted matrix in the cache
+        self.weighted_matrix_cache[index] = weighted_matrix.reshape(-1, 1)
 
 
 if __name__ == '__main__':
@@ -163,4 +190,6 @@ if __name__ == '__main__':
         isSpherical=True
     )
 
-    gwrKernel = GwrKernel(spatialDataset, 100, 'triangular')
+    gwrKernel = GwrKernel(spatialDataset, 'triangular')
+    gwrKernel.update_bandwidth(100)
+    wi = gwrKernel.get_weighted_matrix_by_id(0)
