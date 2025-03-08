@@ -67,7 +67,6 @@ class GWR:
 
         for index in range(len(self.dataset.dataPoints)):
             beta, _, wi = self.__estimate_beta_by_index(index)
-
             XtWX = self.dataset.x_matrix.T @ (wi * self.dataset.x_matrix)
 
             # update estimates (in loop to append to the arrays)
@@ -81,7 +80,7 @@ class GWR:
         self.residuals = self.dataset.y - self.y_hats.reshape(-1, 1)
 
         self.__calculate_r_squared()
-        self.__calculate_aic()
+        self.__calculate_aic_aicc()
 
     def __init_estimates(self) -> None:
         if self.dataset.dataPoints is None:
@@ -148,7 +147,7 @@ class GWR:
         ss_res = np.sum(self.residuals ** 2)
         self.r_squared = float(1 - ss_res / ss_total)
 
-    def __calculate_aic(self) -> None:
+    def __calculate_aic_aicc(self) -> None:
         """
         Calculate the Akaike Information Criterion (AIC) for the GWR model.
 
@@ -168,15 +167,11 @@ class GWR:
             raise ValueError("DataPoints are not set up in the dataset")
 
         n = len(self.dataset.dataPoints)
-        # print((self.residuals ** 2)[0])
-        # print(self.residuals[0])
         RSS = np.sum(self.residuals ** 2)
-        # print(RSS)
-        # print(n)
         sigma2 = RSS / n
         trS = np.sum(self.S)
-        AIC = 2 * trS + n * np.log(sigma2)
-
-        AICc = AIC + (2 * trS * (trS + 1)) / (n - trS - 1)
+        llf = -0.5 * n * (np.log(2.0 * np.pi * sigma2) + 1)
+        AIC = -2.0 * llf + 2.0 * (trS + 1)
+        AICc = AIC + (2.0 * trS * (trS + 1.0)) / (n - trS - 2.0)
         self.aic = AIC
         self.aicc = AICc

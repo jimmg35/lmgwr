@@ -68,6 +68,9 @@ class GwrKernel(object):
         Returns:
             Dict[int, npt.NDArray[np.float64]]: A dictionary of weighted matrices for each data point.
         """
+        if index not in self.weighted_matrix_cache:
+            raise ValueError(
+                f"Weighted matrix for index {index} is not found in the cache, please update the bandwidth first")
         return self.weighted_matrix_cache[index]
 
     def __update_weighted_matrix_by_id(self, index: int) -> None:

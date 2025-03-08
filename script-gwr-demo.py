@@ -6,6 +6,7 @@ from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.model.gwr import GWR
 from src.kernel.gwr_kernel import GwrKernel
+from src.optimizer.gwr_bandwidth_optimizer import GwrBandwidthOptimizer
 
 create_logger()
 
@@ -16,24 +17,20 @@ if __name__ == '__main__':
     spatialDataset = SpatialDataset(
         synthetic_data,
         IFieldInfo(
-            predictor_fields=['PctBach', 'PctEld', 'PctBlack'],
-            response_field='PctPov',
-            coordinate_x_field='Longitud',
-            coordinate_y_field='Latitude'
+            predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
+            response_field='PctBach',
+            coordinate_x_field='X',
+            coordinate_y_field='Y'
         ),
-        isSpherical=True
+        isSpherical=False
     )
 
     kernel = GwrKernel(spatialDataset, 'bisquare')
     gwr = GWR(spatialDataset, kernel)
 
-    kernel.update_bandwidth(100)
-    gwr.fit()
-    kernel.update_bandwidth(200)
-    gwr.fit()
-    kernel.update_bandwidth(300)
-    gwr.fit()
-    kernel.update_bandwidth(400)
-    gwr.fit()
-    kernel.update_bandwidth(500)
-    gwr.fit()
+    kernel.update_bandwidth(117)
+    # gwr.fit()
+
+    # optimizer = GwrBandwidthOptimizer(gwr, kernel)
+    # optimal_bandwidth = optimizer.optimize()
+    # print(f'Optimal bandwidth: {optimal_bandwidth}')
