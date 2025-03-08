@@ -27,6 +27,17 @@ class GWR:
     dataset: SpatialDataset
     kernel: GwrKernel
 
+    # estimates for each data point
+    betas: npt.NDArray[np.float64]
+    y_hats: npt.NDArray[np.float64]
+    S: npt.NDArray[np.float64]  # hat matrix
+    residuals: npt.NDArray[np.float64]
+
+    # matrices for the GWR model
+    r_squared: float
+    aic: float
+    aicc: float
+
     def __init__(self, dataset: SpatialDataset, kernel: GwrKernel) -> None:
         """
         Initializes the GWR model with the specified spatial dataset and kernel.
@@ -52,25 +63,38 @@ class GWR:
         if self.dataset.dataPoints is None:
             raise ValueError("DataPoints are not set up in the dataset")
 
-        # Iterate over each data point to estimate local regression coefficients
-        # for index in tqdm(range(len(self.dataset.dataPoints)), desc="GWR Fitting", unit="datapoints"):
+        self.__init_estimates()
 
-        betas = []
-        y_hats = []
-        wis = []
-        for index in range(0, len(self.dataset.dataPoints)):
+        for index in range(len(self.dataset.dataPoints)):
             beta, _, wi = self.__estimate_beta_by_index(index)
-            y_hat = np.dot(self.dataset.x_matrix[index], beta)
-            y_hats.append(y_hat)
-            betas.append(beta)
-            wis.append(wi)
 
-        betas = np.array(betas)
-        y_hats = np.array(y_hats)
-        residules = self.dataset.y - y_hats
-        wis = np.array(wis)
+            XtWX = self.dataset.x_matrix.T @ (wi * self.dataset.x_matrix)
 
-        logging.debug("The fit function hasn't fully completed yet.")
+            # update estimates (in loop to append to the arrays)
+            self.betas[index, :] = beta.flatten()
+            self.y_hats[index] = self.dataset.x_matrix[index, :] @ beta
+            xi = self.dataset.x_matrix[index, :].reshape(1, -1)
+            S_ii = xi @ np.linalg.inv(XtWX) @ xi.T
+            self.S[index] = S_ii.flatten()[0]
+
+        # update estimates (outside of loop for calculations)
+        self.residuals = self.dataset.y - self.y_hats.reshape(-1, 1)
+
+        self.__calculate_r_squared()
+        self.__calculate_aic()
+
+    def __init_estimates(self) -> None:
+        if self.dataset.dataPoints is None:
+            raise ValueError(
+                "GWR.__init_estimates: DataPoints are not set up in the dataset")
+
+        data_counts = len(self.dataset.dataPoints)
+
+        # allocate memory for the estimates
+        self.betas = np.zeros((data_counts, self.dataset.x_matrix.shape[1]))
+        self.y_hats = np.zeros(data_counts)
+        self.S = np.zeros(data_counts)
+        self.residuals = np.zeros(data_counts)
 
     def __estimate_beta_by_index(self, index: int):
         """
@@ -108,3 +132,51 @@ class GWR:
         # xtx_inv_xt: (number of independent vars, number of datapoints)
         # wi:         (number of datapoints, 1)
         return beta, xtx_inv_xt, wi
+
+    def __calculate_r_squared(self) -> None:
+        """
+        Calculate the R-squared value for the GWR model.
+
+        The R-squared value is a measure of the model's goodness of fit, indicating the proportion
+        of variance in the response variable that is explained by the predictors.
+
+        Raises:
+            NotImplementedError: If the method is not fully implemented.
+        """
+        y_bar = np.mean(self.dataset.y)
+        ss_total = np.sum((self.dataset.y - y_bar) ** 2)
+        ss_res = np.sum(self.residuals ** 2)
+        self.r_squared = float(1 - ss_res / ss_total)
+
+    def __calculate_aic(self) -> None:
+        """
+        Calculate the Akaike Information Criterion (AIC) for the GWR model.
+
+        The AIC is a measure of the model's goodness of fit, balancing the likelihood of the model
+        with the number of parameters used. Lower AIC values indicate better models.
+
+        Returns:
+            float: The AIC value for the GWR model.
+
+        Raises:
+            NotImplementedError: If the method is not fully implemented.
+        """
+
+        """計算 AIC 和 AICc"""
+
+        if self.dataset.dataPoints is None:
+            raise ValueError("DataPoints are not set up in the dataset")
+
+        n = len(self.dataset.dataPoints)
+        # print((self.residuals ** 2)[0])
+        # print(self.residuals[0])
+        RSS = np.sum(self.residuals ** 2)
+        # print(RSS)
+        # print(n)
+        sigma2 = RSS / n
+        trS = np.sum(self.S)
+        AIC = 2 * trS + n * np.log(sigma2)
+
+        AICc = AIC + (2 * trS * (trS + 1)) / (n - trS - 1)
+        self.aic = AIC
+        self.aicc = AICc

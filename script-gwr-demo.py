@@ -25,5 +25,15 @@ if __name__ == '__main__':
     )
 
     kernel = GwrKernel(spatialDataset, 'bisquare')
-    kernel.update_bandwidth(100)
     gwr = GWR(spatialDataset, kernel)
+
+    kernel.update_bandwidth(100)
+    gwr.fit()
+    kernel.update_bandwidth(200)
+    gwr.fit()
+    kernel.update_bandwidth(300)
+    gwr.fit()
+    kernel.update_bandwidth(400)
+    gwr.fit()
+    kernel.update_bandwidth(500)
+    gwr.fit()

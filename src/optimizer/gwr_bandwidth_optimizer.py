@@ -5,18 +5,40 @@
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.model.gwr import GWR
+from typing import Literal, TypeAlias, Dict
+
+GwrBandwidthOptimizeMethod: TypeAlias = Literal['golden_section',
+                                                'grid_search', 'random_search']
 
 
 class GwrBandwidthOptimizer():
 
     kernel: GwrKernel
     model: GWR
+    method: GwrBandwidthOptimizeMethod
+    search_range: tuple
 
-    def __init__(self, model: GWR, kernel: GwrKernel):
+    def __init__(self,
+                 model: GWR,
+                 kernel: GwrKernel,
+                 method: GwrBandwidthOptimizeMethod = 'golden_section',
+                 search_range=(50, 200)) -> None:
         self.model = model
         self.kernel = kernel
+        self.method = method
+        self.search_range = search_range
 
-    # def golden_section_search(self, a: float, b: float, tol: float, max_iter: int):
+    # def optimize(self):
+    #     if self.method == 'golden_section':
+    #         return self.__golden_section_search()
+    #     # elif self.method == 'grid_search':
+    #     #     return self._grid_search()
+    #     # elif self.method == 'deep_learning':
+    #     #     return self._deep_learning_optimizer()
+    #     # else:
+    #     #     raise ValueError(f"未知的方法: {self.method}")
+
+    # def __golden_section_search(self, a: float, b: float, tol: float, max_iter: int):
     #     """
     #     Perform a golden section search to find the optimal bandwidth parameter for the GWR model.
 
@@ -70,10 +92,17 @@ class GwrBandwidthOptimizer():
     #     Returns:
     #         float: The value of the objective function for the given bandwidth.
     #     """
-    #     kernel = GwrKernel(self.dataset, bandwidth)
-    #     gwr = GWR(self.dataset, kernel)
-    #     gwr.fit()
+    #     self.kernel.update_bandwidth(bandwidth)
+    #     self.model.fit()
     #     # Calculate the objective function value
     #     # For example, we can use the AICc value as the objective function
-    #     aicc = gwr.aicc()
+    #     aicc = self.model.aicc()
     #     return aicc
+
+    #     # kernel = GwrKernel(self.dataset, bandwidth)
+    #     # gwr = GWR(self.dataset, kernel)
+    #     # gwr.fit()
+    #     # Calculate the objective function value
+    #     # For example, we can use the AICc value as the objective function
+    #     # aicc = gwr.aicc()
+    #     # return aicc
