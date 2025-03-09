@@ -29,7 +29,7 @@ if __name__ == '__main__':
     gwr = GWR(spatialDataset, kernel)
 
     kernel.update_bandwidth(117)
-    # gwr.fit()
+    gwr.fit()
 
     # optimizer = GwrBandwidthOptimizer(gwr, kernel)
     # optimal_bandwidth = optimizer.optimize()

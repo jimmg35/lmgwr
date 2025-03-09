@@ -65,22 +65,16 @@ class GWR:
 
         self.__init_estimates()
 
-        for index in range(len(self.dataset.dataPoints)):
-            beta, _, wi = self.__estimate_beta_by_index(index)
-            XtWX = self.dataset.x_matrix.T @ (wi * self.dataset.x_matrix)
+        self.__local_fit(0)
 
-            # update estimates (in loop to append to the arrays)
-            self.betas[index, :] = beta.flatten()
-            self.y_hats[index] = self.dataset.x_matrix[index, :] @ beta
-            xi = self.dataset.x_matrix[index, :].reshape(1, -1)
-            S_ii = xi @ np.linalg.inv(XtWX) @ xi.T
-            self.S[index] = S_ii.flatten()[0]
+        # for index in range(len(self.dataset.dataPoints)):
+        #     self.__local_fit(index)
 
-        # update estimates (outside of loop for calculations)
-        self.residuals = self.dataset.y - self.y_hats.reshape(-1, 1)
+        # # update estimates (outside of loop for calculations)
+        # self.residuals = self.dataset.y - self.y_hats.reshape(-1, 1)
 
-        self.__calculate_r_squared()
-        self.__calculate_aic_aicc()
+        # self.__calculate_r_squared()
+        # self.__calculate_aic_aicc()
 
     def __init_estimates(self) -> None:
         if self.dataset.dataPoints is None:
@@ -94,6 +88,33 @@ class GWR:
         self.y_hats = np.zeros(data_counts)
         self.S = np.zeros(data_counts)
         self.residuals = np.zeros(data_counts)
+
+    def __local_fit(self, index: int) -> None:
+        """
+        Fit a local regression model for a specific data point.
+
+        This method calculates the local regression coefficients (betas) for a given data point
+        using weighted least squares regression. The spatial weights are obtained from the kernel
+        for the specified data point index.
+
+        Args:
+            index (int): The index of the data point for which to estimate the coefficients.
+
+        Raises:
+            ValueError: If there is an error in matrix calculations.
+        """
+
+        beta, _, wi = self.__estimate_beta_by_index(index)
+
+        # calculate elements for estimates and matrices
+        XtWX = self.dataset.x_matrix.T @ (wi * self.dataset.x_matrix)
+        xi = self.dataset.x_matrix[index, :].reshape(1, -1)
+        S_ii = xi @ np.linalg.inv(XtWX) @ xi.T
+
+        # update estimates (in loop to append to the arrays)
+        self.betas[index, :] = beta.flatten()
+        self.y_hats[index] = self.dataset.x_matrix[index, :] @ beta
+        self.S[index] = S_ii.flatten()[0]
 
     def __estimate_beta_by_index(self, index: int):
         """
