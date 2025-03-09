@@ -138,7 +138,7 @@ class SpatialDataset(IDataset):
             )
 
         self.logger.append_info(
-            "SpatialDataset : Data schema matchs with the data.")
+            f"{self.__class__.__name__} : Data schema matchs with the data.")
 
     def _create_data_points(self, data: pd.DataFrame) -> List[IDataPoint]:
         """
@@ -173,10 +173,12 @@ class SpatialDataset(IDataset):
                 data_points.append(IDataPoint(y=y, X=np.array(
                     X), coordinate_x=coordinate_x, coordinate_y=coordinate_y))
 
-            self.logger.append_info("SpatialDataset : Data points created.")
+            self.logger.append_info(
+                f"{self.__class__.__name__} : Data points created.")
             return data_points
         except Exception as e:
-            self.logger.append_info(f"Error creating data points: {e}")
+            self.logger.append_info(
+                f"{self.__class__.__name__} : Error creating data points: {e}")
             raise e
 
 

@@ -109,6 +109,6 @@ class GwrBandwidthOptimizer():
         self.model.fit()
 
         self.logger.append_bandwidth_optimization(
-            f"GwrBandwidthOptimizer : Bandwidth {bandwidth}, AICc {self.model.aicc}"
+            f"{self.__class__.__name__} : Bandwidth {bandwidth}, AICc {self.model.aicc}"
         )
         return self.model.aicc

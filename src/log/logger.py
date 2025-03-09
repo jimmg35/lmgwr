@@ -26,22 +26,26 @@ GwrMatricesType: TypeAlias = Literal['AIC',
 
 
 class GwrLogger:
+    model_type: str
+
     def __init__(self):
 
+        self.model_type = 'gwr'
         self.log_path = os.path.join(
-            os.getcwd(), 'logs',  f'gwr-{current_time_str()}-log')
+            os.getcwd(), 'logs',  f'{self.model_type}-{current_time_str()}-log')
         if os.path.exists(self.log_path) is False:
             os.makedirs(self.log_path)
 
         self.model_info = {
+            'model_type': self.model_type,
             'info': [],
-            'bandwidth_optimization': [],
             'matrices': {
                 'AIC': None,
                 'AICc': None,
                 'R-squared': None,
                 'R-squared adjusted': None
-            }
+            },
+            'bandwidth_optimization': []
         }
 
     def append_info(self, record: str):
@@ -68,3 +72,25 @@ class GwrLogger:
                       indent=1,
                       #   separators=(',', ': ')
                       )
+
+
+class LgwrLogger(GwrLogger):
+
+    def __init__(self):
+        self.model_type = 'lgwr'
+        self.log_path = os.path.join(
+            os.getcwd(), 'logs',  f'{self.model_type}-{current_time_str()}-log')
+        if os.path.exists(self.log_path) is False:
+            os.makedirs(self.log_path)
+
+        self.model_info = {
+            'model_type': self.model_type,
+            'info': [],
+            'matrices': {
+                'AIC': None,
+                'AICc': None,
+                'R-squared': None,
+                'R-squared adjusted': None
+            },
+            # 'bandwidth_optimization': []
+        }

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from src.log.logger import create_logger
+from log.logger import create_logger
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.model.gwr import GWR

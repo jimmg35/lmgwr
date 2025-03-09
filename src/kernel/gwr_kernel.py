@@ -57,7 +57,8 @@ class GwrKernel(object):
         self.kernel_bandwidth_type = kernel_bandwidth_type
         self.weighted_matrix_cache = {}
         self.distance_vector_cache = {}
-        self.logger.append_info("GwrKernel : Kernel is initialized.")
+        self.logger.append_info(
+            f"{self.__class__.__name__} : Kernel is initialized.")
 
     def update_bandwidth(self, bandwidth: float) -> None:
         if self.dataset is None:

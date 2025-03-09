@@ -1,15 +1,11 @@
 import numpy as np
 import numpy.typing as npt
 from scipy import linalg
+from tqdm import tqdm
+
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
-from tqdm import tqdm
-import logging
 from src.log.logger import GwrLogger
-
-import numpy.linalg as la
-from scipy import sparse as sp
-from spreg.utils import spdot, spmultiply
 
 
 class GWR:
@@ -39,7 +35,10 @@ class GWR:
     aic: float
     aicc: float
 
-    def __init__(self, dataset: SpatialDataset, logger: GwrLogger, kernel: GwrKernel) -> None:
+    def __init__(self,
+                 dataset: SpatialDataset,
+                 logger: GwrLogger,
+                 kernel: GwrKernel) -> None:
         """
         Initializes the GWR model with the specified spatial dataset and kernel.
 
@@ -50,12 +49,27 @@ class GWR:
         self.dataset = dataset
         self.kernel = kernel
         self.logger = logger
-        self.logger.append_info("GWR : GWR model is initialized.")
+
+        # get the class name
+
+        self.logger.append_info(
+            f"{self.__class__.__name__} : {self.__class__.__name__} model is initialized.")
 
     def fit(self) -> None:
-        """
-        Fit the GWR model with the provided dataset and spatial weights based on the kernel.
+        """ 
+        # 這是備忘錄
+        lgwr每次fit要傳入該點帶寬以及該點的index
+        gwr這邊的fit是一次性fit全部的點
+        而lgwr是一次fit一個點 (不一定採納)
 
+        傾向將帶寬寫成一個class
+        在optimizer中 若是gwr則指傳入一個 帶寬
+        若是lgwr則傳入n個帶寬class {index: 帶寬}
+        lmgwr {index: [帶寬1, 帶寬2, ...]}
+        [帶寬1, 帶寬2, ...] lmsb
+
+
+        Fit the GWR model with the provided dataset and spatial weights based on the kernel.
         This method iterates over each data point in the dataset and calculates local regression
         coefficients using spatial weights, implementing the core concept of GWR.
 
@@ -67,8 +81,6 @@ class GWR:
             raise ValueError("DataPoints are not set up in the dataset")
 
         self.__init_estimates()
-
-        # self.__local_fit(0)
 
         for index in range(len(self.dataset.dataPoints)):
             self.__local_fit(index)
