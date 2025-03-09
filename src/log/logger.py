@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime
 from src.log.timestamp import current_time_str
+from typing import Literal, TypeAlias
 
 
 def create_logger():
@@ -20,8 +21,18 @@ def create_logger():
     logger = logging.getLogger(__name__)
 
 
+GwrMatricesType: TypeAlias = Literal['AIC',
+                                     'AICc', 'R-squared', 'R-squared adjusted']
+
+
 class GwrLogger:
     def __init__(self):
+
+        self.log_path = os.path.join(
+            os.getcwd(), 'logs',  f'gwr-{current_time_str()}-log')
+        if os.path.exists(self.log_path) is False:
+            os.makedirs(self.log_path)
+
         self.model_info = {
             'info': [],
             'bandwidth_optimization': [],
@@ -34,20 +45,26 @@ class GwrLogger:
         }
 
     def append_info(self, record: str):
+        msg = {datetime.now().strftime("%Y-%m-%d %H:%M:%S"): record}
         self.model_info['info'].append(
-            f"{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} - {record}"
+            msg
         )
+        print(msg)
 
     def append_bandwidth_optimization(self, record: str):
+        msg = {datetime.now().strftime("%Y-%m-%d %H:%M:%S"): record}
         self.model_info['bandwidth_optimization'].append(
-            f"{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} - {record}"
+            msg
         )
+        print(msg)
+
+    def update_matrics(self, matrices_type: GwrMatricesType, value: float):
+        self.model_info['matrices'][matrices_type] = value
 
     def save_model_info_json(self):
-        log_path = os.path.join(os.getcwd(), 'logs',
-                                f'{current_time_str()}-log')
-        if os.path.exists(log_path) is False:
-            os.makedirs(log_path)
-
-        with open(os.path.join(log_path, 'model_info.json'), 'w') as f:
-            json.dump(self.model_info, f)
+        with open(os.path.join(self.log_path, 'model_info.json'), 'w') as f:
+            json.dump(self.model_info,
+                      f,
+                      indent=1,
+                      #   separators=(',', ': ')
+                      )

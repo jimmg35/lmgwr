@@ -50,8 +50,7 @@ class GWR:
         self.dataset = dataset
         self.kernel = kernel
         self.logger = logger
-        self.logger.model_info['info'].append(
-            "GWR : GWR model is initialized.")
+        self.logger.append_info("GWR : GWR model is initialized.")
 
     def fit(self) -> None:
         """
@@ -172,6 +171,8 @@ class GWR:
         ss_res = np.sum(self.residuals ** 2)
         self.r_squared = float(1 - ss_res / ss_total)
 
+        self.logger.update_matrics('R-squared', self.r_squared)
+
     def __calculate_aic_aicc(self) -> None:
         """
         Calculate the Akaike Information Criterion (AIC) for the GWR model.
@@ -200,3 +201,6 @@ class GWR:
         AICc = AIC + (2.0 * trS * (trS + 1.0)) / (n - trS - 2.0)
         self.aic = AIC
         self.aicc = AICc
+
+        self.logger.update_matrics('AIC', self.aic)
+        self.logger.update_matrics('AICc', self.aicc)

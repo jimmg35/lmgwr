@@ -7,6 +7,7 @@ from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.model.gwr import GWR
 from typing import Literal, TypeAlias, Dict
+from src.log.logger import GwrLogger
 
 GwrBandwidthOptimizeMethod: TypeAlias = Literal['golden_section',
                                                 'grid_search', 'random_search']
@@ -16,16 +17,20 @@ class GwrBandwidthOptimizer():
 
     kernel: GwrKernel
     model: GWR
+    logger: GwrLogger
+
     method: GwrBandwidthOptimizeMethod
     search_range: tuple
 
     def __init__(self,
                  model: GWR,
                  kernel: GwrKernel,
+                 logger: GwrLogger,
                  method: GwrBandwidthOptimizeMethod = 'golden_section',
                  search_range=(50, 200)) -> None:
         self.model = model
         self.kernel = kernel
+        self.logger = logger
         self.method = method
         self.search_range = search_range
 
@@ -103,6 +108,7 @@ class GwrBandwidthOptimizer():
         self.kernel.update_bandwidth(bandwidth)
         self.model.fit()
 
-        logging.info(
-            f"GwrBandwidthOptimizer : Bandwidth {bandwidth}, AICc {self.model.aicc}")
+        self.logger.append_bandwidth_optimization(
+            f"GwrBandwidthOptimizer : Bandwidth {bandwidth}, AICc {self.model.aicc}"
+        )
         return self.model.aicc

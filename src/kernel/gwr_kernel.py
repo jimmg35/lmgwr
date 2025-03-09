@@ -57,8 +57,7 @@ class GwrKernel(object):
         self.kernel_bandwidth_type = kernel_bandwidth_type
         self.weighted_matrix_cache = {}
         self.distance_vector_cache = {}
-        self.logger.model_info['info'].append(
-            "GwrKernel : Kernel is initialized.")
+        self.logger.append_info("GwrKernel : Kernel is initialized.")
 
     def update_bandwidth(self, bandwidth: float) -> None:
         if self.dataset is None:
@@ -119,7 +118,6 @@ class GwrKernel(object):
         if self.bandwidth is None:
             raise ValueError("Bandwidth is not set up in Kernel")
 
-        print(index)
         # retrive the distance vector from cache if found,
         # or initialize it.
         distance_vector = self.__calculate_distance_vector(index)
