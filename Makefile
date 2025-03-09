@@ -3,11 +3,15 @@
 
 # Run unit test for all test scripts.
 unittest:
-	PYTHONPATH=./src pytest
+	export PYTHONPATH=$(PWD) && echo $(PYTHONPATH) && pytest
+
 
 # Run the main script.
-run:
-	python index.py
+gwrDemo:
+	python script-gwr-demo.py
+
+lmgwrDemo:
+	python script-lmgwr-demo.py
 
 
 # Export the conda environment to a file. 
