@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 from src.dataset.spatial_dataset import SpatialDataset, IFieldInfo
 from src.distance.get_2d_distance_vector import get_2d_distance_vector
+from src.log.logger import GwrLogger
 
 
 @pytest.fixture
@@ -23,9 +24,11 @@ def euclidean_dataset():
         coordinate_x_field='coor_x',
         coordinate_y_field='coor_y'
     )
+    logger = GwrLogger()
     dataset = SpatialDataset(
-        data=data_twd97,
-        fieldInfo=field_info,
+        data_twd97,
+        field_info,
+        logger,
         isSpherical=False
     )
     return dataset
@@ -47,9 +50,11 @@ def spherical_dataset():
         coordinate_x_field='coor_x',
         coordinate_y_field='coor_y'
     )
+    logger = GwrLogger()
     dataset = SpatialDataset(
-        data=data_wgs84,
-        fieldInfo=field_info,
+        data_wgs84,
+        field_info,
+        logger,
         isSpherical=True
     )
     return dataset

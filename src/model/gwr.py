@@ -5,7 +5,7 @@ from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from tqdm import tqdm
 import logging
-
+from src.log.logger import GwrLogger
 
 import numpy.linalg as la
 from scipy import sparse as sp
@@ -26,6 +26,7 @@ class GWR:
     """
     dataset: SpatialDataset
     kernel: GwrKernel
+    logger: GwrLogger
 
     # estimates for each data point
     betas: npt.NDArray[np.float64]
@@ -38,7 +39,7 @@ class GWR:
     aic: float
     aicc: float
 
-    def __init__(self, dataset: SpatialDataset, kernel: GwrKernel) -> None:
+    def __init__(self, dataset: SpatialDataset, logger: GwrLogger, kernel: GwrKernel) -> None:
         """
         Initializes the GWR model with the specified spatial dataset and kernel.
 
@@ -48,6 +49,9 @@ class GWR:
         """
         self.dataset = dataset
         self.kernel = kernel
+        self.logger = logger
+        self.logger.model_info['info'].append(
+            "GWR : GWR model is initialized.")
 
     def fit(self) -> None:
         """
@@ -65,16 +69,16 @@ class GWR:
 
         self.__init_estimates()
 
-        self.__local_fit(0)
+        # self.__local_fit(0)
 
-        # for index in range(len(self.dataset.dataPoints)):
-        #     self.__local_fit(index)
+        for index in range(len(self.dataset.dataPoints)):
+            self.__local_fit(index)
 
-        # # update estimates (outside of loop for calculations)
-        # self.residuals = self.dataset.y - self.y_hats.reshape(-1, 1)
+        # update estimates (outside of loop for calculations)
+        self.residuals = self.dataset.y - self.y_hats.reshape(-1, 1)
 
-        # self.__calculate_r_squared()
-        # self.__calculate_aic_aicc()
+        self.__calculate_r_squared()
+        self.__calculate_aic_aicc()
 
     def __init_estimates(self) -> None:
         if self.dataset.dataPoints is None:

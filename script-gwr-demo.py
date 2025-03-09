@@ -7,30 +7,34 @@ from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.model.gwr import GWR
 from src.kernel.gwr_kernel import GwrKernel
 from src.optimizer.gwr_bandwidth_optimizer import GwrBandwidthOptimizer
-
-create_logger()
+from src.log.logger import GwrLogger
 
 
 if __name__ == '__main__':
-    synthetic_data = pd.read_csv(r'./data/GData_utm.csv')
+
+    logger = GwrLogger()
+
+    georgia_data = pd.read_csv(r'./data/GData_utm.csv')
 
     spatialDataset = SpatialDataset(
-        synthetic_data,
+        georgia_data,
         IFieldInfo(
             predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
             response_field='PctBach',
             coordinate_x_field='X',
             coordinate_y_field='Y'
         ),
+        logger,
         isSpherical=False
     )
 
-    kernel = GwrKernel(spatialDataset, 'bisquare')
-    gwr = GWR(spatialDataset, kernel)
+    kernel = GwrKernel(spatialDataset, logger, 'bisquare')
+    gwr = GWR(spatialDataset, logger, kernel)
 
-    kernel.update_bandwidth(117)
-    gwr.fit()
+    # Manually update bandwidth and fit the model.
+    # kernel.update_bandwidth(117)
+    # gwr.fit()
 
-    # optimizer = GwrBandwidthOptimizer(gwr, kernel)
-    # optimal_bandwidth = optimizer.optimize()
-    # print(f'Optimal bandwidth: {optimal_bandwidth}')
+    # Use the bandwidth optimizer to automatically find the optimal bandwidth.
+    optimizer = GwrBandwidthOptimizer(gwr, kernel)
+    optimal_bandwidth = optimizer.optimize()

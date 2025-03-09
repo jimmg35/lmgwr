@@ -2,6 +2,7 @@
 # Write a Golden Section Search optimizer for the bandwidth parameter of the GWR model
 # The optimizer should be able to find the optimal bandwidth parameter for the GWR model
 
+import logging
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.model.gwr import GWR
@@ -101,7 +102,7 @@ class GwrBandwidthOptimizer():
         """
         self.kernel.update_bandwidth(bandwidth)
         self.model.fit()
-        # Calculate the objective function value
-        # For example, we can use the AICc value as the objective function
-        print(f'Bandwidth: {bandwidth}, AICc: {self.model.aicc}')
+
+        logging.info(
+            f"GwrBandwidthOptimizer : Bandwidth {bandwidth}, AICc {self.model.aicc}")
         return self.model.aicc

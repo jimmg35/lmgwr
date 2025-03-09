@@ -1,10 +1,11 @@
-import logging
+
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from typing import List
 from pandas import DataFrame
 from src.dataset.interfaces.spatial_dataset import IDataPoint, IDataset, IFieldInfo
+from src.log.logger import GwrLogger
 
 
 class SpatialDataset(IDataset):
@@ -24,6 +25,7 @@ class SpatialDataset(IDataset):
         x_matrix (npt.NDArray[np.float64]): A matrix of predictor values extracted from the data points.
         y (npt.NDArray[np.float64]): A column vector of response values extracted from the data points.
     """
+    logger: GwrLogger
 
     # Raw Data in Different formats.
     dataPoints: List[IDataPoint] | None = None
@@ -42,6 +44,7 @@ class SpatialDataset(IDataset):
         self,
         data: DataFrame,
         fieldInfo: IFieldInfo,
+        logger: GwrLogger,
         isSpherical: bool = False,
         intercept: bool = True
     ) -> None:
@@ -61,6 +64,9 @@ class SpatialDataset(IDataset):
         Raises:
             ValueError: If any required fields specified in `fieldInfo` are missing from the dataset.
         """
+
+        self.logger = logger
+
         # Parse Pandas dataframe into datapoint structure.
         self.fieldInfo = fieldInfo
         self._verify_fields(data)
@@ -131,7 +137,8 @@ class SpatialDataset(IDataset):
                 f"Missing fields in the dataset: {', '.join(missing_fields)}"
             )
 
-        logging.info("All required fields are present in the dataset.")
+        self.logger.append_info(
+            "SpatialDataset : Data schema matchs with the data.")
 
     def _create_data_points(self, data: pd.DataFrame) -> List[IDataPoint]:
         """
@@ -166,16 +173,17 @@ class SpatialDataset(IDataset):
                 data_points.append(IDataPoint(y=y, X=np.array(
                     X), coordinate_x=coordinate_x, coordinate_y=coordinate_y))
 
-            logging.info("Data points created successfully.")
+            self.logger.append_info("SpatialDataset : Data points created.")
             return data_points
         except Exception as e:
-            logging.error(f"Error creating data points: {e}")
+            self.logger.append_info(f"Error creating data points: {e}")
             raise e
 
 
 if __name__ == '__main__':
     synthetic_data = pd.read_csv(r'./data/synthetic_dataset.csv')
 
+    logger = GwrLogger()
     spatialDataset = SpatialDataset(
         synthetic_data,
         IFieldInfo(
@@ -183,5 +191,6 @@ if __name__ == '__main__':
             response_field='pm25',
             coordinate_x_field='coor_x',
             coordinate_y_field='coor_y'
-        )
+        ),
+        logger
     )

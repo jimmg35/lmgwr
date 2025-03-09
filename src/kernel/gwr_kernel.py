@@ -1,5 +1,5 @@
 
-# acknowledgements to Taylor Oshan for the source code
+# acknowledgements to Taylor Oshan for part of the source code
 __author__ = "Taylor Oshan tayoshan@gmail.com"
 
 import numpy as np
@@ -9,7 +9,7 @@ from typing import Literal, TypeAlias, Dict
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.distance.get_2d_distance_vector import get_2d_distance_vector
-
+from src.log.logger import GwrLogger
 
 KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
                                         'quartic', 'gaussian', 'bisquare', 'exponential']
@@ -28,6 +28,7 @@ class GwrKernel(object):
         bandwidth (float): The bandwidth parameter controlling the kernel's spatial influence.
         kernel_type (KernelFunctionType): The type of kernel function to use for weight calculations.
     """
+    logger: GwrLogger
     dataset: SpatialDataset | None = None
     bandwidth: float | None = None
     kernel_type: KernelFunctionType = "bisquare"
@@ -37,6 +38,7 @@ class GwrKernel(object):
 
     def __init__(self,
                  dataset: SpatialDataset,
+                 logger: GwrLogger,
                  kernel_type: KernelFunctionType = 'bisquare',
                  kernel_bandwidth_type: KernelBandwidthType = 'adaptive'
                  ) -> None:
@@ -50,10 +52,13 @@ class GwrKernel(object):
                 defaults to 'triangular'.
         """
         self.dataset = dataset
+        self.logger = logger
         self.kernel_type = kernel_type
         self.kernel_bandwidth_type = kernel_bandwidth_type
         self.weighted_matrix_cache = {}
         self.distance_vector_cache = {}
+        self.logger.model_info['info'].append(
+            "GwrKernel : Kernel is initialized.")
 
     def update_bandwidth(self, bandwidth: float) -> None:
         if self.dataset is None:
@@ -62,10 +67,9 @@ class GwrKernel(object):
 
         self.bandwidth = bandwidth
 
-        self.__update_weighted_matrix_by_id(0)
-        # if self.dataset.dataPoints is not None:
-        #     for i in range(0, len(self.dataset.dataPoints)):
-        #         self.__update_weighted_matrix_by_id(i)
+        if self.dataset.dataPoints is not None:
+            for i in range(0, len(self.dataset.dataPoints)):
+                self.__update_weighted_matrix_by_id(i)
 
     def get_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64]:
         """
@@ -115,6 +119,9 @@ class GwrKernel(object):
         if self.bandwidth is None:
             raise ValueError("Bandwidth is not set up in Kernel")
 
+        print(index)
+        # retrive the distance vector from cache if found,
+        # or initialize it.
         distance_vector = self.__calculate_distance_vector(index)
         self.__calculate_weighted_matrix(
             index,
@@ -218,6 +225,7 @@ class GwrKernel(object):
 if __name__ == '__main__':
     synthetic_data = pd.read_csv(r'./data/synthetic_dataset.csv')
 
+    logger = GwrLogger()
     spatialDataset = SpatialDataset(
         synthetic_data,
         IFieldInfo(
@@ -226,9 +234,10 @@ if __name__ == '__main__':
             coordinate_x_field='coor_x',
             coordinate_y_field='coor_y'
         ),
+        logger,
         isSpherical=True
     )
 
-    gwrKernel = GwrKernel(spatialDataset, 'triangular')
+    gwrKernel = GwrKernel(spatialDataset, logger, 'triangular')
     gwrKernel.update_bandwidth(100)
     wi = gwrKernel.get_weighted_matrix_by_id(0)
