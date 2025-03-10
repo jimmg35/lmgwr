@@ -6,6 +6,7 @@ from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.model.gwr import GWR
 from src.kernel.gwr_kernel import GwrKernel
+from src.kernel.lgwr_kernel import LgwrKernel
 
 
 if __name__ == '__main__':
@@ -25,7 +26,9 @@ if __name__ == '__main__':
         isSpherical=True
     )
 
-    # kernel = GwrKernel(spatialDataset, 118, 'bisquare')
+    kernel = LgwrKernel(spatialDataset, logger, 'bisquare')
+
+    kernel.update_local_bandwidth(0, 117)
     # gwr = GWR(spatialDataset, kernel)
     # gwr.fit()
 

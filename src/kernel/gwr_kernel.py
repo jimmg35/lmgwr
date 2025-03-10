@@ -16,7 +16,7 @@ KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
 KernelBandwidthType: TypeAlias = Literal['distance_based', 'adaptive']
 
 
-class GwrKernel(object):
+class GwrKernel():
     """
     GWR kernel function specifications.
 
@@ -69,7 +69,7 @@ class GwrKernel(object):
 
         if self.dataset.dataPoints is not None:
             for i in range(0, len(self.dataset.dataPoints)):
-                self.__update_weighted_matrix_by_id(i)
+                self.update_weighted_matrix_by_id(i)
 
     def get_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64]:
         """
@@ -102,7 +102,7 @@ class GwrKernel(object):
                 f"Distance vector for index {index} is not found in the cache, please update the bandwidth first")
         return self.distance_vector_cache[index]
 
-    def __update_weighted_matrix_by_id(self, index: int) -> None:
+    def update_weighted_matrix_by_id(self, index: int) -> None:
         """
         Computes the weighted matrix for a specific data point by index.
 
@@ -116,8 +116,6 @@ class GwrKernel(object):
             npt.NDArray[np.float64]: A 2D array representing the weighted matrix for 
                 the specified data point.
         """
-        if self.bandwidth is None:
-            raise ValueError("Bandwidth is not set up in Kernel")
 
         # retrive the distance vector from cache if found,
         # or initialize it.

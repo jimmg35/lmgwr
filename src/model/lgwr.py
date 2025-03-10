@@ -2,21 +2,17 @@ import numpy as np
 import numpy.typing as npt
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.kernel.gwr_kernel import GwrKernel
-from src.log.gwr_logger import GwrLogger
+from src.kernel.lgwr_kernel import LgwrKernel
+from src.log.lgwr_logger import LgwrLogger
 from src.model.gwr import GWR
 
 
 class LGWR(GWR):
 
-    dataset: SpatialDataset
-    kernel: GwrKernel
-    logger: GwrLogger
-
     def __init__(self,
                  dataset: SpatialDataset,
-                 kernel: GwrKernel,
-                 logger: GwrLogger) -> None:
+                 kernel: LgwrKernel,
+                 logger: LgwrLogger) -> None:
         """
         Initializes the GWR model with the specified spatial dataset and kernel.
 
@@ -26,3 +22,6 @@ class LGWR(GWR):
         """
 
         super().__init__(dataset, logger, kernel)
+
+    def update_local_bandwidth(self, index: int, bandwidth: float):
+        return super().update_bandwidth(bandwidth)
