@@ -10,6 +10,7 @@ from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.distance.get_2d_distance_vector import get_2d_distance_vector
 from src.log.gwr_logger import GwrLogger
+from src.kernel.kernel import IKernel
 
 KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
                                         'quartic', 'gaussian', 'bisquare', 'exponential']
@@ -61,6 +62,12 @@ class GwrKernel():
             f"{self.__class__.__name__} : Kernel is initialized.")
 
     def update_bandwidth(self, bandwidth: float) -> None:
+        """
+        Updates the bandwidth parameter for the kernel.
+        this function will update the bandwidth and weighted matrix of 
+        all locations
+
+        """
         if self.dataset is None:
             raise ValueError(
                 "GwrKernel: Dataset is not setup in Kernel, Couldn't update the bandwidth")
@@ -70,6 +77,11 @@ class GwrKernel():
         if self.dataset.dataPoints is not None:
             for i in range(0, len(self.dataset.dataPoints)):
                 self.update_weighted_matrix_by_id(i)
+
+    def update_local_bandwidth(self, index: int, bandwidth: float):
+        raise NotImplementedError(
+            "GWR.update_local_bandwidth: Method is not fully implemented, this method is intended for LGWR model."
+        )
 
     def get_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64]:
         """

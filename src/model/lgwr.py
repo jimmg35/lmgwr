@@ -24,4 +24,4 @@ class LGWR(GWR):
         super().__init__(dataset, logger, kernel)
 
     def update_local_bandwidth(self, index: int, bandwidth: float):
-        return super().update_bandwidth(bandwidth)
+        self.kernel.update_local_bandwidth(index, bandwidth)

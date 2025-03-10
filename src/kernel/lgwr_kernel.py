@@ -6,6 +6,7 @@ from src.utility.overrides import overrides
 
 
 class LgwrKernel(GwrKernel):
+
     def __init__(self,
                  dataset: SpatialDataset,
                  logger: LgwrLogger,
@@ -20,11 +21,17 @@ class LgwrKernel(GwrKernel):
         )
 
     def update_local_bandwidth(self, index: int, bandwidth: float):
-        # 要有一個temp_bandwidth變數用於該location
+        """
+        Update the bandwidth value for the LGWR model.
+
+        This method updates the bandwidth value used by the kernel to calculate spatial weights.
+        It is typically used when optimizing the bandwidth for the GWR model.
+
+        Args:
+            bandwidth (float): The new bandwidth value to use for the GWR model.
+
+        Raises:
+            ValueError: If the kernel is not set up in the GWR model.
+        """
         self.bandwidth = bandwidth
-
         super().update_weighted_matrix_by_id(index)
-        # print(super().bandwidth)
-
-    def __calculate_weighted_matrix(self):
-        print("override")

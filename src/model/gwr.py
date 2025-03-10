@@ -99,7 +99,7 @@ class GWR:
         It is typically used when optimizing the bandwidth for the GWR model.
 
         Args:
-            bandwidth (int): The new bandwidth value to use for the GWR model.
+            bandwidth (float): The new bandwidth value to use for the GWR model.
 
         Raises:
             ValueError: If the kernel is not set up in the GWR model.
