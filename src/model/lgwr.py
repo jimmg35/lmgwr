@@ -25,3 +25,4 @@ class LGWR(GWR):
 
     def update_local_bandwidth(self, index: int, bandwidth: float):
         self.kernel.update_local_bandwidth(index, bandwidth)
+        return self

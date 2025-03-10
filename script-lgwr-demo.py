@@ -4,8 +4,7 @@ import pandas as pd
 from src.log.lgwr_logger import LgwrLogger
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
-from src.model.gwr import GWR
-from src.kernel.gwr_kernel import GwrKernel
+from src.model.lgwr import LGWR
 from src.kernel.lgwr_kernel import LgwrKernel
 
 
@@ -27,9 +26,21 @@ if __name__ == '__main__':
     )
 
     kernel = LgwrKernel(spatialDataset, logger, 'bisquare')
+    lgwr = LGWR(spatialDataset, kernel, logger)
 
-    kernel.update_local_bandwidth(0, 117)
-    # gwr = GWR(spatialDataset, kernel)
+    # you could update the bandwidth and weighted matrix for a singel location
+    # the fit function will still calculate the estimates of all locations
+    # lgwr.update_local_bandwidth(0, 117).fit()
+
+    # or you could update the bandwidth for all locations
+    # and call the fit function for once
+    # to reduce the computational demands
+    # lgwr.update_local_bandwidth(0, 117)
+    # lgwr.update_local_bandwidth(1, 117)
+    # lgwr.update_local_bandwidth(2, 117)
+    # lgwr.fit()
+
+    # kernel.update_local_bandwidth(0, 117)
     # gwr.fit()
 
     logger.save_model_info_json()

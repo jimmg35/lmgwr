@@ -1,23 +1,18 @@
 
 # acknowledgements to Taylor Oshan for part of the source code
-__author__ = "Taylor Oshan tayoshan@gmail.com"
 
 import numpy as np
 import pandas as pd
 import numpy.typing as npt
-from typing import Literal, TypeAlias, Dict
+
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.distance.get_2d_distance_vector import get_2d_distance_vector
 from src.log.gwr_logger import GwrLogger
-from src.kernel.kernel import IKernel
-
-KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
-                                        'quartic', 'gaussian', 'bisquare', 'exponential']
-KernelBandwidthType: TypeAlias = Literal['distance_based', 'adaptive']
+from src.kernel.kernel import IKernel, KernelFunctionType, KernelBandwidthType
 
 
-class GwrKernel():
+class GwrKernel(IKernel):
     """
     GWR kernel function specifications.
 
@@ -29,13 +24,6 @@ class GwrKernel():
         bandwidth (float): The bandwidth parameter controlling the kernel's spatial influence.
         kernel_type (KernelFunctionType): The type of kernel function to use for weight calculations.
     """
-    logger: GwrLogger
-    dataset: SpatialDataset | None = None
-    bandwidth: float | None = None
-    kernel_type: KernelFunctionType = "bisquare"
-    kernel_bandwidth_type: KernelBandwidthType = "adaptive"
-    weighted_matrix_cache: Dict[int, npt.NDArray[np.float64]] = {}
-    distance_vector_cache: Dict[int, npt.NDArray[np.float64]] = {}
 
     def __init__(self,
                  dataset: SpatialDataset,
@@ -56,8 +44,6 @@ class GwrKernel():
         self.logger = logger
         self.kernel_type = kernel_type
         self.kernel_bandwidth_type = kernel_bandwidth_type
-        self.weighted_matrix_cache = {}
-        self.distance_vector_cache = {}
         self.logger.append_info(
             f"{self.__class__.__name__} : Kernel is initialized.")
 
@@ -77,11 +63,6 @@ class GwrKernel():
         if self.dataset.dataPoints is not None:
             for i in range(0, len(self.dataset.dataPoints)):
                 self.update_weighted_matrix_by_id(i)
-
-    def update_local_bandwidth(self, index: int, bandwidth: float):
-        raise NotImplementedError(
-            "GWR.update_local_bandwidth: Method is not fully implemented, this method is intended for LGWR model."
-        )
 
     def get_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64]:
         """
