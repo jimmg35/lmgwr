@@ -10,6 +10,9 @@ unittest:
 gwrDemo:
 	python script-gwr-demo.py
 
+lgwrDemo:
+	python script-lgwr-demo.py
+
 lmgwrDemo:
 	python script-lmgwr-demo.py
 

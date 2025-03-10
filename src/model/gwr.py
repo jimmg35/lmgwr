@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
-from src.log.logger import GwrLogger
+from src.log.gwr_logger import GwrLogger
 
 
 class GWR:
@@ -62,7 +62,7 @@ class GWR:
         gwr這邊的fit是一次性fit全部的點
         而lgwr是一次fit一個點 (不一定採納)
 
-        傾向將帶寬寫成一個class
+        傾向將帶寬寫成一個class (否決 記憶體占用太大)
         在optimizer中 若是gwr則指傳入一個 帶寬
         若是lgwr則傳入n個帶寬class {index: 帶寬}
         lmgwr {index: [帶寬1, 帶寬2, ...]}
@@ -90,6 +90,25 @@ class GWR:
 
         self.__calculate_r_squared()
         self.__calculate_aic_aicc()
+
+    def update_bandwidth(self, bandwidth: float):
+        """
+        Update the bandwidth value for the GWR model.
+
+        This method updates the bandwidth value used by the kernel to calculate spatial weights.
+        It is typically used when optimizing the bandwidth for the GWR model.
+
+        Args:
+            bandwidth (float): The new bandwidth value to use for the GWR model.
+
+        Raises:
+            ValueError: If the kernel is not set up in the GWR model.
+        """
+        if self.kernel is None:
+            raise ValueError("Kernel is not set up in the GWR model")
+
+        self.kernel.update_bandwidth(bandwidth)
+        return self
 
     def __init_estimates(self) -> None:
         if self.dataset.dataPoints is None:

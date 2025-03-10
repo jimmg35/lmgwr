@@ -7,7 +7,7 @@ from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.model.gwr import GWR
 from typing import Literal, TypeAlias, Dict
-from src.log.logger import GwrLogger
+from src.log.gwr_logger import GwrLogger
 
 GwrBandwidthOptimizeMethod: TypeAlias = Literal['golden_section',
                                                 'grid_search', 'random_search']
@@ -105,8 +105,8 @@ class GwrBandwidthOptimizer():
         Returns:
             float: The value of the objective function for the given bandwidth.
         """
-        self.kernel.update_bandwidth(bandwidth)
-        self.model.fit()
+
+        self.model.update_bandwidth(bandwidth).fit()
 
         self.logger.append_bandwidth_optimization(
             f"{self.__class__.__name__} : Bandwidth {bandwidth}, AICc {self.model.aicc}"

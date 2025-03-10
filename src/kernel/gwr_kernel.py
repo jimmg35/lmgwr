@@ -1,22 +1,18 @@
 
 # acknowledgements to Taylor Oshan for part of the source code
-__author__ = "Taylor Oshan tayoshan@gmail.com"
 
 import numpy as np
 import pandas as pd
 import numpy.typing as npt
-from typing import Literal, TypeAlias, Dict
+
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.distance.get_2d_distance_vector import get_2d_distance_vector
-from src.log.logger import GwrLogger
-
-KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
-                                        'quartic', 'gaussian', 'bisquare', 'exponential']
-KernelBandwidthType: TypeAlias = Literal['distance_based', 'adaptive']
+from src.log.gwr_logger import GwrLogger
+from src.kernel.kernel import IKernel, KernelFunctionType, KernelBandwidthType
 
 
-class GwrKernel(object):
+class GwrKernel(IKernel):
     """
     GWR kernel function specifications.
 
@@ -28,13 +24,6 @@ class GwrKernel(object):
         bandwidth (float): The bandwidth parameter controlling the kernel's spatial influence.
         kernel_type (KernelFunctionType): The type of kernel function to use for weight calculations.
     """
-    logger: GwrLogger
-    dataset: SpatialDataset | None = None
-    bandwidth: float | None = None
-    kernel_type: KernelFunctionType = "bisquare"
-    kernel_bandwidth_type: KernelBandwidthType = "adaptive"
-    weighted_matrix_cache: Dict[int, npt.NDArray[np.float64]] = {}
-    distance_vector_cache: Dict[int, npt.NDArray[np.float64]] = {}
 
     def __init__(self,
                  dataset: SpatialDataset,
@@ -55,12 +44,16 @@ class GwrKernel(object):
         self.logger = logger
         self.kernel_type = kernel_type
         self.kernel_bandwidth_type = kernel_bandwidth_type
-        self.weighted_matrix_cache = {}
-        self.distance_vector_cache = {}
         self.logger.append_info(
             f"{self.__class__.__name__} : Kernel is initialized.")
 
     def update_bandwidth(self, bandwidth: float) -> None:
+        """
+        Updates the bandwidth parameter for the kernel.
+        this function will update the bandwidth and weighted matrix of 
+        all locations
+
+        """
         if self.dataset is None:
             raise ValueError(
                 "GwrKernel: Dataset is not setup in Kernel, Couldn't update the bandwidth")
@@ -69,7 +62,7 @@ class GwrKernel(object):
 
         if self.dataset.dataPoints is not None:
             for i in range(0, len(self.dataset.dataPoints)):
-                self.__update_weighted_matrix_by_id(i)
+                self.update_weighted_matrix_by_id(i)
 
     def get_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64]:
         """
@@ -102,7 +95,7 @@ class GwrKernel(object):
                 f"Distance vector for index {index} is not found in the cache, please update the bandwidth first")
         return self.distance_vector_cache[index]
 
-    def __update_weighted_matrix_by_id(self, index: int) -> None:
+    def update_weighted_matrix_by_id(self, index: int) -> None:
         """
         Computes the weighted matrix for a specific data point by index.
 
@@ -116,8 +109,6 @@ class GwrKernel(object):
             npt.NDArray[np.float64]: A 2D array representing the weighted matrix for 
                 the specified data point.
         """
-        if self.bandwidth is None:
-            raise ValueError("Bandwidth is not set up in Kernel")
 
         # retrive the distance vector from cache if found,
         # or initialize it.

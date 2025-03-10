@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from src.dataset.spatial_dataset import SpatialDataset, IFieldInfo
 from src.distance.get_2d_distance_vector import get_2d_distance_vector
-from src.log.logger import GwrLogger
+from src.log.gwr_logger import GwrLogger
 
 
 @pytest.fixture
