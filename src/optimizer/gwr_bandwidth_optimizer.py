@@ -7,7 +7,7 @@ from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.model.gwr import GWR
 from typing import Literal, TypeAlias, Dict
-from src.log.logger import GwrLogger
+from src.log.gwr_logger import GwrLogger
 
 GwrBandwidthOptimizeMethod: TypeAlias = Literal['golden_section',
                                                 'grid_search', 'random_search']

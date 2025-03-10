@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
-from src.log.logger import GwrLogger
+from src.log.gwr_logger import GwrLogger
 
 
 class GWR:
@@ -62,7 +62,7 @@ class GWR:
         gwr這邊的fit是一次性fit全部的點
         而lgwr是一次fit一個點 (不一定採納)
 
-        傾向將帶寬寫成一個class
+        傾向將帶寬寫成一個class (否決 記憶體占用太大)
         在optimizer中 若是gwr則指傳入一個 帶寬
         若是lgwr則傳入n個帶寬class {index: 帶寬}
         lmgwr {index: [帶寬1, 帶寬2, ...]}

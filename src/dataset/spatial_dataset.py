@@ -5,7 +5,7 @@ import pandas as pd
 from typing import List
 from pandas import DataFrame
 from src.dataset.interfaces.spatial_dataset import IDataPoint, IDataset, IFieldInfo
-from src.log.logger import GwrLogger
+from src.log.gwr_logger import GwrLogger
 
 
 class SpatialDataset(IDataset):

@@ -9,7 +9,7 @@ from typing import Literal, TypeAlias, Dict
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.distance.get_2d_distance_vector import get_2d_distance_vector
-from src.log.logger import GwrLogger
+from src.log.gwr_logger import GwrLogger
 
 KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
                                         'quartic', 'gaussian', 'bisquare', 'exponential']

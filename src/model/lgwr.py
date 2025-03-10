@@ -3,7 +3,7 @@ import numpy.typing as npt
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
-from src.log.logger import GwrLogger
+from src.log.gwr_logger import GwrLogger
 from src.model.gwr import GWR
 
 

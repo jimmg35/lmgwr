@@ -5,7 +5,7 @@ import pandas as pd
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.kernel.gwr_kernel import GwrKernel
-from src.log.logger import GwrLogger
+from src.log.gwr_logger import GwrLogger
 
 
 # @pytest.fixture
