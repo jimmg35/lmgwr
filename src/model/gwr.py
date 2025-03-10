@@ -91,6 +91,25 @@ class GWR:
         self.__calculate_r_squared()
         self.__calculate_aic_aicc()
 
+    def update_bandwidth(self, bandwidth: float):
+        """
+        Update the bandwidth value for the GWR model.
+
+        This method updates the bandwidth value used by the kernel to calculate spatial weights.
+        It is typically used when optimizing the bandwidth for the GWR model.
+
+        Args:
+            bandwidth (int): The new bandwidth value to use for the GWR model.
+
+        Raises:
+            ValueError: If the kernel is not set up in the GWR model.
+        """
+        if self.kernel is None:
+            raise ValueError("Kernel is not set up in the GWR model")
+
+        self.kernel.update_bandwidth(bandwidth)
+        return self
+
     def __init_estimates(self) -> None:
         if self.dataset.dataPoints is None:
             raise ValueError(

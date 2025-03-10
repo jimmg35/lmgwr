@@ -105,8 +105,8 @@ class GwrBandwidthOptimizer():
         Returns:
             float: The value of the objective function for the given bandwidth.
         """
-        self.kernel.update_bandwidth(bandwidth)
-        self.model.fit()
+
+        self.model.update_bandwidth(bandwidth).fit()
 
         self.logger.append_bandwidth_optimization(
             f"{self.__class__.__name__} : Bandwidth {bandwidth}, AICc {self.model.aicc}"
