@@ -30,14 +30,13 @@ if __name__ == '__main__':
 
     # Create a GWR kernel and GWR model.
     kernel = GwrKernel(spatialDataset, logger, 'bisquare')
-    gwr = GWR(spatialDataset, logger, kernel)
+    gwr = GWR(spatialDataset, kernel, logger)
 
     # Manually update bandwidth and fit the model.
     # kernel.update_bandwidth(117)
     # gwr.fit()
-    # Or you could call the update function in gwr
+    # Or you could call the update function in gwr (this interface is mainly built for optimizer)
     # gwr.update_bandwidth(117).fit()
-    # this interface is mainly built for optimizer
 
     # Use the bandwidth optimizer to automatically find the optimal bandwidth.
     optimizer = GwrBandwidthOptimizer(gwr, kernel, logger)

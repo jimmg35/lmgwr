@@ -21,7 +21,7 @@ class LGWR(GWR):
             kernel (GwrKernel): A kernel instance used to calculate spatial weights for each data point.
         """
 
-        super().__init__(dataset, logger, kernel)
+        super().__init__(dataset, kernel, logger)
 
     def update_local_bandwidth(self, index: int, bandwidth: float):
         self.kernel.update_local_bandwidth(index, bandwidth)
