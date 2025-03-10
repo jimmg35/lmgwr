@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     # Create a GWR kernel and GWR model.
     kernel = GwrKernel(spatialDataset, logger, 'bisquare')
-    gwr = GWR(spatialDataset, logger, kernel)
+    gwr = GWR(spatialDataset, kernel, logger)
 
     # Manually update bandwidth and fit the model.
     # kernel.update_bandwidth(117)

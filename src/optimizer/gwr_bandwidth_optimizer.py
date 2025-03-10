@@ -4,33 +4,28 @@
 
 import logging
 from src.dataset.spatial_dataset import SpatialDataset
-from src.kernel.ikernel import IKernel
+from src.kernel.gwr_kernel import GwrKernel
 from src.model.gwr import GWR
 from typing import Literal, TypeAlias, Dict
 from src.log.gwr_logger import GwrLogger
+from src.optimizer.ioptimizer import IOptimizer
 
 GwrBandwidthOptimizeMethod: TypeAlias = Literal['golden_section',
                                                 'grid_search', 'random_search']
 
 
-class GwrBandwidthOptimizer():
-
-    model: GWR
-    kernel: IKernel
-    logger: GwrLogger
+class GwrBandwidthOptimizer(IOptimizer):
 
     method: GwrBandwidthOptimizeMethod
     search_range: tuple
 
     def __init__(self,
                  model: GWR,
-                 kernel: IKernel,
+                 kernel: GwrKernel,
                  logger: GwrLogger,
                  method: GwrBandwidthOptimizeMethod = 'golden_section',
                  search_range=(50, 200)) -> None:
-        self.model = model
-        self.kernel = kernel
-        self.logger = logger
+        super().__init__(model, kernel, logger)
         self.method = method
         self.search_range = search_range
 
@@ -62,52 +57,44 @@ class GwrBandwidthOptimizer():
         Returns:
             float: The optimal bandwidth parameter for the GWR model.
         """
-        # 黃金比例
         phi = (1 + 5 ** 0.5) / 2
 
-        # 初始化區間
         c = b - (b - a) / phi
         d = a + (b - a) / phi
 
-        # 計算初始 AICc
-        fc = self.__objective_function(c)
-        fd = self.__objective_function(d)
+        fc = self.objective_function(c)
+        fd = self.objective_function(d)
 
         for _ in range(max_iter):
-            # 目標是最小化 AICc
-            if fc > fd:  # ✅ 這裡要改成 ">"，因為我們希望 AICc 越小越好
+            if fc > fd:
                 a = c
                 c = d
                 d = a + (b - a) / phi
                 fc = fd
-                fd = self.__objective_function(d)
+                fd = self.objective_function(d)
             else:
                 b = d
                 d = c
                 c = b - (b - a) / phi
                 fd = fc
-                fc = self.__objective_function(c)
+                fc = self.objective_function(c)
 
-            # 終止條件：當區間長度小於 tol 時
             if abs(b - a) < tol:
                 break
 
-        # 返回最佳帶寬
         return (c + d) / 2
 
-    def __objective_function(self, bandwidth: float) -> float:
+    def objective_function(self, bandwidth: float) -> float:
         """
-        Evaluate the objective function for the GWR model with the given bandwidth parameter.
+        Calculate the objective function for the GWR model with the given bandwidth.
 
         Args:
-            bandwidth (float): The bandwidth parameter to evaluate.
+            bandwidth (float): The bandwidth value to optimize.
 
         Returns:
-            float: The value of the objective function for the given bandwidth.
+            float: The AICc value for the GWR model with the given bandwidth.
         """
-
         self.model.update_bandwidth(bandwidth).fit()
-
         self.logger.append_bandwidth_optimization(
             f"{self.__class__.__name__} : Bandwidth {bandwidth}, AICc {self.model.aicc}"
         )
