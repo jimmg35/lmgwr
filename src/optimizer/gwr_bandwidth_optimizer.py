@@ -2,11 +2,10 @@
 # Write a Golden Section Search optimizer for the bandwidth parameter of the GWR model
 # The optimizer should be able to find the optimal bandwidth parameter for the GWR model
 
-import logging
-from src.dataset.spatial_dataset import SpatialDataset
+from typing import Literal, TypeAlias
+
 from src.kernel.gwr_kernel import GwrKernel
 from src.model.gwr import GWR
-from typing import Literal, TypeAlias, Dict
 from src.log.gwr_logger import GwrLogger
 from src.optimizer.ioptimizer import IOptimizer
 
