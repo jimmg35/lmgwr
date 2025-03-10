@@ -9,7 +9,7 @@ from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.distance.get_2d_distance_vector import get_2d_distance_vector
 from src.log.gwr_logger import GwrLogger
-from src.kernel.kernel import IKernel, KernelFunctionType, KernelBandwidthType
+from src.kernel.ikernel import IKernel, KernelFunctionType, KernelBandwidthType
 
 
 class GwrKernel(IKernel):
