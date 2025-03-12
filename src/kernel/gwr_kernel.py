@@ -31,7 +31,7 @@ class GwrKernel(IKernel):
                  kernel_type: KernelFunctionType = 'bisquare',
                  kernel_bandwidth_type: KernelBandwidthType = 'adaptive'
                  ) -> None:
-        super().__init__(dataset, logger, kernel_type, kernel_bandwidth_type)
+        super().__init__(dataset, logger, 'cpu', kernel_type, kernel_bandwidth_type)
 
     def update_bandwidth(self, bandwidth: float) -> None:
         """
