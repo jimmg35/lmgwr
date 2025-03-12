@@ -1,171 +1,158 @@
 import torch
+from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import torch.optim as optim
+import pandas as pd
+import torch
 from torch.utils.data import Dataset, DataLoader
+import torch
+import torch.nn as nn
+import torch.optim as optim
 import pandas as pd
 
 
-# ✅ 1️⃣ 定義 `SpatialDataset`
-class SpatialDatasetTorch(Dataset):
-    def __init__(self, X, y, distance_matrix):
-        """
-        X: torch.Tensor (n, p) - 自變數
-        y: torch.Tensor (n, 1) - 目標變數
-        distance_matrix: torch.Tensor (n, n) - 所有點之間的距離矩陣
-        """
-        self.X = X
-        self.y = y
-        self.distance_matrix = distance_matrix
-        self.n = X.shape[0]
+from src.dataset.spatial_dataset import SpatialDataset
+from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.log.lgwr_logger import LgwrLogger
+# 簡單的 PyTorch Dataset
+
+
+class DistanceDataset(Dataset):
+    def __init__(self, distance_matrix, y):
+        self.distance_matrix = distance_matrix  # (n, n)
+        self.y = y  # (n, 1)
+        self.n = distance_matrix.shape[0]
 
     def __len__(self):
-        return self.n  # 總共有 n 個點
+        return self.n
 
     def __getitem__(self, index):
-        """
-        回傳 (distance_vector, X, y, index) 作為模型的輸入
-        """
-        distance_vector = self.distance_matrix[index]  # 取出點 i 的距離向量
-        return distance_vector, self.X, self.y, index  # 回傳 index 讓模型知道是哪個點
+        return self.distance_matrix[index], self.y[index]
+
+# 簡單的神經網路回歸模型
 
 
-# ✅ 2️⃣ 定義 `LGWR` 模型
-class LGWR(nn.Module):
-    """
-    將 GWR 運算整合進 LBNN，讓 PyTorch 自動管理計算圖
-    """
+class SimpleNN(nn.Module):
+    def __init__(self, input_dim, X, y):
+        super(SimpleNN, self).__init__()
 
-    def __init__(self, input_dim, feature_dim):
-        super(LGWR, self).__init__()
-
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu")
-
-        # **LBNN 預測 bandwidth**
-        self.lbnn = nn.Sequential(
-            nn.Linear(input_dim, 32),
+        self.X = X
+        self.y = y
+        self.model = nn.Sequential(
+            nn.Linear(input_dim, 128),
             nn.ReLU(),
-            nn.Linear(32, 16),
+            nn.Linear(128, 64),
             nn.ReLU(),
-            nn.Linear(16, 1),
-            nn.ReLU()  # 確保 bandwidth >= 0
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, 1)  # 預測 y
         )
 
-        # **GWR 參數回歸層**（LBNN 直接輸出 `beta_i` 而不是 bandwidth）
-        self.gwr_regressor = nn.Linear(feature_dim, feature_dim, bias=False)
+    def forward(self, distance_vector, index):
 
-    def forward(self, distance_vector, X, y, index):
+        bandwidth = self.model(distance_vector)
+        bandwidth_scoped = bandwidth + 200000
+
+        # 計算空間加權矩陣 W
+        W = self.calculate_weighted_matrix(distance_vector, bandwidth_scoped)
+
+        # 計算 y_hat
+        y_hat = self.estimate_y_hat(W, index)
+
+        return y_hat
+
+    def calculate_weighted_matrix(self, distance_vector, bandwidths):
         """
-        1. 由 LBNN 預測 bandwidth
-        2. 直接在 forward() 計算 GWR 權重 & beta_i
-        3. 返回 `y_hat`
+        計算空間加權矩陣 W (exponential)
         """
+        weights = torch.exp(- (distance_vector ** 2) / (bandwidths ** 2))
+        return weights
 
-        # **1️⃣ LBNN 預測 bandwidth**
-        bandwidth = self.lbnn(distance_vector)
-        bandwidth = bandwidth + 100  # 避免 0 值
+    def estimate_y_hat(self, W, index):
+        """
+        計算加權回歸 y_hat (對應單個點)
+        """
+        # 確保 W 是 (n,) 的 1D 向量
+        W = W.squeeze(0)  # 轉換為 (n,)
 
-        # **2️⃣ 計算加權矩陣 W**
-        W = torch.exp(- (distance_vector ** 2) / (bandwidth ** 2))
+        # 取出對應的 X, y
+        XW = self.X * W.view(-1, 1)  # (n, p) * (n, 1) → (n, p)
+        XWX = XW.T @ self.X  # (p, n) @ (n, p) → (p, p)
+        XWy = XW.T @ self.y  # (p, n) @ (n, 1) → (p, 1)
 
-        # **3️⃣ 計算 GWR 的 β_i**
-        XTW = X.mT * W.unsqueeze(0)  # (p, n) * (1, n) -> (p, n)
-        XTWX = torch.matmul(XTW, X)  # (p, n) @ (n, p) -> (p, p)
-        XTWy = torch.matmul(XTW, y)  # (p, n) @ (n, 1) -> (p, 1)
+        # 解線性方程組來得到 beta
+        beta = torch.linalg.solve(XWX, XWy)  # (p, p) @ (p, 1) → (p, 1)
 
-        # **求解 β_i**
-        beta_i = torch.linalg.solve(XTWX, XTWy)  # (p, p) * (p, 1) -> (p, 1)
+        # 使用 index 處的 X 預測 y_hat
+        y_hat = torch.matmul(self.X[index], beta)  # (1, p) @ (p, 1) → (1, 1)
 
-        # **4️⃣ 使用 `gwr_regressor` 訓練 β_i**
-        beta_i = self.gwr_regressor(beta_i.T).T  # (p, 1)
-
-        # **5️⃣ 預測 `y_hat`**
-        y_hat = torch.matmul(X, beta_i)  # (n, p) @ (p, 1) -> (n, 1)
-
-        return y_hat[index]  # 只取出該點的 y_hat
+        return y_hat.view(1, 1)  # 確保輸出形狀為 (1, 1)
 
 
-# ✅ 3️⃣ 訓練 `LGWR`
-def train_lgwr(X, y, distance_matrix, epochs=100, lr=0.01, batch_size=1):
-    """
-    訓練 LGWR，包含 LBNN（學習 bandwidth）與 GWR（計算加權回歸）
-    """
+# 訓練函數
+def train_nn(distance_matrix, X, y, epochs=50, lr=0.01, batch_size=1):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    dataset = DistanceDataset(distance_matrix, y)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
-    dataset = SpatialDatasetTorch(X, y, distance_matrix)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-    model = LGWR(input_dim=X.shape[0], feature_dim=X.shape[1]).to(device)
+    model = SimpleNN(distance_matrix.shape[1], X, y).to(device)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.MSELoss()
 
     for epoch in range(epochs):
         train_loss = 0.0
+        index = 0
+        for distance_vector, target in dataloader:
+            distance_vector, target = distance_vector.to(
+                device), target.to(device)
 
-        for distance_vector, X_batch, y_batch, index in dataloader:
             optimizer.zero_grad()
+            prediction = model(distance_vector, index)
 
-            distance_vector = distance_vector.to(device)
-            X_batch = X_batch.to(device)
-            y_batch = y_batch.to(device)
+            print(prediction)
+            print(target)
+            print(prediction.shape)
+            print(target.shape)
+            print("====================")
 
-            y_i_hat = model(distance_vector, X_batch, y_batch, index)
-
-            loss = loss_fn(y_i_hat, y_batch.squeeze())  # 確保 batch loss 正確
-
+            loss = loss_fn(prediction, target)
             loss.backward()
             optimizer.step()
 
             train_loss += loss.item()
+            index += 1
 
-        print(f"Epoch {epoch+1}/{epochs} - Loss: {train_loss}")
+        print(f"Epoch {epoch+1}/{epochs} - Loss: {train_loss:.4f}")
 
     return model
 
+# 測試訓練
 
-# ✅ 4️⃣ 讀取數據 & 計算距離矩陣
-if __name__ == '__main__':
+
+def main():
+
     # 讀取數據
     synthetic_data = pd.read_csv(r'./data/GData_utm.csv')
 
-    # 創建 SpatialDataset
-    from src.dataset.spatial_dataset import SpatialDataset
-    from src.dataset.interfaces.spatial_dataset import IFieldInfo
-    from src.log.lgwr_logger import LgwrLogger
+    # 轉換為 Tensor
+    X = torch.tensor(synthetic_data[['PctBach', 'PctEld', 'PctBlack']].values,
+                     dtype=torch.float32).to('cuda')
+    y = torch.tensor(synthetic_data['PctPov'].values,
+                     dtype=torch.float32).unsqueeze(1).to('cuda')
+    coordinates = torch.tensor(
+        synthetic_data[['X', 'Y']].values, dtype=torch.float32).to('cuda')
 
-    logger = LgwrLogger()
-    spatialDataset = SpatialDataset(
-        synthetic_data,
-        IFieldInfo(
-            predictor_fields=['PctBach', 'PctEld', 'PctBlack'],  # X 的欄位
-            response_field='PctPov',  # y 的欄位
-            coordinate_x_field='X',  # X 座標
-            coordinate_y_field='Y'   # Y 座標
-        ),
-        logger,
-        isSpherical=False
-    )
+    # 計算距離矩陣
+    distance_matrix = torch.cdist(coordinates, coordinates, p=2).to('cuda')
 
-    # 轉換為 Torch Tensor
-    X = spatialDataset.x_matrix_torch  # (n, p)
-    y = spatialDataset.y_torch  # (n, 1)
+    # print(X.shape)
+    # print(y.shape)
+    # print(coordinates.shape)
+    # print(distance_matrix.shape)
 
-    # 計算距離矩陣 (n, n)
-    distance_matrix = torch.cdist(
-        spatialDataset.coordinates_torch, spatialDataset.coordinates_torch, p=2)
+    # 訓練模型
+    model = train_nn(distance_matrix, X, y)
 
-    # 訓練 LGWR
-    lgwr_model = train_lgwr(
-        X, y, distance_matrix,
-        epochs=50,  # 訓練 50 個 epochs
-        lr=0.01,  # 學習率
-        batch_size=1  # 每次更新 1 個點
-    )
 
-    # 測試模型（預測某個點的 `y_hat`）
-    i = 10
-    distance_vector = distance_matrix[i].unsqueeze(0).to(lgwr_model.device)
-    y_hat_i = lgwr_model(distance_vector, X.to(
-        lgwr_model.device), y.to(lgwr_model.device), i)
-
-    print(f"第 {i} 個點的預測值: {y_hat_i.item()}")
+if __name__ == "__main__":
+    main()

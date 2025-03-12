@@ -151,9 +151,9 @@ class IModel:
             # print(wi.shape) # 159, 1
             xT = (self.dataset.x_matrix * wi).T
 
-            print(xT.shape)
-            print(self.dataset.x_matrix.shape)
-            print("========")
+            # print(xT.shape)
+            # print(self.dataset.x_matrix.shape)
+            # print("========")
             xtx = np.dot(xT, self.dataset.x_matrix)
             xtx_inv_xt: npt.NDArray[np.float64] = linalg.solve(xtx, xT)
             beta: npt.NDArray[np.float64] = np.dot(xtx_inv_xt, self.dataset.y)
