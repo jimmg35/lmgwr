@@ -45,14 +45,20 @@ class SimpleNN(nn.Module):
             nn.ReLU(),
             nn.Linear(64, 32),
             nn.ReLU(),
-            nn.Linear(32, 1)  # 預測 y
+            nn.Linear(32, 1),  # 預測 y
         )
 
     def forward(self, distance_vector, index):
 
         bandwidth = self.model(distance_vector)
-        bandwidth_scoped = bandwidth + 200000
+        bandwidth_scoped = bandwidth + 200000  # the lower bound of bandwidth is 200000
 
+        if index == 0:
+            print(f"{index}: {bandwidth}")
+
+        # adaptive bandwidth
+        # 輸出層前加上softmax 並將輸出結果呈上一個常數
+        # 讓類神經網路輸出的結果符合adaptive bandwidth的單位
         # 計算空間加權矩陣 W
         W = self.calculate_weighted_matrix(distance_vector, bandwidth_scoped)
 
@@ -102,6 +108,9 @@ def train_nn(distance_matrix, X, y, epochs=50, lr=0.01, batch_size=1):
     for epoch in range(epochs):
         train_loss = 0.0
         index = 0
+        y_true_all = torch.empty_like(y)
+        y_pred_all = torch.empty_like(y)
+
         for distance_vector, target in dataloader:
             distance_vector, target = distance_vector.to(
                 device), target.to(device)
@@ -109,20 +118,27 @@ def train_nn(distance_matrix, X, y, epochs=50, lr=0.01, batch_size=1):
             optimizer.zero_grad()
             prediction = model(distance_vector, index)
 
-            print(prediction)
-            print(target)
-            print(prediction.shape)
-            print(target.shape)
-            print("====================")
+            # print(prediction)
+            # print(target)
+            # print(prediction.shape)
+            # print(target.shape)
+            # print("====================")
 
             loss = loss_fn(prediction, target)
             loss.backward()
             optimizer.step()
 
             train_loss += loss.item()
+            y_true_all[index] = target.item()
+            y_pred_all[index] = prediction.item()
             index += 1
 
-        print(f"Epoch {epoch+1}/{epochs} - Loss: {train_loss:.4f}")
+        ss_total = torch.sum((y_true_all - y_true_all.mean()) ** 2)  # 總變異
+        ss_residual = torch.sum((y_true_all - y_pred_all) ** 2)  # 殘差變異
+        r2_score = 1 - (ss_residual / ss_total)
+
+        print(
+            f"Epoch {epoch+1}/{epochs} - Loss: {train_loss:.4f} - R2: {r2_score}")
 
     return model
 
