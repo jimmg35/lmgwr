@@ -100,6 +100,10 @@ class SpatialDataset(IDataset):
             self.x_matrix, requires_grad=True, dtype=torch.float32).to('cuda')
         self.y_torch = torch.tensor(
             self.y, requires_grad=True, dtype=torch.float32).to('cuda')
+        self.coordinates_torch = torch.tensor(
+            np.array([[data_point.coordinate_x, data_point.coordinate_y]
+                     for data_point in self.dataPoints]),
+            requires_grad=True, dtype=torch.float32).to('cuda')
 
     def _verify_fields(self, data: pd.DataFrame) -> None:
         """
