@@ -58,7 +58,7 @@ class IKernel:
         """
         raise NotImplementedError("Method not implemented")
 
-    def update_local_bandwidth(self, index: int, bandwidth: float):
+    def update_local_bandwidth(self, index: int, bandwidth: float | Tensor):
         """
             for lgwr
         """

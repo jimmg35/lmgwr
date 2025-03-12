@@ -4,17 +4,17 @@ from src.log.ilogger import ILogger
 
 
 class IOptimizer:
-    model: IModel
+    # model: IModel
     kernel: IKernel
     logger: ILogger
 
     search_range: tuple
 
     def __init__(self,
-                 model: IModel,
+                 #  model: IModel,
                  kernel: IKernel,
                  logger: ILogger) -> None:
-        self.model = model
+        # self.model = model
         self.kernel = kernel
         self.logger = logger
 

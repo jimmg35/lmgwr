@@ -1,62 +1,23 @@
 import torch
 import torch.nn as nn
+from torch import Tensor
+from typing import Literal
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.lgwr_kernel import LgwrKernel
 from src.log.lgwr_logger import LgwrLogger
 from src.model.imodel import IModel
-from src.optimizer.lgwr_optimizer import LgwrOptimizeMode
-
-
-# class LBNN(nn.Module):
-#     """
-#     Local Bandwidth Neural Network Model: Input distance vector, output optimal bandwidth
-#     """
-
-#     # input_size: int
-#     dataset: SpatialDataset
-#     min_bandwidth: int
-#     max_bandwidth: int
-
-#     def __init__(self,
-#                  dataset: SpatialDataset,
-#                  #  input_size: int,
-#                  min_bandwidth: int = 10,
-#                  max_bandwidth: int = 500
-#                  ):
-#         super(LBNN, self).__init__()
-
-#         self.dataset = dataset
-#         self.min_bandwidth = min_bandwidth
-#         self.max_bandwidth = max_bandwidth
-
-#         self.fc1 = nn.Linear(self.dataset.x_matrix.shape[0], 32)
-#         self.fc2 = nn.Linear(32, 16)
-#         self.fc3 = nn.Linear(16, 1)  # 輸出單一帶寬
-#         self.relu = nn.ReLU()
-
-#     def forward(self, x):
-#         x = self.relu(self.fc1(x))
-#         x = self.relu(self.fc2(x))
-#         x = self.fc3(x)
-#         bandwidth = torch.nn.functional.softplus(x)  # 保證 > 0
-#         bandwidth = torch.clamp(
-#             bandwidth,
-#             min=self.min_bandwidth,
-#             max=self.max_bandwidth
-#         )  # 限制範圍
-#         return bandwidth
 
 
 class LGWR(IModel):
 
-    optimizeMode: LgwrOptimizeMode
+    optimizeMode: Literal['cuda', 'cpu']
 
     def __init__(self,
                  dataset: SpatialDataset,
                  kernel: LgwrKernel,
                  logger: LgwrLogger,
-                 optimizeMode: LgwrOptimizeMode = 'cuda') -> None:
+                 optimizeMode: Literal['cuda', 'cpu'] = 'cuda') -> None:
         """
         Initializes the GWR model with the specified spatial dataset and kernel.
 
@@ -76,7 +37,7 @@ class LGWR(IModel):
             self.dataset.x_matrix.shape[0],
             dtype=torch.float32).to(self.optimizeMode)
 
-    def update_local_bandwidth(self, index: int, bandwidth: float):
+    def update_local_bandwidth(self, index: int, bandwidth: float | Tensor):
         self.kernel.update_local_bandwidth(index, bandwidth)
         return self
 
@@ -105,3 +66,48 @@ class LGWR(IModel):
             self.dataset.y,
             dtype=torch.float32
         ).to(self.optimizeMode) - self.y_hats
+
+
+class LBNN(nn.Module):
+    """
+    Local Bandwidth Neural Network Model: Input distance vector, output optimal bandwidth
+    """
+
+    # input_size: int
+    dataset: SpatialDataset
+    lgwr: LGWR
+    min_bandwidth: int
+    max_bandwidth: int
+
+    def __init__(self,
+                 dataset: SpatialDataset,
+                 lgwr: LGWR,
+                 min_bandwidth: int = 10,
+                 max_bandwidth: int = 500
+                 ):
+        super(LBNN, self).__init__()
+
+        self.dataset = dataset
+        self.lgwr = lgwr
+        self.min_bandwidth = min_bandwidth
+        self.max_bandwidth = max_bandwidth
+
+        self.fc1 = nn.Linear(self.dataset.x_matrix.shape[0], 32)
+        self.fc2 = nn.Linear(32, 16)
+        self.fc3 = nn.Linear(16, 1)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = self.relu(self.fc1(x))
+        x = self.relu(self.fc2(x))
+        x = self.fc3(x)
+
+        local_bandwidth = torch.clamp(
+            x,
+            min=self.min_bandwidth,
+            max=self.max_bandwidth
+        )
+
+        self.lgwr.update_local_bandwidth(0, local_bandwidth)
+
+        return local_bandwidth

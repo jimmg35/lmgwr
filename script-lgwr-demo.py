@@ -4,9 +4,9 @@ import pandas as pd
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.log.lgwr_logger import LgwrLogger
-from src.model.lgwr import LGWR
+from src.model.lgwr import LGWR, LBNN
 from src.kernel.lgwr_kernel import LgwrKernel
-from src.optimizer.lgwr_optimizer import LgwrOptimizer, LBNN
+from src.optimizer.lgwr_optimizer import LgwrOptimizer
 
 
 if __name__ == '__main__':
@@ -28,14 +28,14 @@ if __name__ == '__main__':
 
     kernel = LgwrKernel(spatialDataset, logger, kernel_type='bisquare')
     lgwr = LGWR(spatialDataset, kernel, logger)
-    lbnn = LBNN(spatialDataset)
+    lbnn = LBNN(spatialDataset, lgwr)
 
     optimizer = LgwrOptimizer(
-        lgwr, lbnn,
+        lbnn,
         kernel,
         logger,
         lr=0.01,
-        epochs=1
+        epochs=100
     )
 
     optimizer.optimize()
