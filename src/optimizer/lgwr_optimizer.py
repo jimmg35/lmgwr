@@ -104,36 +104,33 @@ class LgwrOptimizer(IOptimizer):
 
             for index in range(len(self.model.dataset.dataPoints)):
                 distance_vector = self.kernel.get_distance_vector_by_id(index)
-                distance_vector = torch.tensor(
-                    distance_vector, dtype=torch.float32
-                ).to(self.optimizeMode)
 
                 # 預測 bandwidth
                 predicted_bandwidth = self.lbnn_model(distance_vector)
 
-                # if index == 0 or index == 1 or index == 2:
-                #     print(f"{index}, {predicted_bandwidth.item()}")
-
                 # 更新 Kernel
                 self.kernel.update_local_bandwidth(
-                    index, predicted_bandwidth.item()
+                    index, predicted_bandwidth
                 )
 
             self.model.fit()
 
-            y_true = torch.tensor(
-                self.model.dataset.y,
-                dtype=torch.float32,
-                requires_grad=True
-            ).to(self.optimizeMode)
+            # y_true = torch.tensor(
+            #     self.model.dataset.y,
+            #     dtype=torch.float32,
+            #     requires_grad=True
+            # ).to(self.optimizeMode)
 
-            y_hat = torch.tensor(
-                self.model.y_hats.reshape(-1, 1),
-                dtype=torch.float32,
-                requires_grad=True
-            ).to(self.optimizeMode)
+            # y_hat = torch.tensor(
+            #     self.model.y_hats.reshape(-1, 1),
+            #     dtype=torch.float32,
+            #     requires_grad=True
+            # ).to(self.optimizeMode)
 
-            loss = self.loss_fn(y_true, y_hat)
+            loss = self.loss_fn(
+                self.model.dataset.y_torch,
+                self.model.y_hats
+            )
 
             # before_update = self.lbnn_model.fc1.weight.clone().detach()
 

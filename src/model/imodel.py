@@ -145,14 +145,13 @@ class IModel:
 
             # ✅ 解線性方程組以獲得 `xtx_inv_xt`
             # PyTorch 版本的 `linalg.solve()`
-            xtx_inv_xt = torch.linalg.solve(xtx, xT)
-
-            print(type(xtx_inv_xt))
+            xtx_inv_xt_torch: Tensor = torch.linalg.solve(xtx, xT)
 
             # ✅ 計算 `beta`
-            beta = torch.matmul(xtx_inv_xt, y)  # (p, n) @ (n, 1) -> (p, 1)
+            # (p, n) @ (n, 1) -> (p, 1)
+            beta_torch = torch.matmul(xtx_inv_xt_torch, y)
 
-            return beta, xtx_inv_xt, wi
+            return beta_torch, xtx_inv_xt_torch, wi
         else:
             xT = (self.dataset.x_matrix * wi).T
             xtx = np.dot(xT, self.dataset.x_matrix)

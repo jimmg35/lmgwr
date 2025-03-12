@@ -97,29 +97,24 @@ def get_2d_distance_vector_torch(index: int,
 
     num_points = len(dataset.dataPoints)
 
-    distances = torch.zeros(num_points, dtype=torch.float32, device=device)
+    # ✅ 移除 requires_grad=True，這個 Tensor 會在 forward 計算過程中需要梯度
+    distances = torch.zeros(num_points, dtype=torch.float32,
+                            device=device, requires_grad=True)
 
     target_point = dataset.dataPoints[index]
     target_x = torch.tensor(target_point.coordinate_x,
-                            dtype=torch.float32, device=device)
+                            dtype=torch.float32, device=device, requires_grad=True)
     target_y = torch.tensor(target_point.coordinate_y,
-                            dtype=torch.float32, device=device)
+                            dtype=torch.float32, device=device, requires_grad=True)
 
     distance_function = haversine_distance_torch if dataset.isSpherical else euclidean_distance_torch
 
-    for i in range(num_points):
-        current_point = dataset.dataPoints[i]
-        destination_x = torch.tensor(
-            current_point.coordinate_x, dtype=torch.float32, device=device)
-        destination_y = torch.tensor(
-            current_point.coordinate_y, dtype=torch.float32, device=device)
+    # ✅ 改為 batch 運算來避免 in-place operation
+    all_x = torch.tensor(
+        [p.coordinate_x for p in dataset.dataPoints], dtype=torch.float32, device=device, requires_grad=True)
+    all_y = torch.tensor(
+        [p.coordinate_y for p in dataset.dataPoints], dtype=torch.float32, device=device, requires_grad=True)
 
-        distance = torch.tensor(
-            distance_function(target_x, target_y,
-                              destination_x, destination_y),
-            dtype=torch.float32, device=device
-        )
-
-        distances[i] = distance
+    distances = distance_function(target_x, target_y, all_x, all_y)
 
     return distances

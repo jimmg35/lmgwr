@@ -99,6 +99,8 @@ class SpatialDataset(IDataset):
         self.x_matrix_torch = Tensor(self.x_matrix).to('cuda')
         self.y_torch = Tensor(self.y).to('cuda')
 
+        print(self.x_matrix_torch.requires_grad)
+
     def _verify_fields(self, data: pd.DataFrame) -> None:
         """
         Verifies the presence of all required fields in the dataset based on `fieldInfo`.

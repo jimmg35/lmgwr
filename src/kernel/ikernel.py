@@ -199,10 +199,12 @@ class IKernel:
             return self.distance_vector_cache[index]
 
         # Calculate the distance vector and store in cache
-        distance_vector_i = torch.tensor(
-            get_2d_distance_vector_torch(index, self.dataset),
-            dtype=torch.float32
-        ).to('cuda').view(-1)
+        # distance_vector_i = torch.tensor(
+        #     get_2d_distance_vector_torch(index, self.dataset),
+        #     dtype=torch.float32
+        # ).to('cuda')
+
+        distance_vector_i = get_2d_distance_vector_torch(index, self.dataset)
 
         self.distance_vector_cache[index] = distance_vector_i
         return distance_vector_i
@@ -296,13 +298,13 @@ class IKernel:
                           distance_bandwidth: Tensor
                           ):
         weighted_matrix_i = torch.zeros_like(
-            zs, dtype=torch.float32).to('cuda')
+            zs, dtype=torch.float32, requires_grad=True).to('cuda')
 
         if self.kernel_type == 'triangular':
             weighted_matrix_i = 1 - zs
         elif self.kernel_type == 'uniform':
             weighted_matrix_i = torch.ones(
-                zs.shape, dtype=torch.float32).to('cuda') * 0.5
+                zs.shape, dtype=torch.float32, requires_grad=True).to('cuda') * 0.5
         elif self.kernel_type == 'quadratic':
             weighted_matrix_i = (3. / 4) * (1 - zs**2)
         elif self.kernel_type == 'quartic':
