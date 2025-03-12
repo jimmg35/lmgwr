@@ -17,6 +17,17 @@ LgwrOptimizeMode: TypeAlias = Literal[
 ]
 
 
+def print_computation_graph(var, indent=0):
+    """ 列出計算圖的節點 """
+    if var.grad_fn is None:
+        print(" " * indent + f"Variable: {var.shape} (No grad_fn)")
+    else:
+        print(" " * indent + f"GradFn: {type(var.grad_fn).__name__}")
+        for next_fn in var.grad_fn.next_functions:
+            if next_fn[0] is not None:
+                print_computation_graph(next_fn[0], indent + 4)
+
+
 class LBNN(nn.Module):
     """
     Local Bandwidth Neural Network Model: Input distance vector, output optimal bandwidth
@@ -111,33 +122,35 @@ class LgwrOptimizer(IOptimizer):
                 predicted_bandwidth = self.lbnn_model(distance_vector)
                 predicted_bandwidth.retain_grad()
 
-                # if index == 0:
-                #     print(predicted_bandwidth.item())
-                #     print("===================")
-
                 # 更新 Kernel
                 self.kernel.update_local_bandwidth(
                     index, predicted_bandwidth
                 )
 
             self.model.fit()
+
             self.optimizer.zero_grad()
 
             # print(self.model.dataset.y_torch.shape)
             # print(self.model.y_hats.reshape(-1, 1).shape)
             # print("=================")
 
-            loss = self.loss_fn(
+            output = self.loss_fn(
                 self.model.dataset.y_torch,
                 self.model.y_hats.reshape(-1, 1)
             )
 
+            print(output.item())
+
             # before_update = self.lbnn_model.fc1.weight.clone().detach()
 
             # 反向傳播
-            loss.backward(retain_graph=True)
+            output.backward(retain_graph=True)
             self.optimizer.step()
-            total_loss += loss.item()
+            total_loss += output.item()
+
+            print("========== Computation Graph ==========")
+            print_computation_graph(output)
 
             # after_update = self.lbnn_model.fc1.weight.clone().detach()
 
@@ -150,11 +163,6 @@ class LgwrOptimizer(IOptimizer):
             self.logger.append_bandwidth_optimization(
                 f"Epoch {epoch + 1}/{self.epochs}, Loss: {total_loss:.4f}"
             )
-
-            dot = make_dot(loss, params=dict(
-                self.lbnn_model.named_parameters()))
-            # 產生 PNG 檔案
-            dot.render(F"computation_graph_{epoch+1}")
 
             # , AIC: {self.model.aic}, AICc: {self.model.aicc}, R^2: {self.model.r_squared}
 

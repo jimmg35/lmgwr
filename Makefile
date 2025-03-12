@@ -16,6 +16,11 @@ lgwrDemo:
 lmgwrDemo:
 	python script-lmgwr-demo.py
 
+torchTest:
+	python script-torch-test.py
+torchNnTest:
+	python script-torch-nn-test.py
+
 
 # Export the conda environment to a file. 
 # (includes all dependencies and python version)

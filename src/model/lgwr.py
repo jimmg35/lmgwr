@@ -100,8 +100,4 @@ class LGWR(IModel):
         for index in range(0, self.dataset.x_matrix.shape[0]):
             self._local_fit(index)
 
-        # ✅ 確保 residuals 也是 PyTorch Tensor
-        self.residuals = torch.tensor(
-            self.dataset.y,
-            dtype=torch.float32
-        ).to(self.optimizeMode) - self.y_hats
+        self.residuals = self.dataset.y_torch - self.y_hats
