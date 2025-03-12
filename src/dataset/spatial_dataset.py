@@ -1,5 +1,5 @@
 
-from torch import Tensor
+import torch
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -36,8 +36,8 @@ class SpatialDataset(IDataset):
     x_matrix: npt.NDArray[np.float64]
     y: npt.NDArray[np.float64]
 
-    x_matrix_torch: Tensor
-    y_torch: Tensor
+    x_matrix_torch: torch.Tensor
+    y_torch: torch.Tensor
 
     # Estimated values
     # betas: List[npt.NDArray[np.float64] | None]
@@ -96,10 +96,10 @@ class SpatialDataset(IDataset):
             self.x_matrix = np.hstack(
                 (np.ones((self.x_matrix.shape[0], 1)), self.x_matrix))
 
-        self.x_matrix_torch = Tensor(self.x_matrix).to('cuda')
-        self.y_torch = Tensor(self.y).to('cuda')
-
-        print(self.x_matrix_torch.requires_grad)
+        self.x_matrix_torch = torch.tensor(
+            self.x_matrix, requires_grad=True, dtype=torch.float32).to('cuda')
+        self.y_torch = torch.tensor(
+            self.y, requires_grad=True, dtype=torch.float32).to('cuda')
 
     def _verify_fields(self, data: pd.DataFrame) -> None:
         """

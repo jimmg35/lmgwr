@@ -1,7 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torchviz import make_dot
 from typing import Literal, TypeAlias
+
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.model.imodel import IModel
@@ -107,6 +109,11 @@ class LgwrOptimizer(IOptimizer):
 
                 # 預測 bandwidth
                 predicted_bandwidth = self.lbnn_model(distance_vector)
+                predicted_bandwidth.retain_grad()
+
+                # if index == 0:
+                #     print(predicted_bandwidth.item())
+                #     print("===================")
 
                 # 更新 Kernel
                 self.kernel.update_local_bandwidth(
@@ -114,29 +121,21 @@ class LgwrOptimizer(IOptimizer):
                 )
 
             self.model.fit()
+            self.optimizer.zero_grad()
 
-            # y_true = torch.tensor(
-            #     self.model.dataset.y,
-            #     dtype=torch.float32,
-            #     requires_grad=True
-            # ).to(self.optimizeMode)
-
-            # y_hat = torch.tensor(
-            #     self.model.y_hats.reshape(-1, 1),
-            #     dtype=torch.float32,
-            #     requires_grad=True
-            # ).to(self.optimizeMode)
+            # print(self.model.dataset.y_torch.shape)
+            # print(self.model.y_hats.reshape(-1, 1).shape)
+            # print("=================")
 
             loss = self.loss_fn(
                 self.model.dataset.y_torch,
-                self.model.y_hats
+                self.model.y_hats.reshape(-1, 1)
             )
 
             # before_update = self.lbnn_model.fc1.weight.clone().detach()
 
             # 反向傳播
-            self.optimizer.zero_grad()
-            loss.backward()
+            loss.backward(retain_graph=True)
             self.optimizer.step()
             total_loss += loss.item()
 
@@ -149,7 +148,14 @@ class LgwrOptimizer(IOptimizer):
 
             # 記錄 Loss
             self.logger.append_bandwidth_optimization(
-                f"Epoch {epoch + 1}/{self.epochs}, Loss: {total_loss:.4f}, AIC: {self.model.aic}, AICc: {self.model.aicc}, R^2: {self.model.r_squared}"
+                f"Epoch {epoch + 1}/{self.epochs}, Loss: {total_loss:.4f}"
             )
+
+            dot = make_dot(loss, params=dict(
+                self.lbnn_model.named_parameters()))
+            # 產生 PNG 檔案
+            dot.render(F"computation_graph_{epoch+1}")
+
+            # , AIC: {self.model.aic}, AICc: {self.model.aicc}, R^2: {self.model.r_squared}
 
         return self.model

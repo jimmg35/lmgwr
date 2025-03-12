@@ -35,7 +35,7 @@ if __name__ == '__main__':
         kernel,
         logger,
         lr=0.01,
-        epochs=100
+        epochs=1
     )
 
     optimizer.optimize()

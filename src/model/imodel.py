@@ -139,16 +139,9 @@ class IModel:
             X = self.dataset.x_matrix_torch
             y = self.dataset.y_torch
 
-            # ✅ PyTorch 版本的加權矩陣計算
-            xT = (X * wi).T  # `wi` 是 (n,1)，這樣做會廣播
-            xtx = torch.matmul(xT, X)  # (p, n) @ (n, p) -> (p, p)
-
-            # ✅ 解線性方程組以獲得 `xtx_inv_xt`
-            # PyTorch 版本的 `linalg.solve()`
+            xT = (X * wi).T
+            xtx = torch.matmul(xT, X)
             xtx_inv_xt_torch: Tensor = torch.linalg.solve(xtx, xT)
-
-            # ✅ 計算 `beta`
-            # (p, n) @ (n, 1) -> (p, 1)
             beta_torch = torch.matmul(xtx_inv_xt_torch, y)
 
             return beta_torch, xtx_inv_xt_torch, wi

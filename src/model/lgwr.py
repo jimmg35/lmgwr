@@ -86,11 +86,12 @@ class LGWR(IModel):
         """
         beta, _, wi = self._estimate_beta_by_index(index)
 
-        beta = torch.tensor(beta, dtype=torch.float32).to(self.optimizeMode)
+        # beta = torch.tensor(beta, dtype=torch.float32).to(self.optimizeMode)
 
-        x_matrix_torch = torch.tensor(
-            self.dataset.x_matrix[index, :], dtype=torch.float32).to(self.optimizeMode)
-        self.y_hats[index] = torch.matmul(x_matrix_torch, beta)
+        if isinstance(beta, torch.Tensor):
+            x_matrix_torch = torch.tensor(
+                self.dataset.x_matrix[index, :], dtype=torch.float32).to(self.optimizeMode)
+            self.y_hats[index] = torch.matmul(x_matrix_torch, beta)
 
     def fit(self):
         """
