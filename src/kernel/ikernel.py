@@ -2,6 +2,8 @@
 import numpy as np
 import numpy.typing as npt
 from typing import Literal, TypeAlias, Dict
+from torch import Tensor
+import torch
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
@@ -19,11 +21,11 @@ class IKernel:
 
     logger: ILogger
     dataset: SpatialDataset | None = None
-    bandwidth: float | None = None
+    bandwidth: float | Tensor | None = None
     kernel_type: KernelFunctionType = "bisquare"
     kernel_bandwidth_type: KernelBandwidthType = "adaptive"
-    weighted_matrix_cache: Dict[int, npt.NDArray[np.float64]] = {}
-    distance_vector_cache: Dict[int, npt.NDArray[np.float64]] = {}
+    weighted_matrix_cache: Dict[int, npt.NDArray[np.float64] | Tensor] = {}
+    distance_vector_cache: Dict[int, npt.NDArray[np.float64] | Tensor] = {}
 
     def __init__(self,
                  dataset: SpatialDataset,
@@ -32,7 +34,7 @@ class IKernel:
                  kernel_bandwidth_type: KernelBandwidthType = 'adaptive'
                  ) -> None:
         """
-        Initializes the GwrKernel with a dataset, bandwidth, and kernel type.
+        Initializes the Kernel with a dataset, bandwidth, and kernel type.
 
         Args:
             dataset (SpatialDataset): The spatial dataset for generating the weighted matrix.
@@ -44,6 +46,8 @@ class IKernel:
         self.logger = logger
         self.kernel_type = kernel_type
         self.kernel_bandwidth_type = kernel_bandwidth_type
+
+        self.__init_distance_vectors()
         self.logger.append_info(
             f"{self.__class__.__name__} : Kernel is initialized.")
 
@@ -59,7 +63,7 @@ class IKernel:
         """
         raise NotImplementedError("Method not implemented")
 
-    def get_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64]:
+    def get_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64] | Tensor:
         """
         Returns the weighted matrix for all data points.
 
@@ -73,7 +77,7 @@ class IKernel:
                 f"Weighted matrix for index {index} is not found in the cache, please update the bandwidth first")
         return self.weighted_matrix_cache[index]
 
-    def get_distance_vector_by_id(self, index: int) -> npt.NDArray[np.float64]:
+    def get_distance_vector_by_id(self, index: int) -> npt.NDArray[np.float64] | Tensor:
         """
         Returns the distance vector for a specific data point by index.
 
@@ -104,14 +108,23 @@ class IKernel:
             npt.NDArray[np.float64]: A 2D array representing the weighted matrix for 
                 the specified data point.
         """
+        if isinstance(self.bandwidth, Tensor):
+            self.bandwidth = self.bandwidth.item()
 
-        # retrive the distance vector from cache if found,
-        # or initialize it.
-        distance_vector = self.__calculate_distance_vector(index)
-        self.__calculate_weighted_matrix(
-            index,
-            distance_vector
-        )
+        if isinstance(self.bandwidth, float):
+            distance_vector = self.__calculate_distance_vector(index)
+            self.__calculate_weighted_matrix(
+                index,
+                distance_vector
+            )
+
+    def __init_distance_vectors(self):
+        if self.dataset is None:
+            raise ValueError("Dataset is not setup in Kernel")
+        if self.dataset.dataPoints is None:
+            raise ValueError("DataPoints are not setup in Kernel")
+        for index in range(0, len(self.dataset.dataPoints)):
+            self.__calculate_distance_vector(index)
 
     def __calculate_distance_vector(self, index: int) -> npt.NDArray[np.float64]:
         """
@@ -146,6 +159,40 @@ class IKernel:
         ).reshape(-1)
         self.distance_vector_cache[index] = distance_vector_i
 
+        return distance_vector_i
+
+    def __calculate_distance_vector_torch(self, index: int) -> npt.NDArray[np.float64] | Tensor:
+        """
+        Retrieves the distance vector for a specific data point index.
+
+        This function calculates the distances from a specified data point to all other points 
+        in the dataset using PyTorch tensors.
+
+        Args:
+            index (int): The index of the data point to calculate distances from.
+
+        Returns:
+            torch.Tensor: A 1D tensor of distances from the specified data point to all other points.
+
+        Raises:
+            ValueError: If the dataset or data points are not initialized.
+        """
+        if self.dataset is None:
+            raise ValueError("Dataset is not setup in Kernel")
+        if self.dataset.dataPoints is None:
+            raise ValueError("DataPoints are not setup in Kernel")
+
+        # Retrieve the distance vector from cache if it exists
+        if index in self.distance_vector_cache:
+            return self.distance_vector_cache[index]
+
+        # Calculate the distance vector and store in cache
+        distance_vector_i = torch.tensor(
+            get_2d_distance_vector(index, self.dataset),
+            dtype=torch.float32
+        ).to('cuda').view(-1)
+
+        self.distance_vector_cache[index] = distance_vector_i
         return distance_vector_i
 
     def __calculate_weighted_matrix(self,

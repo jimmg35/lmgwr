@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 from scipy import linalg
+from torch import Tensor
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.ikernel import IKernel
@@ -13,10 +14,10 @@ class IModel:
     logger: ILogger
 
     # estimates for each data point
-    betas: npt.NDArray[np.float64]
-    y_hats: npt.NDArray[np.float64]
-    S: npt.NDArray[np.float64]  # hat matrix
-    residuals: npt.NDArray[np.float64]
+    betas: npt.NDArray[np.float64] | Tensor
+    y_hats: npt.NDArray[np.float64] | Tensor
+    S: npt.NDArray[np.float64] | Tensor  # hat matrix
+    residuals: npt.NDArray[np.float64] | Tensor
 
     # matrices for the GWR model
     r_squared: float
@@ -93,9 +94,16 @@ class IModel:
         S_ii = xi @ np.linalg.inv(XtWX) @ xi.T
 
         # update estimates (in loop to append to the arrays)
-        self.betas[index, :] = beta.flatten()
-        self.y_hats[index] = self.dataset.x_matrix[index, :] @ beta
-        self.S[index] = S_ii.flatten()[0]
+        # check type, if numpy array, do the following
+        if isinstance(self.betas, np.ndarray):
+            self.betas[index, :] = beta.flatten()
+        if isinstance(self.y_hats, np.ndarray):
+            self.y_hats[index] = self.dataset.x_matrix[index, :] @ beta
+        if isinstance(self.S, np.ndarray):
+            self.S[index] = S_ii.flatten()[0]
+        # self.betas[index, :] = beta.flatten()
+        # self.y_hats[index] = self.dataset.x_matrix[index, :] @ beta
+        # self.S[index] = S_ii.flatten()[0]
 
     def _estimate_beta_by_index(self, index: int):
         """

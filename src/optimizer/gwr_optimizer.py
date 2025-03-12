@@ -13,7 +13,7 @@ GwrBandwidthOptimizeMethod: TypeAlias = Literal['golden_section',
                                                 'grid_search', 'random_search']
 
 
-class GwrBandwidthOptimizer(IOptimizer):
+class GwrOptimizer(IOptimizer):
 
     method: GwrBandwidthOptimizeMethod
     search_range: tuple

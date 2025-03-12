@@ -5,7 +5,7 @@ from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.model.gwr import GWR
 from src.kernel.gwr_kernel import GwrKernel
-from src.optimizer.gwr_bandwidth_optimizer import GwrBandwidthOptimizer
+from src.optimizer.gwr_optimizer import GwrOptimizer
 from src.log.gwr_logger import GwrLogger
 
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # gwr.update_bandwidth(117).fit()
 
     # Use the bandwidth optimizer to automatically find the optimal bandwidth.
-    optimizer = GwrBandwidthOptimizer(gwr, kernel, logger)
+    optimizer = GwrOptimizer(gwr, kernel, logger)
     optimal_bandwidth = optimizer.optimize()
 
     logger.save_model_info_json()
