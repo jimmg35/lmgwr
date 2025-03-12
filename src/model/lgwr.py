@@ -4,51 +4,51 @@ import torch.nn as nn
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.lgwr_kernel import LgwrKernel
 from src.log.lgwr_logger import LgwrLogger
-from src.model.gwr import GWR
+from src.model.imodel import IModel
 from src.optimizer.lgwr_optimizer import LgwrOptimizeMode
 
 
-class LBNN(nn.Module):
-    """
-    Local Bandwidth Neural Network Model: Input distance vector, output optimal bandwidth
-    """
+# class LBNN(nn.Module):
+#     """
+#     Local Bandwidth Neural Network Model: Input distance vector, output optimal bandwidth
+#     """
 
-    # input_size: int
-    dataset: SpatialDataset
-    min_bandwidth: int
-    max_bandwidth: int
+#     # input_size: int
+#     dataset: SpatialDataset
+#     min_bandwidth: int
+#     max_bandwidth: int
 
-    def __init__(self,
-                 dataset: SpatialDataset,
-                 #  input_size: int,
-                 min_bandwidth: int = 10,
-                 max_bandwidth: int = 500
-                 ):
-        super(LBNN, self).__init__()
+#     def __init__(self,
+#                  dataset: SpatialDataset,
+#                  #  input_size: int,
+#                  min_bandwidth: int = 10,
+#                  max_bandwidth: int = 500
+#                  ):
+#         super(LBNN, self).__init__()
 
-        self.dataset = dataset
-        self.min_bandwidth = min_bandwidth
-        self.max_bandwidth = max_bandwidth
+#         self.dataset = dataset
+#         self.min_bandwidth = min_bandwidth
+#         self.max_bandwidth = max_bandwidth
 
-        self.fc1 = nn.Linear(self.dataset.x_matrix.shape[0], 32)
-        self.fc2 = nn.Linear(32, 16)
-        self.fc3 = nn.Linear(16, 1)  # 輸出單一帶寬
-        self.relu = nn.ReLU()
+#         self.fc1 = nn.Linear(self.dataset.x_matrix.shape[0], 32)
+#         self.fc2 = nn.Linear(32, 16)
+#         self.fc3 = nn.Linear(16, 1)  # 輸出單一帶寬
+#         self.relu = nn.ReLU()
 
-    def forward(self, x):
-        x = self.relu(self.fc1(x))
-        x = self.relu(self.fc2(x))
-        x = self.fc3(x)
-        bandwidth = torch.nn.functional.softplus(x)  # 保證 > 0
-        bandwidth = torch.clamp(
-            bandwidth,
-            min=self.min_bandwidth,
-            max=self.max_bandwidth
-        )  # 限制範圍
-        return bandwidth
+#     def forward(self, x):
+#         x = self.relu(self.fc1(x))
+#         x = self.relu(self.fc2(x))
+#         x = self.fc3(x)
+#         bandwidth = torch.nn.functional.softplus(x)  # 保證 > 0
+#         bandwidth = torch.clamp(
+#             bandwidth,
+#             min=self.min_bandwidth,
+#             max=self.max_bandwidth
+#         )  # 限制範圍
+#         return bandwidth
 
 
-class LGWR(GWR):
+class LGWR(IModel):
 
     optimizeMode: LgwrOptimizeMode
 

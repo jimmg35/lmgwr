@@ -3,10 +3,10 @@ import pandas as pd
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
-from src.model.lgwr import LGWR, LBNN
-from src.kernel.lgwr_kernel import LgwrKernel
 from src.log.lgwr_logger import LgwrLogger
-from src.optimizer.lgwr_optimizer import LgwrOptimizer
+from src.model.lgwr import LGWR
+from src.kernel.lgwr_kernel import LgwrKernel
+from src.optimizer.lgwr_optimizer import LgwrOptimizer, LBNN
 
 
 if __name__ == '__main__':
@@ -26,7 +26,7 @@ if __name__ == '__main__':
         isSpherical=True
     )
 
-    kernel = LgwrKernel(spatialDataset, logger, 'bisquare')
+    kernel = LgwrKernel(spatialDataset, logger, kernel_type='bisquare')
     lgwr = LGWR(spatialDataset, kernel, logger)
     lbnn = LBNN(spatialDataset)
 

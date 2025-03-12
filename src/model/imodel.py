@@ -2,6 +2,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy import linalg
 from torch import Tensor
+import torch
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.ikernel import IKernel
@@ -129,18 +130,40 @@ class IModel:
             ValueError: If there is an error in matrix calculations.
         """
 
-        wi: npt.NDArray[np.float64] = self.kernel.get_weighted_matrix_by_id(
+        wi: npt.NDArray[np.float64] | Tensor = self.kernel.get_weighted_matrix_by_id(
             index)
-        xT = (self.dataset.x_matrix * wi).T
-        xtx = np.dot(xT, self.dataset.x_matrix)
-        xtx_inv_xt: npt.NDArray[np.float64] = linalg.solve(xtx, xT)
-        beta: npt.NDArray[np.float64] = np.dot(xtx_inv_xt, self.dataset.y)
 
-        # Return betas, inverse matrix for inspection, and weight vector for trace calculations
-        # betas:      (number of independent vars, 1)
-        # xtx_inv_xt: (number of independent vars, number of datapoints)
-        # wi:         (number of datapoints, 1)
-        return beta, xtx_inv_xt, wi
+        if isinstance(wi, Tensor):
+            wi = wi.to('cuda')
+
+            X = self.dataset.x_matrix_torch
+            y = self.dataset.y_torch
+
+            # ✅ PyTorch 版本的加權矩陣計算
+            xT = (X * wi).T  # `wi` 是 (n,1)，這樣做會廣播
+            xtx = torch.matmul(xT, X)  # (p, n) @ (n, p) -> (p, p)
+
+            # ✅ 解線性方程組以獲得 `xtx_inv_xt`
+            # PyTorch 版本的 `linalg.solve()`
+            xtx_inv_xt = torch.linalg.solve(xtx, xT)
+
+            print(type(xtx_inv_xt))
+
+            # ✅ 計算 `beta`
+            beta = torch.matmul(xtx_inv_xt, y)  # (p, n) @ (n, 1) -> (p, 1)
+
+            return beta, xtx_inv_xt, wi
+        else:
+            xT = (self.dataset.x_matrix * wi).T
+            xtx = np.dot(xT, self.dataset.x_matrix)
+            xtx_inv_xt: npt.NDArray[np.float64] = linalg.solve(xtx, xT)
+            beta: npt.NDArray[np.float64] = np.dot(xtx_inv_xt, self.dataset.y)
+
+            # Return betas, inverse matrix for inspection, and weight vector for trace calculations
+            # betas:      (number of independent vars, 1)
+            # xtx_inv_xt: (number of independent vars, number of datapoints)
+            # wi:         (number of datapoints, 1)
+            return beta, xtx_inv_xt, wi
 
     def _calculate_r_squared(self) -> None:
         """

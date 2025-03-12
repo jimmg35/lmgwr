@@ -33,8 +33,8 @@ def haversine_distance(target_x, target_y, destination_x, destination_y):
     destination_y_rad = math.radians(destination_y)
 
     # Calculate the differences in coordinates
-    delta_x = destination_x_rad - target_x_rad
     delta_y = destination_y_rad - target_y_rad
+    delta_x = destination_x_rad - target_x_rad
 
     # Apply the Haversine formula
     a = math.sin(delta_y / 2)**2 + math.cos(target_y_rad) * \
@@ -75,12 +75,6 @@ def haversine_distance_torch(
         >>> print(distance)  # Expected output: ~2887.26 km
     """
     R = 6371.0
-
-    # lat1, lon1, lat2, lon2 = map(
-    #     lambda x: x if isinstance(x, torch.Tensor)
-    #     else torch.tensor(x, dtype=torch.float32),
-    #     [lat1, lon1, lat2, lon2]
-    # )
 
     lat1, lon1, lat2, lon2 = map(torch.deg2rad, [lat1, lon1, lat2, lon2])
 

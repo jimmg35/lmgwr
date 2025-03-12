@@ -1,4 +1,5 @@
 
+from torch import Tensor
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -31,8 +32,12 @@ class SpatialDataset(IDataset):
     dataPoints: List[IDataPoint] | None = None
     fieldInfo: IFieldInfo | None = None
     isSpherical: bool = False
+
     x_matrix: npt.NDArray[np.float64]
     y: npt.NDArray[np.float64]
+
+    x_matrix_torch: Tensor
+    y_torch: Tensor
 
     # Estimated values
     # betas: List[npt.NDArray[np.float64] | None]
@@ -91,18 +96,8 @@ class SpatialDataset(IDataset):
             self.x_matrix = np.hstack(
                 (np.ones((self.x_matrix.shape[0], 1)), self.x_matrix))
 
-        # # Initializing the estimates storing variables.
-        # self.betas = [None for i in range(0, len(self.dataPoints))]
-        # self.W = [None for i in range(0, len(self.dataPoints))]
-
-    # def update_estimates_by_index(
-    #     self,
-    #     index: int,
-    #     beta: npt.NDArray[np.float64],
-    #     wi: npt.NDArray[np.float64]
-    # ):
-    #     self.betas[index] = beta
-    #     self.W[index] = wi
+        self.x_matrix_torch = Tensor(self.x_matrix).to('cuda')
+        self.y_torch = Tensor(self.y).to('cuda')
 
     def _verify_fields(self, data: pd.DataFrame) -> None:
         """

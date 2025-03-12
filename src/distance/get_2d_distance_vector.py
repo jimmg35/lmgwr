@@ -2,8 +2,8 @@ import torch
 import numpy as np
 import numpy.typing as npt
 from src.dataset.spatial_dataset import SpatialDataset
-from src.distance.haversine_distance.haversine_distance import haversine_distance
-from src.distance.euclidean_distance.euclidean_distance import euclidean_distance
+from src.distance.haversine_distance.haversine_distance import haversine_distance, haversine_distance_torch
+from src.distance.euclidean_distance.euclidean_distance import euclidean_distance, euclidean_distance_torch
 
 
 def get_2d_distance_vector(index: int, dataset: SpatialDataset) -> npt.NDArray[np.float64]:
@@ -105,7 +105,7 @@ def get_2d_distance_vector_torch(index: int,
     target_y = torch.tensor(target_point.coordinate_y,
                             dtype=torch.float32, device=device)
 
-    distance_function = haversine_distance if dataset.isSpherical else euclidean_distance
+    distance_function = haversine_distance_torch if dataset.isSpherical else euclidean_distance_torch
 
     for i in range(num_points):
         current_point = dataset.dataPoints[i]
@@ -114,10 +114,9 @@ def get_2d_distance_vector_torch(index: int,
         destination_y = torch.tensor(
             current_point.coordinate_y, dtype=torch.float32, device=device)
 
-        # ✅ 確保距離計算結果為 PyTorch Tensor
         distance = torch.tensor(
-            distance_function(target_x.item(), target_y.item(),
-                              destination_x.item(), destination_y.item()),
+            distance_function(target_x, target_y,
+                              destination_x, destination_y),
             dtype=torch.float32, device=device
         )
 
