@@ -65,11 +65,14 @@ class LgwrOptimizer():
         )
 
     def train(self):
+        # for name, param in self.model.lbnn.named_parameters():
+        #     print(f"{name} requires_grad: {param.requires_grad}")
 
-        # self.dataLoader
-        # self.model
-        # self.optimizer
-        # self.loss_function
+        # print("+=========================")
+        # for name, param in self.model.named_parameters():
+        #     print(f"{name} requires_grad: {param.requires_grad}")
+        # print("+=========================")
+        # self.model.monitor_layer_weights()
 
         for epoch in range(self.epochs):
             train_loss = 0.0
@@ -77,17 +80,35 @@ class LgwrOptimizer():
             y_true_all = torch.empty_like(self.dataset.y)
             y_pred_all = torch.empty_like(self.dataset.y)
 
-            for distance_vector_batch, yi_batch in self.dataLoader:
+            for distance_vector_batch, xi_batch, yi_batch in self.dataLoader:
+                # get a batch of data (usually minibatch)
                 distance_vector_batch: torch.Tensor = distance_vector_batch.to(
                     self.optimizeMode)
+                xi_batch: torch.Tensor = xi_batch.to(self.optimizeMode)
                 yi_batch: torch.Tensor = yi_batch.to(self.optimizeMode)
 
+                # zero the parameter gradients
                 self.optimizer.zero_grad()
 
-                yi_hat_batch = self.model(distance_vector_batch, index)
+                # forward + backward + optimize
+                yi_hat_batch = self.model(xi_batch, index)
+
+                # print(f"yi_hat_batch: {yi_hat_batch.item()}")
+                # print(f"yi_batch: {yi_batch.item()}")
 
                 loss = self.loss_function(yi_hat_batch, yi_batch)
+
+                # print(f"Loss before backward: {loss.item()}")
+                # print("=====================")
+
                 loss.backward()
+                # print("After backward:")
+                # for name, param in self.model.named_parameters():
+                #     if param.grad is not None:
+                #         # 梯度應該 > 0
+                #         print(
+                #             f"{name} grad norm: {torch.norm(param.grad).item():.8f}")
+
                 self.optimizer.step()
                 train_loss += loss.item()
 
@@ -96,13 +117,16 @@ class LgwrOptimizer():
 
                 index += 1
 
-            ss_total = torch.sum((y_true_all - y_true_all.mean()) ** 2)  # 總變異
-            ss_residual = torch.sum((y_true_all - y_pred_all) ** 2)  # 殘差變異
+            ss_total = torch.sum((y_true_all - y_true_all.mean()) ** 2)
+            ss_residual = torch.sum((y_true_all - y_pred_all) ** 2)
             r2_score = 1 - (ss_residual / ss_total)
 
             print(
                 f"Epoch {epoch+1}/{self.epochs} | Loss: {train_loss:.4f} - R2: {r2_score}"
             )
+
+            # self.model.monitor_layer_weights()
+            # print(self.model.local_bandwidths)
 
     # def predict(self, x):
     #     x = torch.tensor(x, dtype=torch.float32).to(self.optimizeMode)

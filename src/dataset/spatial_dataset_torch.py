@@ -51,4 +51,4 @@ class SpatialDataset(Dataset):
         return self.n
 
     def __getitem__(self, index):
-        return self.distance_matrix[index], self.y[index]
+        return self.distance_matrix[index], self.X[index], self.y[index]

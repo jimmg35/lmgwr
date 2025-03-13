@@ -236,6 +236,7 @@ class IKernel:
             distance_vector.shape)
 
         distnace_bandwidth = self.bandwidth
+
         if self.kernel_bandwidth_type == 'adaptive':
             # partial sort in O(n) Time
             distnace_bandwidth = np.partition(

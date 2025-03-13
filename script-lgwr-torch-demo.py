@@ -1,103 +1,13 @@
 import pandas as pd
 
-from torch.nn import L1Loss
-from torch.cuda import is_available
+import torch
+from torch.nn import MSELoss, L1Loss
 
 from src.dataset.spatial_dataset import IFieldInfo
-from src.dataset.spatial_dataset_torch import SpatialDataset
+from src.dataset.spatial_dataset_torch import SpatialDataset as SpatialDatasetTorch
 from src.model.lgwr_torch import LGWR
 from src.log.lgwr_logger import LgwrLogger
-from src.utility.optimize_mode import OptimizeMode
 from src.optimizer.lgwr_optimizer_torch import LgwrOptimizer
-
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader
-
-
-# # 訓練函數
-# def train_nn(epochs=50, lr=0.01, batch_size=1):
-#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#     print(device)
-#     # dataset = SpatialDataset(distance_matrix, y)
-#     georgia_dataframe = pd.read_csv(r'./data/GData_utm.csv')
-#     dataset = SpatialDataset(
-#         georgia_dataframe,
-#         IFieldInfo(
-#             predictor_fields=['PctBach', 'PctEld', 'PctBlack'],
-#             response_field='PctPov',
-#             coordinate_x_field='Longitud',
-#             coordinate_y_field='Latitude'
-#         ),
-#         optimizeMode='cuda'
-#     )
-#     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-
-#     model = LGWR(dataset).to(device)
-#     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-#     loss_fn = nn.MSELoss()
-
-#     for epoch in range(epochs):
-#         train_loss = 0.0
-#         index = 0
-#         y_true_all = torch.empty_like(dataset.y)
-#         y_pred_all = torch.empty_like(dataset.y)
-
-#         for distance_vector, target in dataloader:
-#             distance_vector, target = distance_vector.to(
-#                 device), target.to(device)
-
-#             optimizer.zero_grad()
-#             prediction = model(distance_vector, index)
-
-#             # print(prediction)
-#             # print(target)
-#             # print(prediction.shape)
-#             # print(target.shape)
-#             # print("====================")
-
-#             loss = loss_fn(prediction, target)
-#             loss.backward()
-#             optimizer.step()
-
-#             train_loss += loss.item()
-#             y_true_all[index] = target.item()
-#             y_pred_all[index] = prediction.item()
-#             index += 1
-
-#         ss_total = torch.sum((y_true_all - y_true_all.mean()) ** 2)  # 總變異
-#         ss_residual = torch.sum((y_true_all - y_pred_all) ** 2)  # 殘差變異
-#         r2_score = 1 - (ss_residual / ss_total)
-
-#         print(
-#             f"Epoch {epoch+1}/{epochs} - Loss: {train_loss:.4f} - R2: {r2_score}")
-
-#     return model
-
-
-# def main():
-
-#     # # 讀取數據
-#     # synthetic_data = pd.read_csv(r'./data/GData_utm.csv')
-
-#     # # 轉換為 Tensor
-#     # X = torch.tensor(synthetic_data[['PctBach', 'PctEld', 'PctBlack']].values,
-#     #                  dtype=torch.float32).to('cuda')
-#     # y = torch.tensor(synthetic_data['PctPov'].values,
-#     #                  dtype=torch.float32).unsqueeze(1).to('cuda')
-#     # coordinates = torch.tensor(
-#     #     synthetic_data[['X', 'Y']].values, dtype=torch.float32).to('cuda')
-
-#     # # 計算距離矩陣
-#     # distance_matrix = torch.cdist(coordinates, coordinates, p=2).to('cuda')
-
-#     # print(X.shape)
-#     # print(y.shape)
-#     # print(coordinates.shape)
-#     # print(distance_matrix.shape)
-
-#     # 訓練模型
-#     model = train_nn()
 
 
 if __name__ == "__main__":
@@ -106,22 +16,22 @@ if __name__ == "__main__":
 
     # Loading Data
     georgia_dataframe = pd.read_csv(r'./data/GData_utm.csv')
-    dataset = SpatialDataset(
+    dataset_torch = SpatialDatasetTorch(
         georgia_dataframe,
         IFieldInfo(
             predictor_fields=['PctBach', 'PctEld', 'PctBlack'],
             response_field='PctPov',
-            coordinate_x_field='Longitud',
-            coordinate_y_field='Latitude'
+            coordinate_x_field='X',
+            coordinate_y_field='Y'
         ),
         optimizeMode
     )
 
     # Initialize components and hyperparameters
-    model = LGWR(dataset)
+    model = LGWR(dataset_torch)
     logger = LgwrLogger()
 
-    loss_function = L1Loss()
+    loss_function = MSELoss()
     LEARNING_RATE = 0.01
     EPOCHS = 100
     BATCH_SIZE = 1
@@ -130,7 +40,7 @@ if __name__ == "__main__":
     optimizer = LgwrOptimizer(
         model,
         logger,
-        dataset,
+        dataset_torch,
         loss_function,
         optimizeMode,
         LEARNING_RATE,
