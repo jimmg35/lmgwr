@@ -1,15 +1,19 @@
 import torch
 import torch.nn as nn
 
+from src.dataset.spatial_dataset_torch import SpatialDataset
+
 
 class LGWR(nn.Module):
-    def __init__(self, input_dim, X, y):
-        super(LGWR, self).__init__()
 
-        self.X = X
-        self.y = y
+    dataset: SpatialDataset
+
+    def __init__(self, dataset: SpatialDataset):
+        super(LGWR, self).__init__()
+        self.dataset = dataset
+
         self.model = nn.Sequential(
-            nn.Linear(input_dim, 128),
+            nn.Linear(self.dataset.X.shape[0], 128),
             nn.ReLU(),
             nn.Linear(128, 64),
             nn.ReLU(),
@@ -52,14 +56,15 @@ class LGWR(nn.Module):
         W = W.squeeze(0)  # 轉換為 (n,)
 
         # 取出對應的 X, y
-        XW = self.X * W.view(-1, 1)  # (n, p) * (n, 1) → (n, p)
-        XWX = XW.T @ self.X  # (p, n) @ (n, p) → (p, p)
-        XWy = XW.T @ self.y  # (p, n) @ (n, 1) → (p, 1)
+        XW = self.dataset.X * W.view(-1, 1)  # (n, p) * (n, 1) → (n, p)
+        XWX = XW.T @ self.dataset.X  # (p, n) @ (n, p) → (p, p)
+        XWy = XW.T @ self.dataset.y  # (p, n) @ (n, 1) → (p, 1)
 
         # 解線性方程組來得到 beta
         beta = torch.linalg.solve(XWX, XWy)  # (p, p) @ (p, 1) → (p, 1)
 
         # 使用 index 處的 X 預測 y_hat
-        y_hat = torch.matmul(self.X[index], beta)  # (1, p) @ (p, 1) → (1, 1)
+        # (1, p) @ (p, 1) → (1, 1)
+        y_hat = torch.matmul(self.dataset.X[index], beta)
 
         return y_hat.view(1, 1)  # 確保輸出形狀為 (1, 1)

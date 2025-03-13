@@ -1,72 +1,117 @@
+
+import torch
+from torch.nn import MSELoss, L1Loss
+from torch.utils.data import DataLoader
+
 from src.model.lgwr_torch import LGWR
+from src.log.lgwr_logger import LgwrLogger
+from src.utility.optimize_mode import OptimizeMode
+from src.dataset.spatial_dataset_torch import SpatialDataset
 
 
 class LgwrOptimizer():
 
-    def __init__(self,
-                 model: IModel,
-                 lbnn_model: LBNN,
-                 kernel: LgwrKernel,
-                 logger: LgwrLogger,
-                 optimizeMode: LgwrOptimizeMode = 'cuda',
-                 lr=0.01,
-                 epochs=100
-                 ):
-        super().__init__(model, kernel, logger)
+    model: LGWR
+    logger: LgwrLogger
+    optimizeMode: OptimizeMode
 
-        # self.device = torch.device(
-        #     "cuda" if torch.cuda.is_available() else "cpu"
-        # )
+    # hyperparameters
+    learning_rate: float
+    epochs: int
+    batch_size: int
+
+    # Torch components
+    dataset: SpatialDataset
+    dataLoader: DataLoader
+    loss_function: MSELoss | L1Loss
+
+    def __init__(self,
+                 model: LGWR,
+                 logger: LgwrLogger,
+                 dataset: SpatialDataset,
+                 loss_function: MSELoss | L1Loss,
+                 optimizeMode: OptimizeMode = 'cuda',
+                 learning_rate=0.01,
+                 epochs=100,
+                 batch_size=1
+                 ):
+
+        self.model = model
+        self.logger = logger
+        self.dataset = dataset
+        self.loss_function = loss_function
         self.optimizeMode = optimizeMode
+
+        # hyperparameters
+        self.learning_rate = learning_rate
+        self.epochs = epochs
+        self.batch_size = batch_size
+
+        # torch training components
+        self.dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=False
+        )
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(),
+            lr=learning_rate
+        )
 
         self.logger.append_info("LGWR Optimizer Initialized")
         self.logger.append_info(
-            f"Optimize Mode: {self.optimizeMode}"
+            f"{"Using GPU processing :)" if self.optimizeMode == 'cuda'
+               else "Using CPU processing :("}"
         )
 
-        self.lbnn_model = lbnn_model
-        self.lbnn_model.to(self.optimizeMode)
+    def train(self):
 
-        self.optimizer = torch.optim.Adam(
-            self.lbnn_model.parameters(),
-            lr=lr
-        )
-
-        self.epochs = epochs
-
-    def optimize(self):
-        self.logger.append_info("Start Optimizing")
+        self.dataLoader
+        self.model
+        self.optimizer
+        self.loss_function
 
         for epoch in range(self.epochs):
-            self.logger.append_info(f"Epoch: {epoch}")
+            train_loss = 0.0
+            index = 0
+            y_true_all = torch.empty_like(self.dataset.y)
+            y_pred_all = torch.empty_like(self.dataset.y)
 
-            for i, data in enumerate(self.dataset):
-                x, y = data
-
-                x = torch.tensor(x, dtype=torch.float32).to(self.optimizeMode)
-                y = torch.tensor(y, dtype=torch.float32).to(self.optimizeMode)
+            for distance_vector_batch, yi_batch in self.dataLoader:
+                distance_vector_batch = distance_vector_batch.to(
+                    self.optimizeMode)
+                yi_batch = yi_batch.to(self.optimizeMode)
 
                 self.optimizer.zero_grad()
-                bandwidth = self.lbnn_model(x)
-                loss = self.kernel.loss(y, bandwidth)
+
+                yi_hat_batch = self.model(distance_vector_batch, index)
+
+                loss = self.loss_function(yi_hat_batch, yi_batch)
                 loss.backward()
                 self.optimizer.step()
+                train_loss += loss.item()
 
-                self.logger.append_info(
-                    f"Epoch: {epoch}, "
-                    f"Loss: {loss.item()}"
-                )
+                y_true_all[index] = distance_vector_batch.item()
+                y_pred_all[index] = yi_batch.item()
 
-        self.logger.append_info("Optimization Finished")
+                index += 1
 
-    def predict(self, x):
-        x = torch.tensor(x, dtype=torch.float32).to(self.optimizeMode)
-        bandwidth = self.lbnn_model(x)
-        return bandwidth.detach().cpu().numpy()
+            ss_total = torch.sum((y_true_all - y_true_all.mean()) ** 2)  # 總變異
+            ss_residual = torch.sum((y_true_all - y_pred_all) ** 2)  # 殘差變異
+            r2_score = 1 - (ss_residual / ss_total)
 
-    def save(self, path):
-        torch.save(self.lbnn_model.state_dict(), path)
+            print(
+                f"Epoch {epoch+1}/{self.epochs} | Loss: {train_loss:.4f} - R2: {r2_score}"
+            )
 
-    def load(self, path):
-        self.lbnn_model.load_state_dict(torch.load(path))
-        self.lbnn_model.eval()
+    # def predict(self, x):
+    #     x = torch.tensor(x, dtype=torch.float32).to(self.optimizeMode)
+    #     bandwidth = self.lbnn_model(x)
+    #     return bandwidth.detach().cpu().numpy()
+
+    # def save(self, path):
+    #     torch.save(self.lbnn_model.state_dict(), path)
+
+    # def load(self, path):
+    #     self.lbnn_model.load_state_dict(torch.load(path))
+    #     self.lbnn_model.eval()

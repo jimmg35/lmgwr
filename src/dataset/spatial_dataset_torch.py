@@ -1,10 +1,50 @@
+from pandas import DataFrame
+
+import torch
+from torch import Tensor
 from torch.utils.data import Dataset
 
+from src.dataset.spatial_dataset import IFieldInfo
+from src.utility.optimize_mode import OptimizeMode
 
-class DistanceDataset(Dataset):
-    def __init__(self, distance_matrix, y):
+
+class SpatialDataset(Dataset):
+
+    X: Tensor
+    y: Tensor
+    optimizeMode: OptimizeMode
+
+    def __init__(self,
+                 dataframe: DataFrame,
+                 fieldInfo: IFieldInfo,
+                 optimizeMode: OptimizeMode = 'cuda'
+                 ):
+
+        self.optimizeMode = optimizeMode
+
+        X = torch.tensor(
+            dataframe[fieldInfo.predictor_fields].values,
+            dtype=torch.float32
+        ).to(self.optimizeMode)
+
+        y = torch.tensor(
+            dataframe[fieldInfo.response_field].values,
+            dtype=torch.float32
+        ).unsqueeze(1).to(self.optimizeMode)
+
+        coordinates = torch.tensor(
+            dataframe[[fieldInfo.coordinate_x_field,
+                       fieldInfo.coordinate_y_field]].values,
+            dtype=torch.float32
+        ).to(self.optimizeMode)
+
+        distance_matrix = torch.cdist(
+            coordinates, coordinates, p=2
+        ).to(self.optimizeMode)
+
         self.distance_matrix = distance_matrix  # (n, n)
         self.y = y                              # (n, 1)
+        self.X = X                              # (n, k)
         self.n = distance_matrix.shape[0]
 
     def __len__(self):
