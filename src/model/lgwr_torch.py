@@ -13,14 +13,14 @@ class LGWR(nn.Module):
         self.dataset = dataset
 
         self.model = nn.Sequential(
-            nn.Linear(self.dataset.X.shape[0], 128),
+            nn.Linear(self.dataset.distance_matrix.shape[0], 128),
             nn.ReLU(),
             nn.Linear(128, 64),
             nn.ReLU(),
             nn.Linear(64, 32),
             nn.ReLU(),
             nn.Linear(32, 1),  # 預測 y
-        )
+        ).to(self.dataset.optimizeMode)
 
     def forward(self, distance_vector, index):
 

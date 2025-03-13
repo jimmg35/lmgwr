@@ -5,29 +5,29 @@ from torch import Tensor
 from torch.utils.data import Dataset
 
 from src.dataset.spatial_dataset import IFieldInfo
-from src.utility.optimize_mode import OptimizeMode
+# from src.utility.optimize_mode import OptimizeMode
 
 
 class SpatialDataset(Dataset):
 
     X: Tensor
     y: Tensor
-    optimizeMode: OptimizeMode
+    optimizeMode: torch.device
 
     def __init__(self,
                  dataframe: DataFrame,
                  fieldInfo: IFieldInfo,
-                 optimizeMode: OptimizeMode = 'cuda'
+                 optimizeMode: torch.device
                  ):
 
         self.optimizeMode = optimizeMode
 
-        X = torch.tensor(
+        self.X = torch.tensor(
             dataframe[fieldInfo.predictor_fields].values,
             dtype=torch.float32
         ).to(self.optimizeMode)
 
-        y = torch.tensor(
+        self.y = torch.tensor(
             dataframe[fieldInfo.response_field].values,
             dtype=torch.float32
         ).unsqueeze(1).to(self.optimizeMode)
@@ -43,8 +43,8 @@ class SpatialDataset(Dataset):
         ).to(self.optimizeMode)
 
         self.distance_matrix = distance_matrix  # (n, n)
-        self.y = y                              # (n, 1)
-        self.X = X                              # (n, k)
+        # (n, 1)
+        # (n, k)
         self.n = distance_matrix.shape[0]
 
     def __len__(self):

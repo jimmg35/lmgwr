@@ -1,6 +1,7 @@
 import pandas as pd
 
 from torch.nn import L1Loss
+from torch.cuda import is_available
 
 from src.dataset.spatial_dataset import IFieldInfo
 from src.dataset.spatial_dataset_torch import SpatialDataset
@@ -9,22 +10,38 @@ from src.log.lgwr_logger import LgwrLogger
 from src.utility.optimize_mode import OptimizeMode
 from src.optimizer.lgwr_optimizer_torch import LgwrOptimizer
 
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+
 
 # # 訓練函數
-# def train_nn(distance_matrix, X, y, epochs=50, lr=0.01, batch_size=1):
+# def train_nn(epochs=50, lr=0.01, batch_size=1):
 #     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#     dataset = DistanceDataset(distance_matrix, y)
+#     print(device)
+#     # dataset = SpatialDataset(distance_matrix, y)
+#     georgia_dataframe = pd.read_csv(r'./data/GData_utm.csv')
+#     dataset = SpatialDataset(
+#         georgia_dataframe,
+#         IFieldInfo(
+#             predictor_fields=['PctBach', 'PctEld', 'PctBlack'],
+#             response_field='PctPov',
+#             coordinate_x_field='Longitud',
+#             coordinate_y_field='Latitude'
+#         ),
+#         optimizeMode='cuda'
+#     )
 #     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
-#     model = SimpleNN(distance_matrix.shape[1], X, y).to(device)
-#     optimizer = optim.Adam(model.parameters(), lr=lr)
+#     model = LGWR(dataset).to(device)
+#     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 #     loss_fn = nn.MSELoss()
 
 #     for epoch in range(epochs):
 #         train_loss = 0.0
 #         index = 0
-#         y_true_all = torch.empty_like(y)
-#         y_pred_all = torch.empty_like(y)
+#         y_true_all = torch.empty_like(dataset.y)
+#         y_pred_all = torch.empty_like(dataset.y)
 
 #         for distance_vector, target in dataloader:
 #             distance_vector, target = distance_vector.to(
@@ -57,24 +74,22 @@ from src.optimizer.lgwr_optimizer_torch import LgwrOptimizer
 
 #     return model
 
-# 測試訓練
-
 
 # def main():
 
-#     # 讀取數據
-#     synthetic_data = pd.read_csv(r'./data/GData_utm.csv')
+#     # # 讀取數據
+#     # synthetic_data = pd.read_csv(r'./data/GData_utm.csv')
 
-#     # 轉換為 Tensor
-#     X = torch.tensor(synthetic_data[['PctBach', 'PctEld', 'PctBlack']].values,
-#                      dtype=torch.float32).to('cuda')
-#     y = torch.tensor(synthetic_data['PctPov'].values,
-#                      dtype=torch.float32).unsqueeze(1).to('cuda')
-#     coordinates = torch.tensor(
-#         synthetic_data[['X', 'Y']].values, dtype=torch.float32).to('cuda')
+#     # # 轉換為 Tensor
+#     # X = torch.tensor(synthetic_data[['PctBach', 'PctEld', 'PctBlack']].values,
+#     #                  dtype=torch.float32).to('cuda')
+#     # y = torch.tensor(synthetic_data['PctPov'].values,
+#     #                  dtype=torch.float32).unsqueeze(1).to('cuda')
+#     # coordinates = torch.tensor(
+#     #     synthetic_data[['X', 'Y']].values, dtype=torch.float32).to('cuda')
 
-#     # 計算距離矩陣
-#     distance_matrix = torch.cdist(coordinates, coordinates, p=2).to('cuda')
+#     # # 計算距離矩陣
+#     # distance_matrix = torch.cdist(coordinates, coordinates, p=2).to('cuda')
 
 #     # print(X.shape)
 #     # print(y.shape)
@@ -82,10 +97,12 @@ from src.optimizer.lgwr_optimizer_torch import LgwrOptimizer
 #     # print(distance_matrix.shape)
 
 #     # 訓練模型
-#     model = train_nn(distance_matrix, X, y)
+#     model = train_nn()
 
 
 if __name__ == "__main__":
+
+    optimizeMode = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Loading Data
     georgia_dataframe = pd.read_csv(r'./data/GData_utm.csv')
@@ -96,7 +113,8 @@ if __name__ == "__main__":
             response_field='PctPov',
             coordinate_x_field='Longitud',
             coordinate_y_field='Latitude'
-        )
+        ),
+        optimizeMode
     )
 
     # Initialize components and hyperparameters
@@ -109,7 +127,15 @@ if __name__ == "__main__":
     BATCH_SIZE = 1
 
     # Prepare the training container
-
     optimizer = LgwrOptimizer(
-
+        model,
+        logger,
+        dataset,
+        loss_function,
+        optimizeMode,
+        LEARNING_RATE,
+        EPOCHS,
+        BATCH_SIZE
     )
+
+    optimizer.train()

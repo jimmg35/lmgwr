@@ -13,7 +13,7 @@ class LgwrOptimizer():
 
     model: LGWR
     logger: LgwrLogger
-    optimizeMode: OptimizeMode
+    optimizeMode: torch.device
 
     # hyperparameters
     learning_rate: float
@@ -30,7 +30,7 @@ class LgwrOptimizer():
                  logger: LgwrLogger,
                  dataset: SpatialDataset,
                  loss_function: MSELoss | L1Loss,
-                 optimizeMode: OptimizeMode = 'cuda',
+                 optimizeMode: torch.device,
                  learning_rate=0.01,
                  epochs=100,
                  batch_size=1
@@ -48,7 +48,7 @@ class LgwrOptimizer():
         self.batch_size = batch_size
 
         # torch training components
-        self.dataloader = DataLoader(
+        self.dataLoader = DataLoader(
             dataset,
             batch_size=self.batch_size,
             shuffle=False
@@ -66,10 +66,10 @@ class LgwrOptimizer():
 
     def train(self):
 
-        self.dataLoader
-        self.model
-        self.optimizer
-        self.loss_function
+        # self.dataLoader
+        # self.model
+        # self.optimizer
+        # self.loss_function
 
         for epoch in range(self.epochs):
             train_loss = 0.0
@@ -78,9 +78,9 @@ class LgwrOptimizer():
             y_pred_all = torch.empty_like(self.dataset.y)
 
             for distance_vector_batch, yi_batch in self.dataLoader:
-                distance_vector_batch = distance_vector_batch.to(
+                distance_vector_batch: torch.Tensor = distance_vector_batch.to(
                     self.optimizeMode)
-                yi_batch = yi_batch.to(self.optimizeMode)
+                yi_batch: torch.Tensor = yi_batch.to(self.optimizeMode)
 
                 self.optimizer.zero_grad()
 
@@ -91,8 +91,8 @@ class LgwrOptimizer():
                 self.optimizer.step()
                 train_loss += loss.item()
 
-                y_true_all[index] = distance_vector_batch.item()
-                y_pred_all[index] = yi_batch.item()
+                y_true_all[index] = yi_batch.item()
+                y_pred_all[index] = yi_hat_batch.item()
 
                 index += 1
 
