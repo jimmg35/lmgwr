@@ -43,22 +43,24 @@ if __name__ == '__main__':
     env = GwrOptimizerRL(
         gwr,
         min_bandwidth=10,
-        max_bandwidth=spatialDataset.x_matrix.shape[0]
+        max_bandwidth=spatialDataset.x_matrix.shape[0],
+        min_action=-10,
+        max_action=10
     )
-
     logger.append_info("GwrEnv: GwrEnv environment is initialized.")
 
-    # 訓練 RL 代理 (使用 PPO)
+    # Using PPO to optimize the bandwidth
     model = PPO("MlpPolicy", env, verbose=1, device='cpu')
-    model.learn(total_timesteps=5000)  # 需要較長時間訓練
-
+    model.learn(total_timesteps=5000)
     logger.append_info("PPO: PPO finished training.")
 
-    # 測試最優帶寬
+    # Test the model
     obs, _ = env.reset()
     for _ in range(100):
         action, _ = model.predict(obs)
         obs, reward, done, truncated, _ = env.step(action)
-        print(f"帶寬: {obs}, 獎勵 (r2): {reward}")
+        logger.append_info(
+            f"Bandwidth: {obs}, Reward (R2): {reward}"
+        )
         if done or truncated:
             break

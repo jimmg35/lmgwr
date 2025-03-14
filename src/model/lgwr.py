@@ -1,21 +1,17 @@
 import numpy as np
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.kernel.lgwr_kernel import LgwrKernel
-from src.log.lgwr_logger import LgwrLogger
 from src.model.gwr import GWR
-from src.optimizer.lgwr_optimizer import LgwrOptimizeMode
+from src.kernel.ikernel import IKernel
+from src.log.ilogger import ILogger
 
 
 class LGWR(GWR):
 
-    optimizeMode: LgwrOptimizeMode
-
     def __init__(self,
                  dataset: SpatialDataset,
-                 kernel: LgwrKernel,
-                 logger: LgwrLogger,
-                 optimizeMode: LgwrOptimizeMode = 'cuda') -> None:
+                 kernel: IKernel,
+                 logger: ILogger) -> None:
         """
         Initializes the GWR model with the specified spatial dataset and kernel.
 
@@ -25,7 +21,6 @@ class LGWR(GWR):
         """
 
         super().__init__(dataset, kernel, logger)
-        self.optimizeMode = optimizeMode
 
         self.y_hats = np.zeros(
             self.dataset.x_matrix.shape[0], dtype=np.float64
