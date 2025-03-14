@@ -12,7 +12,7 @@ from src.model.lgwr import LGWR
 
 if __name__ == '__main__':
 
-    # Create a logger to record the GWR model's information.
+    # Create a logger to record the LGWR model's information.
     logger = LgwrLogger()
 
     # Load the Georgia dataset and create a spatial dataset.
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     )
     lgwr = LGWR(spatialDataset, kernel, logger)
 
-    # Initial lgwr gym environment
+    # Initialize lgwr gym environment
     env = LgwrOptimizerRL(
         lgwr,
         logger,
@@ -79,3 +79,6 @@ if __name__ == '__main__':
         )
         if done or truncated:
             break
+
+    # Save the log
+    logger.save_model_info_json()

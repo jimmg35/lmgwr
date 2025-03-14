@@ -78,3 +78,6 @@ if __name__ == '__main__':
         )
         if done or truncated:
             break
+
+    # Save the log
+    logger.save_model_info_json()
