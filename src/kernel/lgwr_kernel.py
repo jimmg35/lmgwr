@@ -1,21 +1,29 @@
-from src.kernel.gwr_kernel import GwrKernel
+from torch import Tensor
+
+# from src.kernel.gwr_kernel import GwrKernel
+from src.kernel.ikernel import IKernel
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import KernelFunctionType, KernelBandwidthType
 from src.log.lgwr_logger import LgwrLogger
-from src.utility.overrides import overrides
+from typing import Literal
+# from src.optimizer.lgwr_optimizer import LgwrOptimizeMode
 
 
-class LgwrKernel(GwrKernel):
+class LgwrKernel(IKernel):
+
+    optimizeMode: Literal['cuda', 'cpu']
 
     def __init__(self,
                  dataset: SpatialDataset,
                  logger: LgwrLogger,
+                 optimizeMode: Literal['cuda', 'cpu'] = 'cuda',
                  kernel_type: KernelFunctionType = 'bisquare',
                  kernel_bandwidth_type: KernelBandwidthType = 'adaptive'
                  ):
         super().__init__(
             dataset,
             logger,
+            optimizeMode,
             kernel_type,
             kernel_bandwidth_type
         )
@@ -33,5 +41,6 @@ class LgwrKernel(GwrKernel):
         Raises:
             ValueError: If the kernel is not set up in the GWR model.
         """
+
         self.bandwidth = bandwidth
         super().update_weighted_matrix_by_id(index)

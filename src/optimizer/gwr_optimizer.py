@@ -13,7 +13,7 @@ GwrBandwidthOptimizeMethod: TypeAlias = Literal['golden_section',
                                                 'grid_search', 'random_search']
 
 
-class GwrBandwidthOptimizer(IOptimizer):
+class GwrOptimizer(IOptimizer):
 
     method: GwrBandwidthOptimizeMethod
     search_range: tuple
@@ -95,6 +95,6 @@ class GwrBandwidthOptimizer(IOptimizer):
         """
         self.model.update_bandwidth(bandwidth).fit()
         self.logger.append_bandwidth_optimization(
-            f"{self.__class__.__name__} : Bandwidth {bandwidth}, AICc {self.model.aicc}"
+            f"{self.__class__.__name__} : Bandwidth {bandwidth}, AICc {self.model.aicc}, R2 {self.model.r_squared}"
         )
         return self.model.aicc

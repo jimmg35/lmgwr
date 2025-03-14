@@ -1,21 +1,22 @@
 .PHONY: unittest run exportCondaEnv importCondaEnv setup
 
+# Author: Jim Chang
 
-# Run unit test for all test scripts.
-unittest:
-	export PYTHONPATH=$(PWD) && echo $(PYTHONPATH) && pytest
+# ================ Demo related commands ================
 
-
-# Run the main script.
-gwrDemo:
+# The vanilla GWR demo.
+gwrVanillaDemo:
 	python script-gwr-demo.py
 
-lgwrDemo:
-	python script-lgwr-demo.py
+# The GWR demo with reinforcement learning.
+gwrRlDemo:
+	python script-gwr-rl-demo.py
 
-lmgwrDemo:
-	python script-lmgwr-demo.py
+# The LGWR demo with reinforcement learning.
+lgwrRlDemo:
+	python script-lgwr-rl-demo.py
 
+# ========== Conda Environment related commands ==========
 
 # Export the conda environment to a file. 
 # (includes all dependencies and python version)
@@ -27,3 +28,9 @@ importCondaEnv:
 # Initialize the src directory (for absolute imports).
 setup:
 	pip install -e .
+
+# ================ Unit test related commands ================
+
+# Run unit test for all test scripts.
+unittest:
+	export PYTHONPATH=$(PWD) && echo $(PYTHONPATH) && pytest

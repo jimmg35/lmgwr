@@ -1,1 +1,1 @@
-need to install vscode extension (pyright)
+Take a look at the makefile darling.

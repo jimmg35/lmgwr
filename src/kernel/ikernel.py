@@ -4,9 +4,7 @@ import numpy.typing as npt
 from typing import Literal, TypeAlias, Dict
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.dataset.interfaces.spatial_dataset import IFieldInfo
-from src.distance.get_2d_distance_vector import get_2d_distance_vector
-from src.log.gwr_logger import GwrLogger
+from src.distance.get_2d_distance_vector import get_2d_distance_vector, get_2d_distance_vector_torch
 from src.log.ilogger import ILogger
 
 KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
@@ -20,6 +18,7 @@ class IKernel:
     logger: ILogger
     dataset: SpatialDataset | None = None
     bandwidth: float | None = None
+    optimizeMode: Literal['cuda', 'cpu'] = 'cuda'
     kernel_type: KernelFunctionType = "bisquare"
     kernel_bandwidth_type: KernelBandwidthType = "adaptive"
     weighted_matrix_cache: Dict[int, npt.NDArray[np.float64]] = {}
@@ -28,11 +27,12 @@ class IKernel:
     def __init__(self,
                  dataset: SpatialDataset,
                  logger: ILogger,
+                 optimizeMode: Literal['cuda', 'cpu'] = 'cuda',
                  kernel_type: KernelFunctionType = 'bisquare',
                  kernel_bandwidth_type: KernelBandwidthType = 'adaptive'
                  ) -> None:
         """
-        Initializes the GwrKernel with a dataset, bandwidth, and kernel type.
+        Initializes the Kernel with a dataset, bandwidth, and kernel type.
 
         Args:
             dataset (SpatialDataset): The spatial dataset for generating the weighted matrix.
@@ -42,8 +42,11 @@ class IKernel:
         """
         self.dataset = dataset
         self.logger = logger
+        self.optimizeMode = optimizeMode
         self.kernel_type = kernel_type
         self.kernel_bandwidth_type = kernel_bandwidth_type
+
+        self.__init_distance_vectors()
         self.logger.append_info(
             f"{self.__class__.__name__} : Kernel is initialized.")
 
@@ -105,13 +108,20 @@ class IKernel:
                 the specified data point.
         """
 
-        # retrive the distance vector from cache if found,
-        # or initialize it.
         distance_vector = self.__calculate_distance_vector(index)
         self.__calculate_weighted_matrix(
             index,
             distance_vector
         )
+
+    def __init_distance_vectors(self):
+        if self.dataset is None:
+            raise ValueError("Dataset is not setup in Kernel")
+        if self.dataset.dataPoints is None:
+            raise ValueError("DataPoints are not setup in Kernel")
+
+        for index in range(0, len(self.dataset.dataPoints)):
+            self.__calculate_distance_vector(index)
 
     def __calculate_distance_vector(self, index: int) -> npt.NDArray[np.float64]:
         """
@@ -175,6 +185,7 @@ class IKernel:
             distance_vector.shape)
 
         distnace_bandwidth = self.bandwidth
+
         if self.kernel_bandwidth_type == 'adaptive':
             # partial sort in O(n) Time
             distnace_bandwidth = np.partition(
@@ -205,3 +216,34 @@ class IKernel:
 
         # store the weighted matrix in the cache
         self.weighted_matrix_cache[index] = weighted_matrix.reshape(-1, 1)
+
+    # def __spatial_weights(self,
+    #                       zs: Tensor,
+    #                       distance_vector: Tensor,
+    #                       distance_bandwidth: Tensor
+    #                       ):
+    #     weighted_matrix_i = torch.zeros_like(
+    #         zs, dtype=torch.float32, requires_grad=True).to('cuda')
+
+    #     if self.kernel_type == 'triangular':
+    #         weighted_matrix_i = 1 - zs
+    #     elif self.kernel_type == 'uniform':
+    #         weighted_matrix_i = torch.ones(
+    #             zs.shape, dtype=torch.float32, requires_grad=True).to('cuda') * 0.5
+    #     elif self.kernel_type == 'quadratic':
+    #         weighted_matrix_i = (3. / 4) * (1 - zs**2)
+    #     elif self.kernel_type == 'quartic':
+    #         weighted_matrix_i = (15. / 16) * (1 - zs**2)**2
+    #     elif self.kernel_type == 'gaussian':
+    #         weighted_matrix_i = torch.exp(-0.5 * (zs)**2)
+    #     elif self.kernel_type == 'bisquare':
+    #         weighted_matrix_i = (1 - (zs)**2)**2
+    #     elif self.kernel_type == 'exponential':
+    #         weighted_matrix_i = torch.exp(-zs)
+    #     else:
+    #         raise ValueError('Unsupported kernel function')
+
+    #     if self.kernel_type == 'bisquare':
+    #         weighted_matrix_i[(distance_vector >= distance_bandwidth)] = 0
+
+    #     return weighted_matrix_i
