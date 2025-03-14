@@ -15,10 +15,10 @@ class IModel:
     logger: ILogger
 
     # estimates for each data point
-    betas: npt.NDArray[np.float64] | Tensor
-    y_hats: npt.NDArray[np.float64] | Tensor
-    S: npt.NDArray[np.float64] | Tensor  # hat matrix
-    residuals: npt.NDArray[np.float64] | Tensor
+    betas: npt.NDArray[np.float64]  # | Tensor
+    y_hats: npt.NDArray[np.float64]  # | Tensor
+    S: npt.NDArray[np.float64]  # | Tensor  # hat matrix
+    residuals: npt.NDArray[np.float64]  # | Tensor
 
     # matrices for the GWR model
     r_squared: float
@@ -94,17 +94,9 @@ class IModel:
         xi = self.dataset.x_matrix[index, :].reshape(1, -1)
         S_ii = xi @ np.linalg.inv(XtWX) @ xi.T
 
-        # update estimates (in loop to append to the arrays)
-        # check type, if numpy array, do the following
-        if isinstance(self.betas, np.ndarray):
-            self.betas[index, :] = beta.flatten()
-        if isinstance(self.y_hats, np.ndarray):
-            self.y_hats[index] = self.dataset.x_matrix[index, :] @ beta
-        if isinstance(self.S, np.ndarray):
-            self.S[index] = S_ii.flatten()[0]
-        # self.betas[index, :] = beta.flatten()
-        # self.y_hats[index] = self.dataset.x_matrix[index, :] @ beta
-        # self.S[index] = S_ii.flatten()[0]
+        self.betas[index, :] = beta.flatten()
+        self.y_hats[index] = self.dataset.x_matrix[index, :] @ beta
+        self.S[index] = S_ii.flatten()[0]
 
     def _estimate_beta_by_index(self, index: int):
         """
@@ -130,39 +122,18 @@ class IModel:
             ValueError: If there is an error in matrix calculations.
         """
 
-        wi: npt.NDArray[np.float64] | Tensor = self.kernel.get_weighted_matrix_by_id(
+        wi: npt.NDArray[np.float64] = self.kernel.get_weighted_matrix_by_id(
             index)
+        xT = (self.dataset.x_matrix * wi).T
+        xtx = np.dot(xT, self.dataset.x_matrix)
+        xtx_inv_xt: npt.NDArray[np.float64] = linalg.solve(xtx, xT)
+        beta: npt.NDArray[np.float64] = np.dot(xtx_inv_xt, self.dataset.y)
 
-        if isinstance(wi, Tensor):
-            wi = wi.to('cuda')
-
-            X = self.dataset.x_matrix_torch
-            y = self.dataset.y_torch
-
-            xT = (X * wi).T
-            xtx = torch.matmul(xT, X)
-            xtx_inv_xt_torch: Tensor = torch.linalg.solve(xtx, xT)
-            beta_torch = torch.matmul(xtx_inv_xt_torch, y)
-
-            return beta_torch, xtx_inv_xt_torch, wi
-        else:
-
-            # print(self.dataset.x_matrix.shape) # 159, 4
-            # print(wi.shape) # 159, 1
-            xT = (self.dataset.x_matrix * wi).T
-
-            # print(xT.shape)
-            # print(self.dataset.x_matrix.shape)
-            # print("========")
-            xtx = np.dot(xT, self.dataset.x_matrix)
-            xtx_inv_xt: npt.NDArray[np.float64] = linalg.solve(xtx, xT)
-            beta: npt.NDArray[np.float64] = np.dot(xtx_inv_xt, self.dataset.y)
-
-            # Return betas, inverse matrix for inspection, and weight vector for trace calculations
-            # betas:      (number of independent vars, 1)
-            # xtx_inv_xt: (number of independent vars, number of datapoints)
-            # wi:         (number of datapoints, 1)
-            return beta, xtx_inv_xt, wi
+        # Return betas, inverse matrix for inspection, and weight vector for trace calculations
+        # betas:      (number of independent vars, 1)
+        # xtx_inv_xt: (number of independent vars, number of datapoints)
+        # wi:         (number of datapoints, 1)
+        return beta, xtx_inv_xt, wi
 
     def _calculate_r_squared(self) -> None:
         """
