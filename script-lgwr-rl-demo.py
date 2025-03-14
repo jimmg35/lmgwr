@@ -1,78 +1,81 @@
-import gym
-import numpy as np
-# from gym import spaces
+
 from stable_baselines3 import PPO
-from typing import Tuple, Optional
-import gymnasium as gym
-from typing import Any
+import pandas as pd
 
+from src.optimizer.reinforce.lgwr_optimizer import LgwrOptimizerRL
+from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.optimizer.reinforce.callback import EpisodeTracker
+from src.dataset.spatial_dataset import SpatialDataset
+from src.kernel.lgwr_kernel import LgwrKernel
+from src.log.lgwr_logger import LgwrLogger
+from src.model.lgwr import LGWR
 
-class LgwrEnv(gym.Env):
-    def __init__(self, gwr_model, n_points, min_bw=5, max_bw=200):
-        super(LgwrEnv, self).__init__()
-        self.gwr_model = gwr_model
-        self.n_points = n_points
-        self.min_bw = min_bw
-        self.max_bw = max_bw
+if __name__ == '__main__':
 
-        # 動作空間：每個回歸點的帶寬調整
-        self.action_space = gym.spaces.Box(
-            low=-1, high=1,
-            shape=(self.n_points,),
-            dtype=np.float32
+    # Create a logger to record the GWR model's information.
+    logger = LgwrLogger()
+
+    # Load the Georgia dataset and create a spatial dataset.
+    georgia_data = pd.read_csv(r'./data/GData_utm.csv')
+    spatialDataset = SpatialDataset(
+        georgia_data,
+        IFieldInfo(
+            predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
+            response_field='PctBach',
+            coordinate_x_field='Longitud',
+            coordinate_y_field='Latitude'
+        ),
+        logger,
+        isSpherical=True
+    )
+
+    # Create a LGWR kernel and LGWR model.
+    kernel = LgwrKernel(
+        spatialDataset,
+        logger,
+        kernel_type='bisquare',
+        kernel_bandwidth_type='adaptive'
+    )
+    lgwr = LGWR(spatialDataset, kernel, logger)
+
+    # Initial lgwr gym environment
+    env = LgwrOptimizerRL(
+        lgwr,
+        logger,
+        min_bandwidth=10,
+        max_bandwidth=spatialDataset.x_matrix.shape[0],
+        min_action=-10,
+        max_action=10,
+        max_steps=500,
+        reward_threshold=0.75
+    )
+
+    # Using PPO to optimize the bandwidth vector
+    # (local bandwidths for each location)
+    TOTAL_TIMESTEPS = 5000
+    episodeTracker = EpisodeTracker(
+        logger,
+        total_timesteps=TOTAL_TIMESTEPS
+    )
+    model = PPO(
+        "MlpPolicy",
+        env,
+        verbose=1,
+        device='cpu'
+    )
+    model.learn(
+        total_timesteps=TOTAL_TIMESTEPS,
+        callback=episodeTracker
+    )
+    logger.append_info("PPO: PPO finished training.")
+
+    # Test the model
+    obs, _ = env.reset()
+    for _ in range(100):
+        action, _ = model.predict(obs)
+        obs, reward, done, truncated, _ = env.step(action)
+        logger.append_info(
+            f"Bandwidth: {obs}, Reward (R2): {reward}"
         )
-
-        # 狀態空間：每個回歸點的帶寬
-        self.observation_space = gym.spaces.Box(
-            low=self.min_bw, high=self.max_bw,
-            shape=(self.n_points,),
-            dtype=np.float32
-        )
-
-        self.current_bw = np.random.uniform(
-            self.min_bw, self.max_bw, self.n_points
-        )  # 初始化帶寬
-
-    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]:
-        # 更新每個回歸點的帶寬
-        self.current_bw = np.clip(
-            self.current_bw + action, self.min_bw, self.max_bw
-        )
-
-        # 計算GWR指標
-        aic_values = self.gwr_model.calculate_aic(self.current_bw)
-        total_aic = np.sum(aic_values)  # LGWR 的總 AIC
-
-        # 設定獎勵
-        reward = -total_aic
-
-        # 結束條件：可設定 AIC 變動小於某閾值
-        done = False
-
-        return self.current_bw, reward, done, False, {}
-
-    def reset(self,  # pyright: ignore
-              seed: int | None = None,
-              options: dict[str, Any] | None = None
-              ):
-        super().reset(seed=seed)
-        self.current_bw = np.random.uniform(
-            self.min_bw, self.max_bw, self.n_points
-        )
-        return self.current_bw, {}
-
-
-# # 初始化 LGWR 環境
-n_points = 100  # 假設有 100 個回歸點
-env = LgwrEnv(gwr_model, n_points)
-
-# # 訓練 RL 代理 (使用 PPO)
-# model = PPO("MlpPolicy", env, verbose=1)
-# model.learn(total_timesteps=50000)  # 需要較長時間訓練
-
-# # 測試最優帶寬
-# obs, _ = env.reset()
-# for _ in range(100):
-#     action, _ = model.predict(obs)
-#     obs, reward, done, _, _ = env.step(action)
-#     print(f"帶寬: {obs}, 獎勵 (AIC): {-reward}")
+        if done or truncated:
+            break

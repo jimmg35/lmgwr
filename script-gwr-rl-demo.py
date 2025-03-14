@@ -2,14 +2,13 @@
 from stable_baselines3 import PPO
 import pandas as pd
 
-
-from src.dataset.spatial_dataset import SpatialDataset
+from src.optimizer.reinforce.gwr_optimizer import GwrOptimizerRL
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
-from src.model.gwr import GWR
+from src.optimizer.reinforce.callback import EpisodeTracker
+from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.log.gwr_logger import GwrLogger
-from src.optimizer.reinforce.gwr_optimizer import GwrOptimizerRL
-
+from src.model.gwr import GWR
 
 if __name__ == '__main__':
 
@@ -39,19 +38,34 @@ if __name__ == '__main__':
     )
     gwr = GWR(spatialDataset, kernel, logger)
 
-    # initial gwr gym environment
+    # Initial gwr gym environment
     env = GwrOptimizerRL(
         gwr,
+        logger,
         min_bandwidth=10,
         max_bandwidth=spatialDataset.x_matrix.shape[0],
         min_action=-10,
-        max_action=10
+        max_action=10,
+        max_steps=500,
+        reward_threshold=0.75
     )
-    logger.append_info("GwrEnv: GwrEnv environment is initialized.")
 
     # Using PPO to optimize the bandwidth
-    model = PPO("MlpPolicy", env, verbose=1, device='cpu')
-    model.learn(total_timesteps=5000)
+    TOTAL_TIMESTEPS = 5000
+    episodeTracker = EpisodeTracker(
+        logger,
+        total_timesteps=TOTAL_TIMESTEPS
+    )
+    model = PPO(
+        "MlpPolicy",
+        env,
+        verbose=1,
+        device='cpu'
+    )
+    model.learn(
+        total_timesteps=TOTAL_TIMESTEPS,
+        callback=episodeTracker
+    )
     logger.append_info("PPO: PPO finished training.")
 
     # Test the model
