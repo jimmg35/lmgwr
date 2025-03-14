@@ -28,7 +28,7 @@ class LgwrKernel(IKernel):
             kernel_bandwidth_type
         )
 
-    def update_local_bandwidth(self, index: int, bandwidth: float | Tensor):
+    def update_local_bandwidth(self, index: int, bandwidth: float):
         """
         Update the bandwidth value for the LGWR model.
 

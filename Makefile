@@ -6,17 +6,20 @@ unittest:
 	export PYTHONPATH=$(PWD) && echo $(PYTHONPATH) && pytest
 
 
-# Run the main script.
+# The vanilla GWR demo.
 gwrDemo:
 	python script-gwr-demo.py
+# The GWR demo with reinforcement learning.
+gwrRlDemo:
+	python script-gwr-rl-demo.py
+
+
 
 
 lgwrDemo:
 	python script-lgwr-demo.py
 lgwrTorchDemo:
 	python script-lgwr-torch-demo.py
-
-
 lmgwrDemo:
 	python script-lmgwr-demo.py
 

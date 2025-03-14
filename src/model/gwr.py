@@ -7,6 +7,8 @@ from src.model.imodel import IModel
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.log.gwr_logger import GwrLogger
+from src.kernel.ikernel import IKernel
+from src.log.ilogger import ILogger
 
 
 class GWR(IModel):
@@ -21,41 +23,15 @@ class GWR(IModel):
         dataset (SpatialDataset): The spatial dataset used for the GWR analysis.
         kernel (GwrKernel): The kernel function that defines spatial weights for each location.
     """
-    # dataset: SpatialDataset
-    # kernel: GwrKernel
-    # logger: GwrLogger
-
-    # # estimates for each data point
-    # betas: npt.NDArray[np.float64]
-    # y_hats: npt.NDArray[np.float64]
-    # S: npt.NDArray[np.float64]  # hat matrix
-    # residuals: npt.NDArray[np.float64]
-
-    # # matrices for the GWR model
-    # r_squared: float
-    # aic: float
-    # aicc: float
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 kernel: GwrKernel,
-                 logger: GwrLogger) -> None:
+                 kernel: IKernel,
+                 logger: ILogger) -> None:
         super().__init__(dataset, kernel, logger)
 
     def fit(self) -> None:
         """ 
-        # 這是備忘錄
-        lgwr每次fit要傳入該點帶寬以及該點的index
-        gwr這邊的fit是一次性fit全部的點
-        而lgwr是一次fit一個點 (不一定採納)
-
-        傾向將帶寬寫成一個class (否決 記憶體占用太大)
-        在optimizer中 若是gwr則指傳入一個 帶寬
-        若是lgwr則傳入n個帶寬class {index: 帶寬}
-        lmgwr {index: [帶寬1, 帶寬2, ...]}
-        [帶寬1, 帶寬2, ...] lmsb
-
-
         Fit the GWR model with the provided dataset and spatial weights based on the kernel.
         This method iterates over each data point in the dataset and calculates local regression
         coefficients using spatial weights, implementing the core concept of GWR.

@@ -2,8 +2,6 @@
 import numpy as np
 import numpy.typing as npt
 from typing import Literal, TypeAlias, Dict
-from torch import Tensor
-import torch
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.distance.get_2d_distance_vector import get_2d_distance_vector, get_2d_distance_vector_torch
@@ -19,12 +17,12 @@ class IKernel:
 
     logger: ILogger
     dataset: SpatialDataset | None = None
-    bandwidth: float | Tensor | None = None
+    bandwidth: float | None = None
     optimizeMode: Literal['cuda', 'cpu'] = 'cuda'
     kernel_type: KernelFunctionType = "bisquare"
     kernel_bandwidth_type: KernelBandwidthType = "adaptive"
-    weighted_matrix_cache: Dict[int, npt.NDArray[np.float64] | Tensor] = {}
-    distance_vector_cache: Dict[int, npt.NDArray[np.float64] | Tensor] = {}
+    weighted_matrix_cache: Dict[int, npt.NDArray[np.float64]] = {}
+    distance_vector_cache: Dict[int, npt.NDArray[np.float64]] = {}
 
     def __init__(self,
                  dataset: SpatialDataset,
@@ -64,7 +62,7 @@ class IKernel:
         """
         raise NotImplementedError("Method not implemented")
 
-    def get_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64] | Tensor:
+    def get_weighted_matrix_by_id(self, index: int) -> npt.NDArray[np.float64]:
         """
         Returns the weighted matrix for all data points.
 
@@ -78,7 +76,7 @@ class IKernel:
                 f"Weighted matrix for index {index} is not found in the cache, please update the bandwidth first")
         return self.weighted_matrix_cache[index]
 
-    def get_distance_vector_by_id(self, index: int) -> npt.NDArray[np.float64] | Tensor:
+    def get_distance_vector_by_id(self, index: int) -> npt.NDArray[np.float64]:
         """
         Returns the distance vector for a specific data point by index.
 
@@ -109,21 +107,12 @@ class IKernel:
             npt.NDArray[np.float64]: A 2D array representing the weighted matrix for 
                 the specified data point.
         """
-        if isinstance(self.bandwidth, Tensor):
-            distance_vector = self.__calculate_distance_vector_torch(index)
-            if isinstance(distance_vector, Tensor):
-                self.__calculate_weighted_matrix_torch(
-                    index,
-                    distance_vector
-                )
 
-        if isinstance(self.bandwidth, float):
-            distance_vector = self.__calculate_distance_vector(index)
-            if not isinstance(distance_vector, Tensor):
-                self.__calculate_weighted_matrix(
-                    index,
-                    distance_vector
-                )
+        distance_vector = self.__calculate_distance_vector(index)
+        self.__calculate_weighted_matrix(
+            index,
+            distance_vector
+        )
 
     def __init_distance_vectors(self):
         if self.dataset is None:
@@ -131,14 +120,10 @@ class IKernel:
         if self.dataset.dataPoints is None:
             raise ValueError("DataPoints are not setup in Kernel")
 
-        if self.optimizeMode == 'cuda':
-            for index in range(0, len(self.dataset.dataPoints)):
-                self.__calculate_distance_vector_torch(index)
-        else:
-            for index in range(0, len(self.dataset.dataPoints)):
-                self.__calculate_distance_vector(index)
+        for index in range(0, len(self.dataset.dataPoints)):
+            self.__calculate_distance_vector(index)
 
-    def __calculate_distance_vector(self, index: int) -> npt.NDArray[np.float64] | Tensor:
+    def __calculate_distance_vector(self, index: int) -> npt.NDArray[np.float64]:
         """
         Retrieves the distance vector for a specific data point index.
 
@@ -173,42 +158,6 @@ class IKernel:
 
         return distance_vector_i
 
-    def __calculate_distance_vector_torch(self, index: int) -> npt.NDArray[np.float64] | Tensor:
-        """
-        Retrieves the distance vector for a specific data point index.
-
-        This function calculates the distances from a specified data point to all other points 
-        in the dataset using PyTorch tensors.
-
-        Args:
-            index (int): The index of the data point to calculate distances from.
-
-        Returns:
-            torch.Tensor: A 1D tensor of distances from the specified data point to all other points.
-
-        Raises:
-            ValueError: If the dataset or data points are not initialized.
-        """
-        if self.dataset is None:
-            raise ValueError("Dataset is not setup in Kernel")
-        if self.dataset.dataPoints is None:
-            raise ValueError("DataPoints are not setup in Kernel")
-
-        # Retrieve the distance vector from cache if it exists
-        if index in self.distance_vector_cache:
-            return self.distance_vector_cache[index]
-
-        # Calculate the distance vector and store in cache
-        # distance_vector_i = torch.tensor(
-        #     get_2d_distance_vector_torch(index, self.dataset),
-        #     dtype=torch.float32
-        # ).to('cuda')
-
-        distance_vector_i = get_2d_distance_vector_torch(index, self.dataset)
-
-        self.distance_vector_cache[index] = distance_vector_i
-        return distance_vector_i
-
     def __calculate_weighted_matrix(self,
                                     index: int,
                                     distance_vector: npt.NDArray[np.float64],
@@ -236,6 +185,7 @@ class IKernel:
             distance_vector.shape)
 
         distnace_bandwidth = self.bandwidth
+
         if self.kernel_bandwidth_type == 'adaptive':
             # partial sort in O(n) Time
             distnace_bandwidth = np.partition(
@@ -267,58 +217,33 @@ class IKernel:
         # store the weighted matrix in the cache
         self.weighted_matrix_cache[index] = weighted_matrix.reshape(-1, 1)
 
-    def __calculate_weighted_matrix_torch(self,
-                                          index: int,
-                                          distance_vector: Tensor,
-                                          eps=1.0000001):
-        """
-        Calculates the weighted matrix based on the kernel function and distance vector."
-        """
-        if self.bandwidth is None:
-            raise ValueError("Bandwidth is not set up in Kernel")
-        if not isinstance(self.bandwidth, Tensor):
-            raise ValueError(
-                "__calculate_weighted_matrix_torch is only for gpu, bandwidth needs to be a tensor")
+    # def __spatial_weights(self,
+    #                       zs: Tensor,
+    #                       distance_vector: Tensor,
+    #                       distance_bandwidth: Tensor
+    #                       ):
+    #     weighted_matrix_i = torch.zeros_like(
+    #         zs, dtype=torch.float32, requires_grad=True).to('cuda')
 
-        distance_bandwidth = self.bandwidth
-        if self.kernel_bandwidth_type == 'adaptive':
-            distance_bandwidth = torch.kthvalue(
-                distance_vector, int(self.bandwidth))[0] * eps
+    #     if self.kernel_type == 'triangular':
+    #         weighted_matrix_i = 1 - zs
+    #     elif self.kernel_type == 'uniform':
+    #         weighted_matrix_i = torch.ones(
+    #             zs.shape, dtype=torch.float32, requires_grad=True).to('cuda') * 0.5
+    #     elif self.kernel_type == 'quadratic':
+    #         weighted_matrix_i = (3. / 4) * (1 - zs**2)
+    #     elif self.kernel_type == 'quartic':
+    #         weighted_matrix_i = (15. / 16) * (1 - zs**2)**2
+    #     elif self.kernel_type == 'gaussian':
+    #         weighted_matrix_i = torch.exp(-0.5 * (zs)**2)
+    #     elif self.kernel_type == 'bisquare':
+    #         weighted_matrix_i = (1 - (zs)**2)**2
+    #     elif self.kernel_type == 'exponential':
+    #         weighted_matrix_i = torch.exp(-zs)
+    #     else:
+    #         raise ValueError('Unsupported kernel function')
 
-        zs: Tensor = distance_vector / distance_bandwidth
-        weighted_matrix_i = self.__spatial_weights(
-            zs, distance_vector, distance_bandwidth)
+    #     if self.kernel_type == 'bisquare':
+    #         weighted_matrix_i[(distance_vector >= distance_bandwidth)] = 0
 
-        # store the weighted matrix in the cache
-        self.weighted_matrix_cache[index] = weighted_matrix_i.reshape(-1, 1)
-
-    def __spatial_weights(self,
-                          zs: Tensor,
-                          distance_vector: Tensor,
-                          distance_bandwidth: Tensor
-                          ):
-        weighted_matrix_i = torch.zeros_like(
-            zs, dtype=torch.float32, requires_grad=True).to('cuda')
-
-        if self.kernel_type == 'triangular':
-            weighted_matrix_i = 1 - zs
-        elif self.kernel_type == 'uniform':
-            weighted_matrix_i = torch.ones(
-                zs.shape, dtype=torch.float32, requires_grad=True).to('cuda') * 0.5
-        elif self.kernel_type == 'quadratic':
-            weighted_matrix_i = (3. / 4) * (1 - zs**2)
-        elif self.kernel_type == 'quartic':
-            weighted_matrix_i = (15. / 16) * (1 - zs**2)**2
-        elif self.kernel_type == 'gaussian':
-            weighted_matrix_i = torch.exp(-0.5 * (zs)**2)
-        elif self.kernel_type == 'bisquare':
-            weighted_matrix_i = (1 - (zs)**2)**2
-        elif self.kernel_type == 'exponential':
-            weighted_matrix_i = torch.exp(-zs)
-        else:
-            raise ValueError('Unsupported kernel function')
-
-        if self.kernel_type == 'bisquare':
-            weighted_matrix_i[(distance_vector >= distance_bandwidth)] = 0
-
-        return weighted_matrix_i
+    #     return weighted_matrix_i
