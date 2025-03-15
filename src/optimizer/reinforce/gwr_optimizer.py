@@ -1,6 +1,6 @@
 import gymnasium as gym
 import numpy as np
-from typing import Tuple, Optional
+from typing import Tuple
 
 from src.model.gwr import GWR
 from src.log.ilogger import ILogger
@@ -81,8 +81,9 @@ class GwrOptimizerRL(gym.Env):
         truncated = self.current_step >= self.max_steps
 
         if done:
-            self.logger.append_info(
-                f"episode {self.episode_count} reached the reward threshold: R2 {reward}, bandwidth: {self.current_bandwidth}"
+            self.logger.append_bandwidth_optimization(
+                f"■ Episode {self.episode_count} - R2 {reward}",
+                self.current_bandwidth
             )
 
         return np.array([self.current_bandwidth]), reward, done, truncated, {}

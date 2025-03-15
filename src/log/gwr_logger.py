@@ -22,8 +22,8 @@ class GwrLogger(ILogger):
             'R-squared': None,
             'R-squared adjusted': None
         },
-        'info': [],
-        'bandwidth_optimization': []
+        'bandwidth_optimization': [],
+        'info': []
     }
 
     def __init__(self):

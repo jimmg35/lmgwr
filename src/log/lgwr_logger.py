@@ -16,6 +16,6 @@ class LgwrLogger(GwrLogger):
                 'R-squared': None,
                 'R-squared adjusted': None
             },
-            'info': [],
-            'bandwidth_optimization': []
+            'bandwidth_optimization': [],
+            'info': []
         }

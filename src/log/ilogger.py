@@ -1,6 +1,5 @@
 import os
 import json
-import logging
 from datetime import datetime
 from src.log.timestamp import current_time_str
 from typing import Literal, TypeAlias
@@ -43,12 +42,14 @@ class ILogger:
         )
         print(msg)
 
-    def append_bandwidth_optimization(self, record: str):
-        msg = {datetime.now().strftime("%Y-%m-%d %H:%M:%S"): record}
+    def append_bandwidth_optimization(self, record: str, bw: str):
+        msg = {datetime.now().strftime("%Y-%m-%d %H:%M:%S"): f"{record}"}
+        print(msg)
+        msg['bandwidth'] = bw
         self.model_info['bandwidth_optimization'].append(
             msg
         )
-        print(msg)
+        
 
     def update_matrics(self, matrices_type: MatricesType, value: float):
         self.model_info['matrices'][matrices_type] = value
