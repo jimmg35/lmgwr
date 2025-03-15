@@ -81,7 +81,7 @@ class LgwrOptimizerRL(gym.Env):
 
         if done:
             self.logger.append_info(
-                f"episode {self.episode_count} reached the reward threshold: R2 {reward}, bandwidth vector: {self.current_bandwidth_vector}"
+                f" -=★=- Episode {self.episode_count} reached the reward threshold: R2 {reward}, bandwidth vector: {self.current_bandwidth_vector}"
             )
 
         return self.current_bandwidth_vector, reward, done, truncated, {}

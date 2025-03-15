@@ -26,7 +26,7 @@ class EpisodeTracker(BaseCallback):
             self.episode_count += 1
             remaining_steps = self.total_timesteps - self.num_timesteps
             self.customLogger.append_info(
-                f"Episode {self.episode_count} ends, total steps: {self.step_count}, remaining steps: {remaining_steps}"
+                f"Episode {self.episode_count} ends, took {self.step_count} steps, remaining {remaining_steps} steps "
             )
             self.step_count = 0
         return True

@@ -10,6 +10,13 @@ from src.kernel.lgwr_kernel import LgwrKernel
 from src.log.lgwr_logger import LgwrLogger
 from src.model.lgwr import LGWR
 
+# Hyperparameters for PPO training
+TOTAL_TIMESTEPS = 10000
+MIN_ACTION = -10
+MAX_ACTION = 10
+MAX_STEPS = 1000
+REWARD_THRESHOLD = 0.75
+
 if __name__ == '__main__':
 
     # Create a logger to record the LGWR model's information.
@@ -44,15 +51,14 @@ if __name__ == '__main__':
         logger,
         min_bandwidth=10,
         max_bandwidth=spatialDataset.x_matrix.shape[0],
-        min_action=-10,
-        max_action=10,
-        max_steps=500,
-        reward_threshold=0.75
+        min_action=MIN_ACTION,
+        max_action=MAX_ACTION,
+        max_steps=MAX_STEPS,
+        reward_threshold=REWARD_THRESHOLD
     )
 
     # Using PPO to optimize the bandwidth vector
     # (local bandwidths for each location)
-    TOTAL_TIMESTEPS = 5000
     episodeTracker = EpisodeTracker(
         logger,
         total_timesteps=TOTAL_TIMESTEPS
@@ -70,15 +76,15 @@ if __name__ == '__main__':
     logger.append_info("PPO: PPO finished training.")
 
     # Test the model
-    obs, _ = env.reset()
-    for _ in range(100):
-        action, _ = model.predict(obs)
-        obs, reward, done, truncated, _ = env.step(action)
-        logger.append_info(
-            f"Bandwidth: {obs}, Reward (R2): {reward}"
-        )
-        if done or truncated:
-            break
+    # obs, _ = env.reset()
+    # for _ in range(100):
+    #     action, _ = model.predict(obs)
+    #     obs, reward, done, truncated, _ = env.step(action)
+    #     logger.append_info(
+    #         f"Bandwidth: {obs}, Reward (R2): {reward}"
+    #     )
+    #     if done or truncated:
+    #         break
 
     # Save the log
     logger.save_model_info_json()

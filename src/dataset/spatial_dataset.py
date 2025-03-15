@@ -141,6 +141,8 @@ class SpatialDataset(IDataset):
         self.logger.append_info(
             f"{self.__class__.__name__} : Data schema matchs with the data.")
 
+    # def graph(self):
+
     def _create_data_points(self, data: pd.DataFrame) -> List[IDataPoint]:
         """
         Creates and populates a list of data points from the dataset for spatial analysis.
