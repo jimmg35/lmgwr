@@ -190,11 +190,11 @@ class SpatialDataset(IDataset):
                 f"{self.__class__.__name__} : Error creating data points: {e}")
             raise e
         
-    # def plot_map(self):
-    #     if self.geometry is not None:
-    #         fig, ax = plt.subplots(figsize=(10,10))
-    #         self.geometry.plot(ax=ax, **{'edgecolor':'black', 'facecolor':'white'})
-    #         self.geometry.centroid.plot(ax=ax, c='black')
+    def plot_map(self):
+        if self.geometry is not None:
+            fig, ax = plt.subplots(figsize=(10,10))
+            self.geometry.plot(ax=ax, edgecolor='black', facecolor='white')
+            self.geometry.centroid.plot(ax=ax, c='black')
 
 
 if __name__ == '__main__':

@@ -81,8 +81,10 @@ class GwrOptimizerRL(gym.Env):
         truncated = self.current_step >= self.max_steps
 
         if done:
+            print(f"■ Episode {self.episode_count} - R2 {reward}")
             self.logger.append_bandwidth_optimization(
-                f"■ Episode {self.episode_count} - R2 {reward}",
+                self.episode_count,
+                reward,
                 self.current_bandwidth
             )
 

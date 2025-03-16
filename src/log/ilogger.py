@@ -42,14 +42,20 @@ class ILogger:
         )
         print(msg)
 
-    def append_bandwidth_optimization(self, record: str, bw: str):
-        msg = {datetime.now().strftime("%Y-%m-%d %H:%M:%S"): f"{record}"}
-        print(msg)
-        msg['bandwidth'] = bw
+    def append_bandwidth_optimization(
+        self,
+        episode: int,
+        reward: float,
+        bw: str | float
+    ):
+        msg = {
+            'episode': episode,
+            'reward': reward,
+            'bandwidth': bw
+        }
         self.model_info['bandwidth_optimization'].append(
             msg
         )
-        
 
     def update_matrics(self, matrices_type: MatricesType, value: float):
         self.model_info['matrices'][matrices_type] = value
