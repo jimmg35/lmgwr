@@ -25,9 +25,9 @@ if __name__ == "__main__":
         isSpherical=True
     )
 
-    spatialDataset.plot_map()
+    # spatialDataset.plot_map()
 
-    # lgwr_visualizer = LgwrVisualizer(log_path)
-    # lgwr_visualizer.plot_bandwidth_map_by_episode(4)
+    lgwr_visualizer = LgwrVisualizer(log_path)
+    lgwr_visualizer.plot_bandwidth_map_by_episode(4)
 
     # lgwr_visualizer.summary_bandwidth_info()

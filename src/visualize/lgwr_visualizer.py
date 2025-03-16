@@ -2,6 +2,7 @@ import os
 import json
 import numpy as np
 
+from src.dataset.spatial_dataset import SpatialDataset
 
 class LgwrVisualizer():
 
@@ -9,8 +10,11 @@ class LgwrVisualizer():
     log_filename: str = 'model_info.json'
     model_info: dict
 
-    def __init__(self, log_path: str):
+    dataset: SpatialDataset
+
+    def __init__(self, log_path: str, dataset: SpatialDataset):
         self.log_path = log_path
+        self.dataset = dataset
         self.__load_log_json()
 
     def summary_bandwidth_info(self) -> None:
