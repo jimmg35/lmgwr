@@ -15,6 +15,8 @@ gwrRlDemo:
 # The LGWR demo with reinforcement learning.
 lgwrRlDemo:
 	python script-lgwr-rl-demo.py
+lgwrRlVisualize:
+	python script-lgwr-rl-visualize.py
 
 # ========== Conda Environment related commands ==========
 
