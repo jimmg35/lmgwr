@@ -3,6 +3,9 @@ import json
 import numpy as np
 
 from src.dataset.spatial_dataset import SpatialDataset
+import geopandas as gpd
+import matplotlib.pyplot as plt
+
 
 class LgwrVisualizer():
 
@@ -50,14 +53,32 @@ class LgwrVisualizer():
         optimized_bandwidths_info = self.model_info['bandwidth_optimization']
         info = next(filter(lambda x: x['episode'] ==
                     episode, optimized_bandwidths_info), None)
-        if info is None:
+        if info is None or self.dataset.geometry is None:
             return
 
-        local_bandwidths = np.array(
+        # Load the local bandwidth vector of the given episode
+        local_bandwidth_vector = np.array(
             json.loads(info['bandwidth'])
         ).reshape(-1, 1)
 
-        print(local_bandwidths)
+        # Ensure the length of local_bandwidth_vector matches the length of the geometry
+        if len(local_bandwidth_vector) != len(self.dataset.geometry):
+            print(
+                "The length of local_bandwidth_vector does not match the length of the geometry.")
+            return
+
+        # Add the local_bandwidth_vector as a new column to the GeoDataFrame
+        self.dataset.geometry['local_bandwidth'] = local_bandwidth_vector
+
+        # Plot the GeoDataFrame with a gradient color based on local_bandwidth
+        self.dataset.geometry.plot(
+            column='local_bandwidth',
+            cmap='viridis',
+            legend=True,
+            legend_kwds={'label': "Local Bandwidth"}
+        )
+        plt.title(f"Bandwidth Map for Episode {episode}")
+        plt.show()
 
     def __load_log_json(self) -> None:
 
