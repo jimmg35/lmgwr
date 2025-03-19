@@ -149,7 +149,7 @@ class IModel:
         ss_total = np.sum((self.dataset.y - y_bar) ** 2)
         ss_res = np.sum(self.residuals ** 2)
         self.r_squared = float(1 - ss_res / ss_total)
-        self.logger.update_matrics('R-squared', self.r_squared)
+        # self.logger.update_matrics('R-squared', self.r_squared)
 
     def _calculate_aic_aicc(self) -> None:
         """
@@ -178,5 +178,5 @@ class IModel:
         self.aic = AIC
         self.aicc = AICc
 
-        self.logger.update_matrics('AIC', self.aic)
-        self.logger.update_matrics('AICc', self.aicc)
+        # self.logger.update_matrics('AIC', self.aic)
+        # self.logger.update_matrics('AICc', self.aicc)
