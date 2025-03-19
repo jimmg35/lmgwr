@@ -54,6 +54,7 @@ if __name__ == '__main__':
         lgwr,
         logger,
         REWARD_THRESHOLD,
+        TOTAL_TIMESTEPS,
         reward_type=REWARD_TYPE,
         min_bandwidth=MIN_BANDWIDTH,
         max_bandwidth=spatialDataset.x_matrix.shape[0],
@@ -64,10 +65,10 @@ if __name__ == '__main__':
 
     # Using PPO to optimize the bandwidth vector
     # (local bandwidths for each location)
-    episodeTracker = EpisodeTracker(
-        logger,
-        total_timesteps=TOTAL_TIMESTEPS
-    )
+    # episodeTracker = EpisodeTracker(
+    #     logger,
+    #     total_timesteps=TOTAL_TIMESTEPS
+    # )
     model = PPO(
         "MlpPolicy",
         env,
@@ -75,8 +76,8 @@ if __name__ == '__main__':
         device='cpu'
     )
     model.learn(
-        total_timesteps=TOTAL_TIMESTEPS,
-        callback=episodeTracker
+        total_timesteps=TOTAL_TIMESTEPS
+        # callback=episodeTracker
     )
     logger.append_info("PPO: PPO finished training.")
 

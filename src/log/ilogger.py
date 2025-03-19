@@ -47,17 +47,22 @@ class ILogger:
         episode: int,
         reward: float,
         r2: float,
-        bw: str | float
+        bw: str | float,
+        log: str
     ):
-        msg = {
+        record = {
             'episode': episode,
             'reward': reward,
             'r2': r2,
             'bandwidth': bw
         }
         self.model_info['bandwidth_optimization'].append(
-            msg
+            record
         )
+        msg = {
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"): log
+        }
+        print(msg)
 
     def update_matrics(self, matrices_type: MatricesType, value: float):
         self.model_info['matrices'][matrices_type] = value

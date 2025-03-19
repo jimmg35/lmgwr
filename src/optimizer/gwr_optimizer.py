@@ -99,7 +99,9 @@ class GwrOptimizer(IOptimizer):
         self.model.update_bandwidth(bandwidth).fit()
         self.logger.append_bandwidth_optimization(
             index,
-            self.model.r_squared, bandwidth
+            0,
+            self.model.r_squared,
+            bandwidth,
+            f"{self.__class__.__name__} : Bandwidth {bandwidth}, AICc {self.model.aicc}, R2 {self.model.r_squared}"
         )
-        print(f"{self.__class__.__name__} : Bandwidth {bandwidth}, AICc {self.model.aicc}, R2 {self.model.r_squared}")
         return self.model.aicc

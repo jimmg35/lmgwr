@@ -25,10 +25,13 @@ class LgwrOptimizerRL(gym.Env):
     episode_count: int
     reward: float
 
+    remaining_steps: int
+
     def __init__(self,
                  lgwr: LGWR,
                  logger: ILogger,
                  reward_threshold,
+                 total_timesteps,
                  reward_type=LgwrRewardType.R2,
                  min_bandwidth=10,
                  max_bandwidth=300,
@@ -41,6 +44,7 @@ class LgwrOptimizerRL(gym.Env):
         self.logger = logger
         self.reward_type = reward_type
         self.reward_threshold = reward_threshold
+        self.remaining_steps = total_timesteps
 
         # The upper and lower bounds of the estimated bandwidth
         self.min_bandwidth = min_bandwidth
@@ -98,17 +102,21 @@ class LgwrOptimizerRL(gym.Env):
 
         # Maximum step constraint
         self.current_step += 1
+        self.remaining_steps -= 1
         truncated = self.current_step >= self.max_steps
 
-        if done:
-            print(
-                f"★ Episode {self.episode_count} done, took {self.current_step} steps, {self.reward_type}: {self.lgwr.aicc}"
+        if truncated:
+            self.logger.append_info(
+                f"Episode {self.episode_count} truncated, took {self.current_step} steps, remain {self.remaining_steps} steps, reward: {self.reward}, r2: {self.lgwr.r_squared}."
             )
+
+        if done:
             self.logger.append_bandwidth_optimization(
                 self.episode_count,
                 self.lgwr.aicc,
                 self.lgwr.r_squared,
-                '[' + ', '.join(map(str, self.current_bandwidth_vector)) + ']'
+                '[' + ', '.join(map(str, self.current_bandwidth_vector)) + ']',
+                f"★ Episode {self.episode_count} done, took {self.current_step} steps, aicc: {self.lgwr.aicc}, r2: {self.lgwr.r_squared}"
             )
 
         return self.current_bandwidth_vector, self.reward, done, truncated, {}
