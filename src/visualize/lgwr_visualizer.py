@@ -4,6 +4,8 @@ import numpy as np
 
 from src.dataset.spatial_dataset import SpatialDataset
 import geopandas as gpd
+# from pysal.lib import weights
+# from pysal.explore import esda
 import matplotlib.pyplot as plt
 
 
@@ -79,6 +81,32 @@ class LgwrVisualizer():
         )
         plt.title(f"Bandwidth Map for Episode {episode}")
         plt.show()
+
+    # def __calculate_moran_i(self):
+    #     if self.dataset.geometry is None:
+    #         return
+
+    #     # Ensure the 'local_bandwidth' column exists
+    #     if 'local_bandwidth' not in self.dataset.geometry.columns:
+    #         print("The 'local_bandwidth' column is missing in the dataset.")
+    #         return
+
+    #     # Calculate Moran's I
+
+    #     # Create spatial weights matrix
+    #     w = weights.Queen.from_dataframe(self.dataset.geometry)
+    #     w.transform = 'r'
+
+    #     # Extract the local_bandwidth column as a numpy array
+    #     local_bandwidth = self.dataset.geometry['local_bandwidth'].values
+
+    #     # Compute Moran's I
+    #     moran = esda.Moran(local_bandwidth, w)
+
+    #     print(f"Moran's I: {moran.I:.4f}")
+    #     print(f"Expected I: {moran.EI:.4f}")
+    #     print(f"p-value: {moran.p_sim:.4f}")
+    #     print(f"z-score: {moran.z_sim:.4f}")
 
     def __load_log_json(self) -> None:
 
