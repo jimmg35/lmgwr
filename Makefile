@@ -6,7 +6,7 @@
 
 # The vanilla GWR demo.
 gwrVanillaDemo:
-	python script-gwr-demo.py
+	python script-gwr-vanilla-demo.py
 
 # The GWR demo with reinforcement learning.
 gwrRlDemo:

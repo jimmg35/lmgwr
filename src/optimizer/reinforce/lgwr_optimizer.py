@@ -1,9 +1,15 @@
 import gymnasium as gym
 import numpy as np
+from enum import Enum
 from typing import Tuple, Optional
 
 from src.model.lgwr import LGWR
 from src.log.ilogger import ILogger
+
+
+class LgwrRewardType(Enum):
+    R2 = "r2"
+    AICC = "aicc"
 
 
 class LgwrOptimizerRL(gym.Env):
@@ -12,23 +18,33 @@ class LgwrOptimizerRL(gym.Env):
     logger: ILogger
     min_bandwidth: int
     max_bandwidth: int
-    reward_threshold: float
+
+    reward_type: LgwrRewardType
+    reward_threshold: float | None
+
     episode_count: int
+    reward: float
+
+    remaining_steps: int
 
     def __init__(self,
                  lgwr: LGWR,
                  logger: ILogger,
+                 reward_threshold,
+                 total_timesteps,
+                 reward_type=LgwrRewardType.R2,
                  min_bandwidth=10,
                  max_bandwidth=300,
                  max_steps=100,
                  min_action=-10,
-                 max_action=10,
-                 reward_threshold=0.75
+                 max_action=10
                  ):
         super(LgwrOptimizerRL, self).__init__()
         self.lgwr = lgwr
         self.logger = logger
+        self.reward_type = reward_type
         self.reward_threshold = reward_threshold
+        self.remaining_steps = total_timesteps
 
         # The upper and lower bounds of the estimated bandwidth
         self.min_bandwidth = min_bandwidth
@@ -54,6 +70,15 @@ class LgwrOptimizerRL(gym.Env):
             "LgwrOptimizerRL: LgwrOptimizerRL environment is initialized."
         )
 
+        if self.reward_type == LgwrRewardType.R2:
+            self.logger.append_info(
+                "LgwrOptimizerRL: Using R2 as the reward."
+            )
+        elif self.reward_type == LgwrRewardType.AICC:
+            self.logger.append_info(
+                "LgwrOptimizerRL: Using AICC as the reward."
+            )
+
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]:
         # Ensure every action is an integer
         action = np.round(action).astype(int)
@@ -69,25 +94,32 @@ class LgwrOptimizerRL(gym.Env):
             self.current_bandwidth_vector
         ).fit()
 
-        # Compute reward based on R2
-        reward = self.__calculate_reward()
+        # Compute reward
+        self.reward = self.__calculate_reward()
 
         # Stop episode if reward threshold is met
-        done = reward >= self.reward_threshold
+        done = self.__if_hit_reward_threshold()
 
         # Maximum step constraint
         self.current_step += 1
+        self.remaining_steps -= 1
         truncated = self.current_step >= self.max_steps
 
-        if done:
-            print(f"■ Episode {self.episode_count} - R2 {reward}")
-            self.logger.append_bandwidth_optimization(
-                self.episode_count,
-                reward,
-                '[' + ', '.join(map(str, self.current_bandwidth_vector)) + ']'
+        if truncated:
+            self.logger.append_info(
+                f"Episode {self.episode_count} truncated, took {self.current_step} steps, remain {self.remaining_steps} steps, reward: {self.reward}, r2: {self.lgwr.r_squared}."
             )
 
-        return self.current_bandwidth_vector, reward, done, truncated, {}
+        if done:
+            self.logger.append_bandwidth_optimization(
+                self.episode_count,
+                self.lgwr.aicc,
+                self.lgwr.r_squared,
+                '[' + ', '.join(map(str, self.current_bandwidth_vector)) + ']',
+                f"★ Episode {self.episode_count} done, took {self.current_step} steps, aicc: {self.lgwr.aicc}, r2: {self.lgwr.r_squared}"
+            )
+
+        return self.current_bandwidth_vector, self.reward, done, truncated, {}
 
     def reset(self,  # type: ignore
               seed: Optional[int] = None
@@ -115,4 +147,20 @@ class LgwrOptimizerRL(gym.Env):
 
     def __calculate_reward(self) -> float:
         """ Compute R2 as the reward. """
-        return self.lgwr.r_squared
+        if self.reward_type == LgwrRewardType.R2:
+            return self.lgwr.r_squared
+        elif self.reward_type == LgwrRewardType.AICC:
+            return -self.lgwr.aicc
+        else:
+            raise ValueError("Invalid reward type.")
+
+    def __if_hit_reward_threshold(self):
+        """ Define the reward type. """
+        if self.reward_threshold is None:
+            return False
+        if self.reward_type == LgwrRewardType.R2:
+            return self.reward >= self.reward_threshold
+        elif self.reward_type == LgwrRewardType.AICC:
+            return abs(self.reward) <= self.reward_threshold
+        else:
+            raise ValueError("Invalid reward type.")

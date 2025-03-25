@@ -12,23 +12,31 @@ class GwrOptimizerRL(gym.Env):
     logger: ILogger
     min_bandwidth: int
     max_bandwidth: int
+
     reward_threshold: float
+
     episode_count: int
+    reward: float
+
+    remaining_steps: int
 
     def __init__(self,
                  gwr: GWR,
                  logger: ILogger,
+                 reward_threshold,
+                 total_timesteps,
                  min_bandwidth=10,
                  max_bandwidth=300,
                  max_steps=100,
                  min_action=-10,
-                 max_action=10,
-                 reward_threshold=0.75
+                 max_action=10
                  ):
         super(GwrOptimizerRL, self).__init__()
         self.gwr = gwr
         self.logger = logger
         self.reward_threshold = reward_threshold
+        self.reward_threshold = reward_threshold
+        self.remaining_steps = total_timesteps
 
         # The upper and lower bounds of the estimated bandwidth
         self.min_bandwidth = min_bandwidth
@@ -53,6 +61,9 @@ class GwrOptimizerRL(gym.Env):
         self.logger.append_info(
             "GwrOptimizerRL: GwrOptimizerRL environment is initialized."
         )
+        self.logger.append_info(
+            "GwrOptimizerRL: Using AICC as the reward."
+        )
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]:
         # ensure every action is an integer
@@ -69,26 +80,30 @@ class GwrOptimizerRL(gym.Env):
         self.gwr.update_bandwidth(self.current_bandwidth).fit()
 
         # reward setting, maximize the R2
-        reward = self.__calculate_reward()
+        self.reward = self.__calculate_reward()
 
-        # the threshold of stopping the training
-        # (False means non-stop)
         # in this case, the episode stops when the R2 is greater than 0.75
-        done = reward >= self.reward_threshold
+        done = self.__if_hit_reward_threshold()
 
         # the maximum steps of training
         self.current_step += 1
         truncated = self.current_step >= self.max_steps
 
-        if done:
-            print(f"■ Episode {self.episode_count} - R2 {reward}")
-            self.logger.append_bandwidth_optimization(
-                self.episode_count,
-                reward,
-                self.current_bandwidth
+        if truncated:
+            self.logger.append_info(
+                f"Episode {self.episode_count} truncated, took {self.current_step} steps, remain {self.remaining_steps} steps, reward: {self.reward}, r2: {self.gwr.r_squared}."
             )
 
-        return np.array([self.current_bandwidth]), reward, done, truncated, {}
+        if done:
+            self.logger.append_bandwidth_optimization(
+                self.episode_count,
+                self.gwr.aicc,
+                self.gwr.r_squared,
+                int(self.current_bandwidth),
+                f"★ Episode {self.episode_count} done, took {self.current_step} steps, aicc: {self.gwr.aicc}, r2: {self.gwr.r_squared}"
+            )
+
+        return np.array([self.current_bandwidth]), self.reward, done, truncated, {}
 
     def reset(self,  # type: ignore
               seed: int | None = None,
@@ -130,6 +145,14 @@ class GwrOptimizerRL(gym.Env):
 
     def __calculate_reward(self) -> float:
         """ 
-        Get the R2 of the GWR model.
+        Get the AICc of the GWR model.
         """
-        return self.gwr.r_squared
+        return -self.gwr.aicc
+
+    def __if_hit_reward_threshold(self):
+        """ 
+        Check if the reward is greater than the threshold.
+        """
+        if self.reward_threshold is None:
+            return False
+        return abs(self.reward) <= self.reward_threshold

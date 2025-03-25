@@ -16,14 +16,14 @@ class ILogger:
     model_type: str = 'baseLogger'
     model_info = {
         'model_type': model_type,
+        'bandwidth_optimization': [],
+        'info': [],
         'matrices': {
             'AIC': None,
             'AICc': None,
             'R-squared': None,
             'R-squared adjusted': None
         },
-        'info': [],
-        'bandwidth_optimization': []
     }
 
     def __init__(self):
@@ -46,16 +46,23 @@ class ILogger:
         self,
         episode: int,
         reward: float,
-        bw: str | float
+        r2: float,
+        bw: str | float,
+        log: str
     ):
-        msg = {
+        record = {
             'episode': episode,
             'reward': reward,
+            'r2': r2,
             'bandwidth': bw
         }
         self.model_info['bandwidth_optimization'].append(
-            msg
+            record
         )
+        msg = {
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"): log
+        }
+        print(msg)
 
     def update_matrics(self, matrices_type: MatricesType, value: float):
         self.model_info['matrices'][matrices_type] = value

@@ -2,7 +2,7 @@
 from stable_baselines3 import PPO
 import pandas as pd
 
-from src.optimizer.reinforce.lgwr_optimizer import LgwrOptimizerRL
+from src.optimizer.reinforce.lgwr_optimizer import LgwrOptimizerRL, LgwrRewardType
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
 from src.optimizer.reinforce.callback import EpisodeTracker
 from src.dataset.spatial_dataset import SpatialDataset
@@ -15,7 +15,11 @@ TOTAL_TIMESTEPS = 10000
 MIN_ACTION = -10
 MAX_ACTION = 10
 MAX_STEPS = 1000
-REWARD_THRESHOLD = 0.75
+
+MIN_BANDWIDTH = 30
+
+REWARD_TYPE = LgwrRewardType.AICC
+REWARD_THRESHOLD = 300
 
 if __name__ == '__main__':
 
@@ -49,20 +53,22 @@ if __name__ == '__main__':
     env = LgwrOptimizerRL(
         lgwr,
         logger,
-        min_bandwidth=10,
+        REWARD_THRESHOLD,
+        TOTAL_TIMESTEPS,
+        reward_type=REWARD_TYPE,
+        min_bandwidth=MIN_BANDWIDTH,
         max_bandwidth=spatialDataset.x_matrix.shape[0],
         min_action=MIN_ACTION,
         max_action=MAX_ACTION,
-        max_steps=MAX_STEPS,
-        reward_threshold=REWARD_THRESHOLD
+        max_steps=MAX_STEPS
     )
 
     # Using PPO to optimize the bandwidth vector
     # (local bandwidths for each location)
-    episodeTracker = EpisodeTracker(
-        logger,
-        total_timesteps=TOTAL_TIMESTEPS
-    )
+    # episodeTracker = EpisodeTracker(
+    #     logger,
+    #     total_timesteps=TOTAL_TIMESTEPS
+    # )
     model = PPO(
         "MlpPolicy",
         env,
@@ -70,8 +76,8 @@ if __name__ == '__main__':
         device='cpu'
     )
     model.learn(
-        total_timesteps=TOTAL_TIMESTEPS,
-        callback=episodeTracker
+        total_timesteps=TOTAL_TIMESTEPS
+        # callback=episodeTracker
     )
     logger.append_info("PPO: PPO finished training.")
 

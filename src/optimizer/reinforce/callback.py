@@ -21,12 +21,17 @@ class EpisodeTracker(BaseCallback):
         self.total_timesteps = total_timesteps
 
     def _on_step(self) -> bool:
+
         self.step_count += 1
-        if self.locals['dones'][0]:
+        reward = self.locals['rewards'][0]
+        truncated = self.locals['infos'][0]['TimeLimit.truncated']
+
+        if truncated:
             self.episode_count += 1
-            remaining_steps = self.total_timesteps - self.num_timesteps
+            self.total_timesteps -= self.step_count
             self.customLogger.append_info(
-                f"Episode {self.episode_count} ends, took {self.step_count} steps, remaining {remaining_steps} steps "
+                f"Episode {self.episode_count} truncated, took {self.step_count} steps, remain {self.total_timesteps} steps, reward: {reward}."
             )
             self.step_count = 0
+
         return True
