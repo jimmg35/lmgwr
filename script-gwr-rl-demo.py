@@ -12,14 +12,14 @@ from src.model.gwr import GWR
 
 # Hyperparameters for PPO training
 TOTAL_TIMESTEPS = 10000
-MIN_ACTION = -10
-MAX_ACTION = 10
+MIN_ACTION = -500
+MAX_ACTION = 500
 MAX_STEPS = 1000
 
 MIN_BANDWIDTH = 30
 
 # REWARD_TYPE = LgwrRewardType.AICC
-REWARD_THRESHOLD = 300
+REWARD_THRESHOLD = 2450
 
 
 if __name__ == '__main__':
@@ -28,17 +28,17 @@ if __name__ == '__main__':
     logger = GwrLogger()
 
     # Load the Georgia dataset and create a spatial dataset.
-    georgia_data = pd.read_csv(r'./data/GData_utm.csv')
+    dataframe = pd.read_csv(r'./data/income_health.csv')
     spatialDataset = SpatialDataset(
-        georgia_data,
+        dataframe,
         IFieldInfo(
-            predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
-            response_field='PctBach',
-            coordinate_x_field='Longitud',
-            coordinate_y_field='Latitude'
+            predictor_fields=['pct_bach', 'pct_black', 'median_income'],
+            response_field='DIABETES',
+            coordinate_x_field='proj_X',
+            coordinate_y_field='proj_Y'
         ),
         logger,
-        isSpherical=True
+        isSpherical=False
     )
 
     # Create a GWR kernel and GWR model.

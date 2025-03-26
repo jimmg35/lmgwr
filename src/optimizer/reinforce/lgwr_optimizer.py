@@ -119,6 +119,10 @@ class LgwrOptimizerRL(gym.Env):
                 f"★ Episode {self.episode_count} done, took {self.current_step} steps, aicc: {self.lgwr.aicc}, r2: {self.lgwr.r_squared}"
             )
 
+        print(
+            f"Step : {self.current_step}, reward(AICc): {self.reward}, r2: {self.lgwr.r_squared}."
+        )
+
         return self.current_bandwidth_vector, self.reward, done, truncated, {}
 
     def reset(self,  # type: ignore

@@ -89,9 +89,18 @@ class SpatialDataset(IDataset):
         self.isSpherical = isSpherical
 
         # Transforming the datapoints into the matrix form.
-        self.x_matrix = np.vstack(
-            [data_point.X for data_point in self.dataPoints])
-        self.y = np.array([[data_point.y] for data_point in self.dataPoints])
+        # self.x_matrix = np.vstack(
+        #     [data_point.X for data_point in self.dataPoints])
+        # self.y = np.array([[data_point.y] for data_point in self.dataPoints])
+
+        if not self.fieldInfo or not hasattr(self.fieldInfo, 'predictor_fields') or not hasattr(self.fieldInfo, 'response_field'):
+            raise ValueError(
+                "fieldInfo is not properly initialized or missing required attributes.")
+
+        self.x_matrix = data[[
+            field for field in self.fieldInfo.predictor_fields]].values
+        self.y = np.asarray(
+            data[self.fieldInfo.response_field].values, dtype=np.float64)
 
         # Standardize the columns
         self.x_matrix = (self.x_matrix - self.x_matrix.mean(axis=0)

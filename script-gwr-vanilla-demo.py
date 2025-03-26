@@ -15,14 +15,14 @@ if __name__ == '__main__':
     logger = GwrLogger()
 
     # Load the Georgia dataset and create a spatial dataset.
-    georgia_data = pd.read_csv(r'./data/GData_utm.csv')
+    dataframe = pd.read_csv(r'./data/income_health.csv')
     spatialDataset = SpatialDataset(
-        georgia_data,
+        dataframe,
         IFieldInfo(
-            predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
-            response_field='PctBach',
-            coordinate_x_field='X',
-            coordinate_y_field='Y'
+            predictor_fields=['pct_bach', 'pct_black', 'median_income'],
+            response_field='DIABETES',
+            coordinate_x_field='proj_X',
+            coordinate_y_field='proj_Y'
         ),
         logger,
         isSpherical=False

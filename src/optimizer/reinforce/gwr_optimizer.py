@@ -103,6 +103,9 @@ class GwrOptimizerRL(gym.Env):
                 f"★ Episode {self.episode_count} done, took {self.current_step} steps, aicc: {self.gwr.aicc}, r2: {self.gwr.r_squared}"
             )
 
+        print(
+            f"Step : {self.current_step}, reward(AICc): {self.reward}, r2: {self.gwr.r_squared}."
+        )
         return np.array([self.current_bandwidth]), self.reward, done, truncated, {}
 
     def reset(self,  # type: ignore
