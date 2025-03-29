@@ -2,6 +2,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy import linalg
 from tqdm import tqdm
+from joblib import Parallel, delayed
 
 from src.model.imodel import IModel
 from src.dataset.spatial_dataset import SpatialDataset
@@ -30,7 +31,7 @@ class GWR(IModel):
                  logger: ILogger) -> None:
         super().__init__(dataset, kernel, logger)
 
-    def fit(self) -> None:
+    def fit(self, n_jobs: int = -1) -> None:
         """ 
         Fit the GWR model with the provided dataset and spatial weights based on the kernel.
         This method iterates over each data point in the dataset and calculates local regression
@@ -47,6 +48,16 @@ class GWR(IModel):
 
         for index in range(len(self.dataset.dataPoints)):
             self._local_fit(index)
+
+        # results = Parallel(n_jobs=n_jobs)(
+        #     delayed(self._local_fit)(i) for i in range(len(self.dataset.dataPoints)) if self._local_fit(i) is not None
+        # )
+
+        # for result in results:
+        #     i, beta_i, y_hat_i, S_ii = result  # type: ignore
+        #     self.betas[i, :] = beta_i
+        #     self.y_hats[i] = y_hat_i
+        #     self.S[i] = S_ii
 
         # update estimates (outside of loop for calculations)
         self.residuals = self.dataset.y - self.y_hats.reshape(-1, 1)

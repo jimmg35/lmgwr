@@ -42,4 +42,8 @@ if __name__ == '__main__':
     optimizer = GwrOptimizer(gwr, kernel, logger)
     optimal_bandwidth = optimizer.optimize()
 
+    logger.append_info(
+        "Finished optimizing bandwidth, optimal bandwidth is: "
+    )
+
     logger.save_model_info_json()

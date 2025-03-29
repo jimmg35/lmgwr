@@ -72,7 +72,7 @@ class IModel:
         self.S = np.zeros(data_counts)
         self.residuals = np.zeros(data_counts)
 
-    def _local_fit(self, index: int) -> None:
+    def _local_fit(self, index: int):
         """
         Fit a local regression model for a specific data point.
 
@@ -97,6 +97,8 @@ class IModel:
         self.betas[index, :] = beta.flatten()
         self.y_hats[index] = self.dataset.x_matrix[index, :] @ beta
         self.S[index] = S_ii.flatten()[0]
+
+        # return index, beta.flatten(), self.dataset.x_matrix[index, :] @ beta, S_ii.flatten()[0]
 
     def _estimate_beta_by_index(self, index: int):
         """
