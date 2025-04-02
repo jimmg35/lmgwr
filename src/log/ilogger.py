@@ -62,6 +62,9 @@ class ILogger:
         msg = {
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"): log
         }
+        self.model_info['info'].append(
+            msg
+        )
         print(msg)
 
     def update_matrics(self, matrices_type: MatricesType, value: float):

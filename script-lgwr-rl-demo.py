@@ -14,12 +14,12 @@ from src.model.lgwr import LGWR
 TOTAL_TIMESTEPS = 50000
 MIN_ACTION = -10
 MAX_ACTION = 10
-MAX_STEPS = 1000
+MAX_STEPS = 20
 
 MIN_BANDWIDTH = 30
 
 REWARD_TYPE = LgwrRewardType.AICC
-REWARD_THRESHOLD = 300
+# REWARD_THRESHOLD = 300
 
 if __name__ == '__main__':
 
@@ -53,7 +53,8 @@ if __name__ == '__main__':
     env = LgwrOptimizerRL(
         lgwr,
         logger,
-        REWARD_THRESHOLD,
+        # REWARD_THRESHOLD,
+        None,
         TOTAL_TIMESTEPS,
         reward_type=REWARD_TYPE,
         min_bandwidth=MIN_BANDWIDTH,
