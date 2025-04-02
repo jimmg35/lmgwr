@@ -66,14 +66,11 @@ class ILogger:
             msg
         )
         print(msg)
+        self.save_model_info_json()
 
     def update_matrics(self, matrices_type: MatricesType, value: float):
         self.model_info['matrices'][matrices_type] = value
 
     def save_model_info_json(self):
         with open(os.path.join(self.log_path, 'model_info.json'), 'w') as f:
-            json.dump(self.model_info,
-                      f,
-                      indent=1,
-                      #   separators=(',', ': ')
-                      )
+            json.dump(self.model_info, f, indent=1)

@@ -11,7 +11,7 @@ from src.log.lgwr_logger import LgwrLogger
 from src.model.lgwr import LGWR
 
 # Hyperparameters for PPO training
-TOTAL_TIMESTEPS = 50000
+TOTAL_TIMESTEPS = 10
 MIN_ACTION = -10
 MAX_ACTION = 10
 MAX_STEPS = 20
@@ -94,4 +94,4 @@ if __name__ == '__main__':
     #         break
 
     # Save the log
-    logger.save_model_info_json()
+    # logger.save_model_info_json()

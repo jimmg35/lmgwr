@@ -87,6 +87,7 @@ class LgwrOptimizerRL(gym.Env):
             )
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]:
+
         # Ensure every action is an integer
         action = np.round(action).astype(int)
 
@@ -137,7 +138,7 @@ class LgwrOptimizerRL(gym.Env):
                 self.lowest_aicc,
                 self.optimized_r2,
                 '[' + ', '.join(map(str, self.optimized_bandwidth_vector)) + ']',
-                f"★ Episode {self.episode_count} truncated, took {self.current_step} steps, reward(lowest AICc): {self.lowest_aicc}, r2: {self.optimized_r2}"
+                f"Episode {self.episode_count} truncated, took {self.current_step} steps, reward(lowest AICc): {self.lowest_aicc}, r2: {self.optimized_r2}"
             )
 
         if done:
