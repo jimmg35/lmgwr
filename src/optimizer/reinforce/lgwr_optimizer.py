@@ -133,8 +133,7 @@ class LgwrOptimizerRL(gym.Env):
 
     def __init_bandwidth_vector(self) -> np.ndarray:
         """ Initialize the local bandwidth vector for LGWR with the same initial value. """
-        initial_bandwidth = int(np.random.uniform(
-            self.min_bandwidth, self.max_bandwidth))
+        initial_bandwidth = (self.min_bandwidth + self.max_bandwidth) // 2
         return np.full(
             self.lgwr.dataset.x_matrix.shape[0], initial_bandwidth, dtype=np.int64
         )
