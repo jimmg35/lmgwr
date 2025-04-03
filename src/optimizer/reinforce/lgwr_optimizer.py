@@ -159,8 +159,8 @@ class LgwrOptimizerRL(gym.Env):
                 self.episode_count,
                 self.aicc_records,
                 self.r2_records,
-                self.bandwidth_mean_records,
-                self.bandwidth_variance_records
+                bandwidth_mean_records=self.bandwidth_mean_records,
+                bandwidth_variance_records=self.bandwidth_variance_records
             )
 
         # if done:

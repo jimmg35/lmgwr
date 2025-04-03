@@ -4,7 +4,6 @@ import pandas as pd
 
 from src.optimizer.reinforce.lgwr_optimizer import LgwrOptimizerRL, LgwrRewardType
 from src.dataset.interfaces.spatial_dataset import IFieldInfo
-from src.optimizer.reinforce.callback import EpisodeTracker
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.lgwr_kernel import LgwrKernel
 from src.log.lgwr_logger import LgwrLogger
@@ -65,11 +64,6 @@ if __name__ == '__main__':
     )
 
     # Using PPO to optimize the bandwidth vector
-    # (local bandwidths for each location)
-    # episodeTracker = EpisodeTracker(
-    #     logger,
-    #     total_timesteps=TOTAL_TIMESTEPS
-    # )
     model = PPO(
         "MlpPolicy",
         env,
@@ -78,20 +72,5 @@ if __name__ == '__main__':
     )
     model.learn(
         total_timesteps=TOTAL_TIMESTEPS
-        # callback=episodeTracker
     )
     logger.append_info("PPO: PPO finished training.")
-
-    # Test the model
-    # obs, _ = env.reset()
-    # for _ in range(100):
-    #     action, _ = model.predict(obs)
-    #     obs, reward, done, truncated, _ = env.step(action)
-    #     logger.append_info(
-    #         f"Bandwidth: {obs}, Reward (R2): {reward}"
-    #     )
-    #     if done or truncated:
-    #         break
-
-    # Save the log
-    # logger.save_model_info_json()

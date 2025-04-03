@@ -78,14 +78,14 @@ class ILogger:
                                 episode_count: int,
                                 aicc_records: list[float],
                                 r2_records: list[float],
-                                bandwidth_mean_records: list[float],
-                                bandwidth_variance_records: list[float]
+                                bandwidth_mean_records: list[float] | None,
+                                bandwidth_variance_records: list[float] | None
                                 ):
         record = {
             'aicc_records': '[' + ', '.join(map(str, aicc_records)) + ']',
             'r2_records': '[' + ', '.join(map(str, r2_records)) + ']',
-            'bandwidth_mean_records': '[' + ', '.join(map(str, bandwidth_mean_records)) + ']',
-            'bandwidth_variance_records': '[' + ', '.join(map(str, bandwidth_variance_records)) + ']'
+            'bandwidth_mean_records': '[' + ', '.join(map(str, bandwidth_mean_records or [])) + ']',
+            'bandwidth_variance_records': '[' + ', '.join(map(str, bandwidth_variance_records or [])) + ']'
         }
         self.training_process = record
         self.save_training_process(episode_count)
