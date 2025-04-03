@@ -11,7 +11,7 @@ from src.log.lgwr_logger import LgwrLogger
 
 if __name__ == "__main__":
 
-    log_dir = r'./locked-logs/georgia/01'
+    log_dir = r'./locked-logs/georgia/02-fixed-initial-large-episode'
     lgwr_log_files = os.listdir(log_dir)
 
     logger = LgwrLogger()
@@ -30,7 +30,7 @@ if __name__ == "__main__":
         geometry=georgia_shp
     )
 
-    for log_path in lgwr_log_files[0:1]:
+    for log_path in lgwr_log_files:
 
         lgwr_visualizer = LgwrVisualizer(
             os.path.join(log_dir, log_path),

@@ -87,7 +87,7 @@ class LgwrOptimizerRL(gym.Env):
             )
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]:
-
+        print(f"- Episode: {self.episode_count} Step {self.current_step}")
         # Ensure every action is an integer
         action = np.round(action).astype(int)
 
