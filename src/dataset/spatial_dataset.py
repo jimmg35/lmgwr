@@ -3,8 +3,11 @@ import torch
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from typing import List
 from pandas import DataFrame
+from geopandas import GeoDataFrame
+import matplotlib.pyplot as plt
+from typing import List
+
 from src.dataset.interfaces.spatial_dataset import IDataPoint, IDataset, IFieldInfo
 from src.log.gwr_logger import GwrLogger
 
@@ -39,6 +42,8 @@ class SpatialDataset(IDataset):
     x_matrix_torch: torch.Tensor
     y_torch: torch.Tensor
 
+    geometry: GeoDataFrame | None = None
+
     # Estimated values
     # betas: List[npt.NDArray[np.float64] | None]
     # W: List[npt.NDArray[np.float64] | None]
@@ -49,9 +54,10 @@ class SpatialDataset(IDataset):
         self,
         data: DataFrame,
         fieldInfo: IFieldInfo,
-        logger: GwrLogger,
+        logger: GwrLogger | None = None,
         isSpherical: bool = False,
-        intercept: bool = True
+        intercept: bool = True,
+        geometry: GeoDataFrame | None = None,
     ) -> None:
         """
         Initializes the SpatialDataset with provided data and field information.
@@ -70,7 +76,9 @@ class SpatialDataset(IDataset):
             ValueError: If any required fields specified in `fieldInfo` are missing from the dataset.
         """
 
-        self.logger = logger
+        if logger is not None:
+            self.logger = logger
+        self.geometry = geometry
 
         # Parse Pandas dataframe into datapoint structure.
         self.fieldInfo = fieldInfo
@@ -141,6 +149,8 @@ class SpatialDataset(IDataset):
         self.logger.append_info(
             f"{self.__class__.__name__} : Data schema matchs with the data.")
 
+    # def graph(self):
+
     def _create_data_points(self, data: pd.DataFrame) -> List[IDataPoint]:
         """
         Creates and populates a list of data points from the dataset for spatial analysis.
@@ -178,9 +188,16 @@ class SpatialDataset(IDataset):
                 f"{self.__class__.__name__} : Data points created.")
             return data_points
         except Exception as e:
+
             self.logger.append_info(
                 f"{self.__class__.__name__} : Error creating data points: {e}")
             raise e
+
+    def plot_map(self):
+        if self.geometry is not None:
+            fig, ax = plt.subplots(figsize=(10, 10))
+            self.geometry.plot(ax=ax, edgecolor='black', facecolor='white')
+            self.geometry.centroid.plot(ax=ax, c='black')
 
 
 if __name__ == '__main__':

@@ -147,9 +147,9 @@ class LgwrOptimizer(IOptimizer):
             # print("==================")
 
             # 記錄 Loss
-            self.logger.append_bandwidth_optimization(
-                f"Epoch {epoch + 1}/{self.epochs}, Loss: {total_loss:.4f}"
-            )
+            # self.logger.append_bandwidth_optimization(
+            #     f"Epoch {epoch + 1}/{self.epochs}, Loss: {total_loss:.4f}"
+            # )
 
             dot = make_dot(loss, params=dict(
                 self.lbnn_model.named_parameters()))

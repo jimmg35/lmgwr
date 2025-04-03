@@ -21,5 +21,5 @@ class IOptimizer:
     def optimize(self):
         raise NotImplementedError("Method not implemented")
 
-    def objective_function(self, bandwidth: float) -> float:
-        raise NotImplementedError("Method not implemented")
+    # def objective_function(self, bandwidth: float) -> float:
+    #     raise NotImplementedError("Method not implemented")

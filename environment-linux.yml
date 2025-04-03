@@ -79,7 +79,6 @@ dependencies:
   - libnghttp2=1.57.0=h2d74bed_0
   - libpng=1.6.39=h5eee18b_0
   - libpq=17.0=hdbd6064_0
-  - libpysal=4.10=py312h06a4308_1
   - libspatialindex=1.9.3=h2531618_0
   - libspatialite=5.1.0=h040243e_1
   - libssh2=1.11.0=h251f7ec_0
@@ -168,15 +167,19 @@ dependencies:
       - cffi==1.17.1
       - cloudpickle==3.1.1
       - comm==0.2.2
+      - cupy-cuda12x==13.4.1
       - debugpy==1.8.13
       - decorator==5.2.1
       - defusedxml==0.7.1
+      - esda==2.7.0
       - executing==2.2.0
       - farama-notifications==0.0.4
       - fastjsonschema==2.21.1
+      - fastrlock==0.8.3
       - filelock==3.17.0
       - fqdn==1.5.1
       - fsspec==2025.3.0
+      - giddy==2.3.6
       - gym-notices==0.0.8
       - gymnasium==1.0.0
       - h11==0.14.0
@@ -204,6 +207,8 @@ dependencies:
       - jupyterlab-pygments==0.3.0
       - jupyterlab-server==2.27.3
       - jupyterlab-widgets==3.0.13
+      - libpysal==4.12.1
+      - llvmlite==0.44.0
       - matplotlib-inline==0.1.7
       - mistune==3.1.2
       - mpmath==1.3.0
@@ -213,6 +218,7 @@ dependencies:
       - nest-asyncio==1.6.0
       - notebook==7.3.3
       - notebook-shim==0.2.4
+      - numba==0.61.0
       - nvidia-cublas-cu12==12.4.5.8
       - nvidia-cuda-cupti-cu12==12.4.127
       - nvidia-cuda-nvrtc-cu12==12.4.127
@@ -241,13 +247,16 @@ dependencies:
       - python-json-logger==3.3.0
       - pyyaml==6.0.2
       - pyzmq==26.3.0
+      - quantecon==0.8.0
       - referencing==0.36.2
       - rfc3339-validator==0.1.4
       - rfc3986-validator==0.1.1
       - rpds-py==0.23.1
+      - seaborn==0.13.2
       - send2trash==1.8.3
       - shimmy==2.0.0
       - sniffio==1.3.1
+      - splot==1.1.7
       - stable-baselines3==2.5.0
       - stack-data==0.6.3
       - sympy==1.13.1

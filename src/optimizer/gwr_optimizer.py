@@ -61,8 +61,9 @@ class GwrOptimizer(IOptimizer):
         c = b - (b - a) / phi
         d = a + (b - a) / phi
 
-        fc = self.objective_function(c)
-        fd = self.objective_function(d)
+        fc = self.objective_function(0, c)
+        fd = self.objective_function(1, d)
+        index = 2
 
         for _ in range(max_iter):
             if fc > fd:
@@ -70,20 +71,22 @@ class GwrOptimizer(IOptimizer):
                 c = d
                 d = a + (b - a) / phi
                 fc = fd
-                fd = self.objective_function(d)
+                fd = self.objective_function(index, d)
+                index += 1
             else:
                 b = d
                 d = c
                 c = b - (b - a) / phi
                 fd = fc
-                fc = self.objective_function(c)
+                fc = self.objective_function(index, c)
+                index += 1
 
             if abs(b - a) < tol:
                 break
 
         return (c + d) / 2
 
-    def objective_function(self, bandwidth: float) -> float:
+    def objective_function(self, index: int, bandwidth: float) -> float:
         """
         Calculate the objective function for the GWR model with the given bandwidth.
 
@@ -95,6 +98,10 @@ class GwrOptimizer(IOptimizer):
         """
         self.model.update_bandwidth(bandwidth).fit()
         self.logger.append_bandwidth_optimization(
+            index,
+            0,
+            self.model.r_squared,
+            bandwidth,
             f"{self.__class__.__name__} : Bandwidth {bandwidth}, AICc {self.model.aicc}, R2 {self.model.r_squared}"
         )
         return self.model.aicc
