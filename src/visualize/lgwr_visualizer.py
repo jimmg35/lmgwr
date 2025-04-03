@@ -120,6 +120,60 @@ class LgwrVisualizer():
         else:
             plt.show()
 
+    def plot_training_process(self, episode: int) -> None:
+        with open(
+            os.path.join(
+                self.log_path, f'training_process_{episode}.json'), 'r'
+        ) as file:
+            training_process = json.load(file)
+
+            aicc_records = json.loads(training_process["aicc_records"])
+            r2_records = json.loads(training_process["r2_records"])
+            bandwidth_mean_records = json.loads(
+                training_process["bandwidth_mean_records"])
+            bandwidth_variance_records = json.loads(
+                training_process["bandwidth_variance_records"])
+
+            fig, axs = plt.subplots(4, 1, figsize=(
+                8, 16), constrained_layout=True)
+
+            # Plot AICc records
+            axs[0].plot(range(len(aicc_records)), aicc_records,
+                        label='AICc', color='#377BAB')
+            axs[0].set_xlabel('Episode')
+            axs[0].set_ylabel('AICc')
+            axs[0].grid(True)
+            axs[0].set_title('AICc over Episodes')
+
+            # Plot R2 records
+            axs[1].plot(range(len(r2_records)), r2_records,
+                        label='R2', color='#956A88')
+            axs[1].set_xlabel('Episode')
+            axs[1].set_ylabel('R2')
+            axs[1].grid(True)
+            axs[1].set_title('R2 over Episodes')
+
+            # Plot Bandwidth Mean records
+            axs[2].plot(range(len(bandwidth_mean_records)),
+                        bandwidth_mean_records, label='Bandwidth Mean', color='#8EA0CC')
+            axs[2].set_xlabel('Episode')
+            axs[2].set_ylabel('Bandwidth Mean')
+            axs[2].grid(True)
+            axs[2].set_title('Bandwidth Mean over Episodes')
+
+            # Plot Bandwidth Variance records
+            axs[3].plot(range(len(bandwidth_variance_records)),
+                        bandwidth_variance_records, label='Bandwidth Variance', color='#CCB4D7')
+            axs[3].set_xlabel('Episode')
+            axs[3].set_ylabel('Bandwidth Variance')
+            axs[3].grid(True)
+            axs[3].set_title('Bandwidth Variance over Episodes')
+
+            # Save the combined figure
+            plt.savefig(os.path.join(self.log_path,
+                        f'training_process_{episode}_combined.png'))
+            plt.close()
+
     def __load_log_json(self) -> None:
         with open(
             os.path.join(self.log_path, self.log_filename), 'r'

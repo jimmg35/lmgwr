@@ -11,7 +11,7 @@ from src.log.lgwr_logger import LgwrLogger
 
 if __name__ == "__main__":
 
-    log_dir = r'./locked-logs/georgia/02-fixed-initial-large-episode'
+    log_dir = r'./locked-logs/georgia/03-super-large-episode'
     lgwr_log_files = os.listdir(log_dir)
 
     logger = LgwrLogger()
@@ -50,4 +50,7 @@ if __name__ == "__main__":
                 lgwr_visualizer.plot_bandwidth_map_by_episode(
                     episode, result, save=True
                 )
-                # print(result)
+                lgwr_visualizer.plot_training_process(
+                    episode
+                )
+                print(result)
