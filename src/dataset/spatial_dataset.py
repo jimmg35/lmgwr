@@ -1,5 +1,5 @@
 
-import torch
+# import torch
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
@@ -39,8 +39,8 @@ class SpatialDataset(IDataset):
     x_matrix: npt.NDArray[np.float64]
     y: npt.NDArray[np.float64]
 
-    x_matrix_torch: torch.Tensor
-    y_torch: torch.Tensor
+    # x_matrix_torch: torch.Tensor
+    # y_torch: torch.Tensor
 
     geometry: GeoDataFrame | None = None
 
@@ -104,14 +104,14 @@ class SpatialDataset(IDataset):
             self.x_matrix = np.hstack(
                 (np.ones((self.x_matrix.shape[0], 1)), self.x_matrix))
 
-        self.x_matrix_torch = torch.tensor(
-            self.x_matrix, requires_grad=True, dtype=torch.float32).to('cuda')
-        self.y_torch = torch.tensor(
-            self.y, requires_grad=True, dtype=torch.float32).to('cuda')
-        self.coordinates_torch = torch.tensor(
-            np.array([[data_point.coordinate_x, data_point.coordinate_y]
-                     for data_point in self.dataPoints]),
-            requires_grad=True, dtype=torch.float32).to('cuda')
+        # self.x_matrix_torch = torch.tensor(
+        #     self.x_matrix, requires_grad=True, dtype=torch.float32).to('cuda')
+        # self.y_torch = torch.tensor(
+        #     self.y, requires_grad=True, dtype=torch.float32).to('cuda')
+        # self.coordinates_torch = torch.tensor(
+        #     np.array([[data_point.coordinate_x, data_point.coordinate_y]
+        #              for data_point in self.dataPoints]),
+        #     requires_grad=True, dtype=torch.float32).to('cuda')
 
     def _verify_fields(self, data: pd.DataFrame) -> None:
         """
