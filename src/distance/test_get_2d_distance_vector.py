@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from src.dataset.spatial_dataset import SpatialDataset, IFieldInfo
+from src.dataset.spatial_dataset import SpatialDataset, FieldInfo
 from src.distance.get_2d_distance_vector import get_2d_distance_vector
 from src.log.gwr_logger import GwrLogger
 
@@ -18,7 +18,7 @@ def euclidean_dataset():
         'coor_x': [250000, 251000, 252000, 250500, 251500],
         'coor_y': [2650000, 2651000, 2652000, 2650500, 2651500]
     })
-    field_info = IFieldInfo(
+    field_info = FieldInfo(
         predictor_fields=['temperature', 'moisture'],
         response_field='pm25',
         coordinate_x_field='coor_x',
@@ -44,7 +44,7 @@ def spherical_dataset():
         'coor_x': [121.5, 121.6, 121.7, 121.55, 121.65],
         'coor_y': [25.0, 25.1, 25.2, 25.05, 25.15]
     })
-    field_info = IFieldInfo(
+    field_info = FieldInfo(
         predictor_fields=['temperature', 'moisture'],
         response_field='pm25',
         coordinate_x_field='coor_x',

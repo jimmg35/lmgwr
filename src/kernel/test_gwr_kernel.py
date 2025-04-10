@@ -3,7 +3,7 @@ import pytest
 import numpy as np
 import pandas as pd
 from src.dataset.spatial_dataset import SpatialDataset
-from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.dataset.interfaces.spatial_dataset import FieldInfo
 from src.kernel.gwr_kernel import GwrKernel
 from src.log.gwr_logger import GwrLogger
 
@@ -18,7 +18,7 @@ from src.log.gwr_logger import GwrLogger
 #         'coor_x': [0, 10, 20, 30, 40],
 #         'coor_y': [0, 0, 0, 0, 0]
 #     })
-#     field_info = IFieldInfo(
+#     field_info = FieldInfo(
 #         predictor_fields=['temperature', 'moisture'],
 #         response_field='pm25',
 #         coordinate_x_field='coor_x',

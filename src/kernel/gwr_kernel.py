@@ -6,7 +6,7 @@ import pandas as pd
 import numpy.typing as npt
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.dataset.interfaces.spatial_dataset import FieldInfo
 from src.distance.get_2d_distance_vector import get_2d_distance_vector
 from src.log.gwr_logger import GwrLogger
 from src.kernel.ikernel import IKernel, KernelFunctionType, KernelBandwidthType
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     logger = GwrLogger()
     spatialDataset = SpatialDataset(
         synthetic_data,
-        IFieldInfo(
+        FieldInfo(
             predictor_fields=['temperature', 'moisture'],
             response_field='pm25',
             coordinate_x_field='coor_x',

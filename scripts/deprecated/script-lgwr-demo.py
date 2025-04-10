@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.dataset.interfaces.spatial_dataset import FieldInfo
 from src.log.lgwr_logger import LgwrLogger
 from src.model.lgwr import LGWR
 from src.kernel.lgwr_kernel import LgwrKernel
@@ -16,7 +16,7 @@ if __name__ == '__main__':
     synthetic_data = pd.read_csv(r'./data/GData_utm.csv')
     spatialDataset = SpatialDataset(
         synthetic_data,
-        IFieldInfo(
+        FieldInfo(
             predictor_fields=['PctBach', 'PctEld', 'PctBlack'],
             response_field='PctPov',
             coordinate_x_field='Longitud',

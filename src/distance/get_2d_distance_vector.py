@@ -31,16 +31,13 @@ def get_2d_distance_vector(index: int, dataset: SpatialDataset) -> npt.NDArray[n
         >>> print(distances)
         [0.0, 12.4, 23.1, ...]
     """
-    if dataset.dataPoints is None:
-        raise ValueError(
-            "No data points found in the dataset. (get_distance_vector)")
 
-    num_points = len(dataset.dataPoints)
-    distances = np.zeros(num_points)
+    # num_points = len(dataset.dataPoints)
+    distances = np.zeros(len(dataset))
 
-    target_point = dataset.dataPoints[index]
-    target_x = target_point.coordinate_x
-    target_y = target_point.coordinate_y
+    target_point = dataset.coordinates[index]
+    target_x = target_point[0]
+    target_y = target_point[1]
 
     distance_function = haversine_distance if dataset.isSpherical else euclidean_distance
 

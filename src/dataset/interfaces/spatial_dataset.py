@@ -7,15 +7,7 @@ from pandas import DataFrame
 
 
 @dataclass
-class IDataPoint:
-    y: float
-    X: npt.NDArray[np.float64]
-    coordinate_x: float
-    coordinate_y: float
-
-
-@dataclass
-class IFieldInfo:
+class FieldInfo:
     predictor_fields: List[str]
     response_field: str
     coordinate_x_field: str
@@ -24,10 +16,4 @@ class IFieldInfo:
 
 @dataclass
 class IDataset:
-    fieldInfo: IFieldInfo
-
-    # def _verify_fields(self, data: DataFrame) -> None:
-    #     raise NotImplementedError()
-
-    # def _create_data_points(self, data: pd.DataFrame) -> List[IDataPoint]:
-    #     raise NotImplementedError()
+    fieldInfo: FieldInfo

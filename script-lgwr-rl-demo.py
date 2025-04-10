@@ -3,7 +3,7 @@ from stable_baselines3 import PPO
 import pandas as pd
 
 from src.optimizer.reinforce.lgwr_optimizer import LgwrOptimizerRL, LgwrRewardType
-from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.dataset.interfaces.spatial_dataset import FieldInfo
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.lgwr_kernel import LgwrKernel
 from src.log.lgwr_logger import LgwrLogger
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     georgia_data = pd.read_csv(r'./data/GData_utm.csv')
     spatialDataset = SpatialDataset(
         georgia_data,
-        IFieldInfo(
+        FieldInfo(
             predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
             response_field='PctBach',
             coordinate_x_field='Longitud',
