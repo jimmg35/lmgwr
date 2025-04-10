@@ -46,9 +46,8 @@ class GwrKernel(IKernel):
 
         self.bandwidth = bandwidth
 
-        if self.dataset.dataPoints is not None:
-            for i in range(0, len(self.dataset.dataPoints)):
-                self.update_weighted_matrix_by_id(i)
+        for i in range(len(self.dataset)):
+            self.update_weighted_matrix_by_id(i)
 
 
 if __name__ == '__main__':
@@ -63,7 +62,7 @@ if __name__ == '__main__':
             coordinate_x_field='coor_x',
             coordinate_y_field='coor_y'
         ),
-        logger,
+        logger=logger,
         isSpherical=True
     )
 

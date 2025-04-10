@@ -1,11 +1,9 @@
-
-
 import numpy as np
 import pandas as pd
 import pytest
+
 from src.dataset.spatial_dataset import SpatialDataset, FieldInfo
 from src.distance.calculate_distance_vector_by_id import calculate_distance_vector_by_id
-from src.log.gwr_logger import GwrLogger
 
 
 @pytest.fixture

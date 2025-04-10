@@ -36,7 +36,7 @@ if __name__ == '__main__':
             coordinate_x_field='Longitud',
             coordinate_y_field='Latitude'
         ),
-        logger,
+        logger=logger,
         isSpherical=True
     )
 

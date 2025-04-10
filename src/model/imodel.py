@@ -60,17 +60,17 @@ class IModel:
         raise NotImplementedError("Method not implemented")
 
     def _init_estimates(self) -> None:
-        if self.dataset.dataPoints is None:
-            raise ValueError(
-                "GWR.__init_estimates: DataPoints are not set up in the dataset")
-
-        data_counts = len(self.dataset.dataPoints)
-
-        # allocate memory for the estimates
-        self.betas = np.zeros((data_counts, self.dataset.X.shape[1]))
-        self.y_hats = np.zeros(data_counts)
-        self.S = np.zeros(data_counts)
-        self.residuals = np.zeros(data_counts)
+        """
+        Initialize the estimates for the GWR model.
+        This method sets up the necessary matrices and arrays to store the results of the GWR
+        calculations, including the betas, y_hats, S (hat matrix), and residuals.
+        It prepares the model for fitting by allocating memory for the estimates and initializing
+        the matrices to zero.
+        """
+        self.betas = np.zeros((len(self.dataset), self.dataset.X.shape[1]))
+        self.y_hats = np.zeros(len(self.dataset))
+        self.S = np.zeros(len(self.dataset))
+        self.residuals = np.zeros(len(self.dataset))
 
     def _local_fit(self, index: int) -> None:
         """
@@ -131,8 +131,8 @@ class IModel:
 
         # Return betas, inverse matrix for inspection, and weight vector for trace calculations
         # betas:      (number of independent vars, 1)
-        # xtx_inv_xt: (number of independent vars, number of datapoints)
-        # wi:         (number of datapoints, 1)
+        # xtx_inv_xt: (number of independent vars, number of data)
+        # wi:         (number of data, 1)
         return beta, xtx_inv_xt, wi
 
     def _calculate_r_squared(self) -> None:
@@ -165,10 +165,7 @@ class IModel:
             NotImplementedError: If the method is not fully implemented.
         """
 
-        if self.dataset.dataPoints is None:
-            raise ValueError("DataPoints are not set up in the dataset")
-
-        n = len(self.dataset.dataPoints)
+        n = len(self.dataset)
         RSS = np.sum(self.residuals ** 2)
         sigma2 = RSS / n
         trS = np.sum(self.S)
@@ -177,6 +174,3 @@ class IModel:
         AICc = AIC + (2.0 * trS * (trS + 1.0)) / (n - trS - 2.0)
         self.aic = AIC
         self.aicc = AICc
-
-        # self.logger.update_matrics('AIC', self.aic)
-        # self.logger.update_matrics('AICc', self.aicc)

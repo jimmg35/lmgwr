@@ -35,17 +35,11 @@ class GWR(IModel):
         Fit the GWR model with the provided dataset and spatial weights based on the kernel.
         This method iterates over each data point in the dataset and calculates local regression
         coefficients using spatial weights, implementing the core concept of GWR.
-
-        Raises:
-            ValueError: If `dataPoints` are not set up in the dataset.
-            NotImplementedError: If the method's fitting logic is not fully implemented.
         """
-        if self.dataset.dataPoints is None:
-            raise ValueError("DataPoints are not set up in the dataset")
 
         super()._init_estimates()
 
-        for index in range(len(self.dataset.dataPoints)):
+        for index in range(len(self.dataset)):
             self._local_fit(index)
 
         # update estimates (outside of loop for calculations)

@@ -117,10 +117,8 @@ class IKernel:
     def __init_distance_vectors(self):
         if self.dataset is None:
             raise ValueError("Dataset is not setup in Kernel")
-        if self.dataset.dataPoints is None:
-            raise ValueError("DataPoints are not setup in Kernel")
 
-        for index in range(0, len(self.dataset.dataPoints)):
+        for index in range(len(self.dataset)):
             self.__calculate_distance_vector(index)
 
     def __calculate_distance_vector(self, index: int) -> npt.NDArray[np.float64]:
@@ -142,8 +140,6 @@ class IKernel:
         """
         if self.dataset is None:
             raise ValueError("Dataset is not setup in Kernel")
-        if self.dataset.dataPoints is None:
-            raise ValueError("DataPoints are not setup in Kernel")
 
         # retrieve the distance vector from the cache if it exists
         if index in self.distance_vector_cache:
