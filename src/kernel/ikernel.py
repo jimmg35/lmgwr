@@ -15,7 +15,6 @@ KernelBandwidthType: TypeAlias = Literal['distance_based', 'adaptive']
 # This is an interface class for kernel
 class IKernel:
 
-    logger: ILogger
     dataset: SpatialDataset | None = None
     bandwidth: float | None = None
     optimizeMode: Literal['cuda', 'cpu'] = 'cuda'
@@ -26,7 +25,6 @@ class IKernel:
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 logger: ILogger,
                  optimizeMode: Literal['cuda', 'cpu'] = 'cuda',
                  kernel_type: KernelFunctionType = 'bisquare',
                  kernel_bandwidth_type: KernelBandwidthType = 'adaptive'
@@ -41,14 +39,11 @@ class IKernel:
                 defaults to 'triangular'.
         """
         self.dataset = dataset
-        self.logger = logger
         self.optimizeMode = optimizeMode
         self.kernel_type = kernel_type
         self.kernel_bandwidth_type = kernel_bandwidth_type
 
         self.__init_distance_vectors()
-        self.logger.append_info(
-            f"{self.__class__.__name__} : Kernel is initialized.")
 
     def update_bandwidth(self, bandwidth: float) -> None:
         """
@@ -178,18 +173,19 @@ class IKernel:
             raise ValueError("Bandwidth is not set up in Kernel")
 
         weighted_matrix: npt.NDArray[np.float64] = np.zeros(
-            distance_vector.shape)
+            distance_vector.shape
+        )
 
-        distnace_bandwidth = self.bandwidth
+        operational_bandwidth = self.bandwidth
 
         if self.kernel_bandwidth_type == 'adaptive':
             # partial sort in O(n) Time
-            distnace_bandwidth = np.partition(
+            operational_bandwidth = np.partition(
                 distance_vector,
                 int(self.bandwidth) - 1
             )[int(self.bandwidth) - 1] * eps
 
-        zs: npt.NDArray[np.float64] = distance_vector / distnace_bandwidth
+        zs: npt.NDArray[np.float64] = distance_vector / operational_bandwidth
         if self.kernel_type == 'triangular':
             weighted_matrix = 1 - zs
         elif self.kernel_type == 'uniform':
@@ -208,7 +204,7 @@ class IKernel:
             raise ValueError('Unsupported kernel function')
 
         if self.kernel_type == 'bisquare':
-            weighted_matrix[(distance_vector >= distnace_bandwidth)] = 0
+            weighted_matrix[(distance_vector >= operational_bandwidth)] = 0
 
         # store the weighted matrix in the cache
         self.weighted_matrix_cache[index] = weighted_matrix.reshape(-1, 1)

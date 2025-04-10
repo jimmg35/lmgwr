@@ -7,8 +7,6 @@ import numpy.typing as npt
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import FieldInfo
-from src.distance.calculate_distance_vector_by_id import calculate_distance_vector_by_id
-from src.log.gwr_logger import GwrLogger
 from src.kernel.ikernel import IKernel, KernelFunctionType, KernelBandwidthType
 
 
@@ -27,11 +25,10 @@ class GwrKernel(IKernel):
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 logger: GwrLogger,
                  kernel_type: KernelFunctionType = 'bisquare',
                  kernel_bandwidth_type: KernelBandwidthType = 'adaptive'
                  ) -> None:
-        super().__init__(dataset, logger, 'cpu', kernel_type, kernel_bandwidth_type)
+        super().__init__(dataset, 'cpu', kernel_type, kernel_bandwidth_type)
 
     def update_bandwidth(self, bandwidth: float) -> None:
         """
@@ -53,7 +50,6 @@ class GwrKernel(IKernel):
 if __name__ == '__main__':
     synthetic_data = pd.read_csv(r'./data/synthetic_dataset.csv')
 
-    logger = GwrLogger()
     spatialDataset = SpatialDataset(
         synthetic_data,
         FieldInfo(
@@ -62,10 +58,9 @@ if __name__ == '__main__':
             coordinate_x_field='coor_x',
             coordinate_y_field='coor_y'
         ),
-        logger=logger,
         isSpherical=True
     )
 
-    gwrKernel = GwrKernel(spatialDataset, logger, 'triangular')
+    gwrKernel = GwrKernel(spatialDataset, 'triangular')
     gwrKernel.update_bandwidth(100)
     wi = gwrKernel.get_weighted_matrix_by_id(0)
