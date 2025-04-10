@@ -60,17 +60,17 @@ class IModel:
         raise NotImplementedError("Method not implemented")
 
     def _init_estimates(self) -> None:
-        if self.dataset.dataPoints is None:
-            raise ValueError(
-                "GWR.__init_estimates: DataPoints are not set up in the dataset")
-
-        data_counts = len(self.dataset.dataPoints)
-
-        # allocate memory for the estimates
-        self.betas = np.zeros((data_counts, self.dataset.x_matrix.shape[1]))
-        self.y_hats = np.zeros(data_counts)
-        self.S = np.zeros(data_counts)
-        self.residuals = np.zeros(data_counts)
+        """
+        Initialize the estimates for the GWR model.
+        This method sets up the necessary matrices and arrays to store the results of the GWR
+        calculations, including the betas, y_hats, S (hat matrix), and residuals.
+        It prepares the model for fitting by allocating memory for the estimates and initializing
+        the matrices to zero.
+        """
+        self.betas = np.zeros((len(self.dataset), self.dataset.X.shape[1]))
+        self.y_hats = np.zeros(len(self.dataset))
+        self.S = np.zeros(len(self.dataset))
+        self.residuals = np.zeros(len(self.dataset))
 
     def _local_fit(self, index: int) -> None:
         """
@@ -90,12 +90,12 @@ class IModel:
         beta, _, wi = self._estimate_beta_by_index(index)
 
         # calculate elements for estimates and matrices
-        XtWX = self.dataset.x_matrix.T @ (wi * self.dataset.x_matrix)
-        xi = self.dataset.x_matrix[index, :].reshape(1, -1)
+        XtWX = self.dataset.X.T @ (wi * self.dataset.X)
+        xi = self.dataset.X[index, :].reshape(1, -1)
         S_ii = xi @ np.linalg.inv(XtWX) @ xi.T
 
         self.betas[index, :] = beta.flatten()
-        self.y_hats[index] = self.dataset.x_matrix[index, :] @ beta
+        self.y_hats[index] = self.dataset.X[index, :] @ beta
         self.S[index] = S_ii.flatten()[0]
 
     def _estimate_beta_by_index(self, index: int):
@@ -114,7 +114,7 @@ class IModel:
 
         Steps:
             1. Obtain the spatial weight vector `wi` for the current data point using the kernel.
-            2. Weight the predictor matrix `x_matrix` by `wi` and transpose it to prepare for WLS.
+            2. Weight the predictor matrix `X` by `wi` and transpose it to prepare for WLS.
             3. Calculate (X^T * W * X) and its inverse, then multiply by (X^T * W) to solve for betas.
             4. Return the estimated coefficients, the inverse matrix, and the weight vector.
 
@@ -124,15 +124,15 @@ class IModel:
 
         wi: npt.NDArray[np.float64] = self.kernel.get_weighted_matrix_by_id(
             index)
-        xT = (self.dataset.x_matrix * wi).T
-        xtx = np.dot(xT, self.dataset.x_matrix)
+        xT = (self.dataset.X * wi).T
+        xtx = np.dot(xT, self.dataset.X)
         xtx_inv_xt: npt.NDArray[np.float64] = linalg.solve(xtx, xT)
         beta: npt.NDArray[np.float64] = np.dot(xtx_inv_xt, self.dataset.y)
 
         # Return betas, inverse matrix for inspection, and weight vector for trace calculations
         # betas:      (number of independent vars, 1)
-        # xtx_inv_xt: (number of independent vars, number of datapoints)
-        # wi:         (number of datapoints, 1)
+        # xtx_inv_xt: (number of independent vars, number of data)
+        # wi:         (number of data, 1)
         return beta, xtx_inv_xt, wi
 
     def _calculate_r_squared(self) -> None:
@@ -165,10 +165,7 @@ class IModel:
             NotImplementedError: If the method is not fully implemented.
         """
 
-        if self.dataset.dataPoints is None:
-            raise ValueError("DataPoints are not set up in the dataset")
-
-        n = len(self.dataset.dataPoints)
+        n = len(self.dataset)
         RSS = np.sum(self.residuals ** 2)
         sigma2 = RSS / n
         trS = np.sum(self.S)
@@ -177,6 +174,3 @@ class IModel:
         AICc = AIC + (2.0 * trS * (trS + 1.0)) / (n - trS - 2.0)
         self.aic = AIC
         self.aicc = AICc
-
-        # self.logger.update_matrics('AIC', self.aic)
-        # self.logger.update_matrics('AICc', self.aicc)

@@ -65,13 +65,13 @@ class LgwrOptimizerRL(gym.Env):
         # Action space: vectorized bandwidth adjustment
         self.action_space = gym.spaces.Box(
             low=min_action, high=max_action,
-            shape=(self.lgwr.dataset.x_matrix.shape[0],), dtype=np.int64
+            shape=(self.lgwr.dataset.X.shape[0],), dtype=np.int64
         )
 
         # Observation space: vectorized bandwidth values
         self.observation_space = gym.spaces.Box(
             low=self.min_bandwidth, high=self.max_bandwidth,
-            shape=(self.lgwr.dataset.x_matrix.shape[0],), dtype=np.int64
+            shape=(self.lgwr.dataset.X.shape[0],), dtype=np.int64
         )
 
         # Initialize bandwidths and steps
@@ -193,7 +193,7 @@ class LgwrOptimizerRL(gym.Env):
         """ Initialize the local bandwidth vector for LGWR with the same initial value. """
         initial_bandwidth = (self.min_bandwidth + self.max_bandwidth) // 2
         return np.full(
-            self.lgwr.dataset.x_matrix.shape[0], initial_bandwidth, dtype=np.int64
+            self.lgwr.dataset.X.shape[0], initial_bandwidth, dtype=np.int64
         )
 
     def __init_step(self, max_steps):

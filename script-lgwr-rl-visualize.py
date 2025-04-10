@@ -4,7 +4,7 @@ import pandas as pd
 import geopandas as gp
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.dataset.interfaces.spatial_dataset import FieldInfo
 from src.visualize.lgwr_visualizer import LgwrVisualizer
 from src.log.lgwr_logger import LgwrLogger
 
@@ -19,13 +19,13 @@ if __name__ == "__main__":
     georgia_shp = gp.read_file(r'./data/G_utm.shp')
     spatialDataset = SpatialDataset(
         georgia_data,
-        IFieldInfo(
+        FieldInfo(
             predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
             response_field='PctBach',
             coordinate_x_field='Longitud',
             coordinate_y_field='Latitude'
         ),
-        logger,
+        logger=logger,
         isSpherical=True,
         geometry=georgia_shp
     )

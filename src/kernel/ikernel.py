@@ -4,7 +4,7 @@ import numpy.typing as npt
 from typing import Literal, TypeAlias, Dict
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.distance.get_2d_distance_vector import get_2d_distance_vector, get_2d_distance_vector_torch
+from src.distance.calculate_distance_vector_by_id import calculate_distance_vector_by_id
 from src.log.ilogger import ILogger
 
 KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
@@ -15,7 +15,6 @@ KernelBandwidthType: TypeAlias = Literal['distance_based', 'adaptive']
 # This is an interface class for kernel
 class IKernel:
 
-    logger: ILogger
     dataset: SpatialDataset | None = None
     bandwidth: float | None = None
     optimizeMode: Literal['cuda', 'cpu'] = 'cuda'
@@ -26,7 +25,6 @@ class IKernel:
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 logger: ILogger,
                  optimizeMode: Literal['cuda', 'cpu'] = 'cuda',
                  kernel_type: KernelFunctionType = 'bisquare',
                  kernel_bandwidth_type: KernelBandwidthType = 'adaptive'
@@ -41,14 +39,11 @@ class IKernel:
                 defaults to 'triangular'.
         """
         self.dataset = dataset
-        self.logger = logger
         self.optimizeMode = optimizeMode
         self.kernel_type = kernel_type
         self.kernel_bandwidth_type = kernel_bandwidth_type
 
         self.__init_distance_vectors()
-        self.logger.append_info(
-            f"{self.__class__.__name__} : Kernel is initialized.")
 
     def update_bandwidth(self, bandwidth: float) -> None:
         """
@@ -117,10 +112,8 @@ class IKernel:
     def __init_distance_vectors(self):
         if self.dataset is None:
             raise ValueError("Dataset is not setup in Kernel")
-        if self.dataset.dataPoints is None:
-            raise ValueError("DataPoints are not setup in Kernel")
 
-        for index in range(0, len(self.dataset.dataPoints)):
+        for index in range(len(self.dataset)):
             self.__calculate_distance_vector(index)
 
     def __calculate_distance_vector(self, index: int) -> npt.NDArray[np.float64]:
@@ -142,15 +135,13 @@ class IKernel:
         """
         if self.dataset is None:
             raise ValueError("Dataset is not setup in Kernel")
-        if self.dataset.dataPoints is None:
-            raise ValueError("DataPoints are not setup in Kernel")
 
         # retrieve the distance vector from the cache if it exists
         if index in self.distance_vector_cache:
             return self.distance_vector_cache[index]
 
         # or calculate and store the distance vector in the cache
-        distance_vector_i = get_2d_distance_vector(
+        distance_vector_i = calculate_distance_vector_by_id(
             index,
             self.dataset
         ).reshape(-1)
@@ -182,18 +173,19 @@ class IKernel:
             raise ValueError("Bandwidth is not set up in Kernel")
 
         weighted_matrix: npt.NDArray[np.float64] = np.zeros(
-            distance_vector.shape)
+            distance_vector.shape
+        )
 
-        distnace_bandwidth = self.bandwidth
+        operational_bandwidth = self.bandwidth
 
         if self.kernel_bandwidth_type == 'adaptive':
             # partial sort in O(n) Time
-            distnace_bandwidth = np.partition(
+            operational_bandwidth = np.partition(
                 distance_vector,
                 int(self.bandwidth) - 1
             )[int(self.bandwidth) - 1] * eps
 
-        zs: npt.NDArray[np.float64] = distance_vector / distnace_bandwidth
+        zs: npt.NDArray[np.float64] = distance_vector / operational_bandwidth
         if self.kernel_type == 'triangular':
             weighted_matrix = 1 - zs
         elif self.kernel_type == 'uniform':
@@ -212,7 +204,7 @@ class IKernel:
             raise ValueError('Unsupported kernel function')
 
         if self.kernel_type == 'bisquare':
-            weighted_matrix[(distance_vector >= distnace_bandwidth)] = 0
+            weighted_matrix[(distance_vector >= operational_bandwidth)] = 0
 
         # store the weighted matrix in the cache
         self.weighted_matrix_cache[index] = weighted_matrix.reshape(-1, 1)

@@ -7,7 +7,7 @@ from typing import Literal, TypeAlias
 from src.kernel.gwr_kernel import GwrKernel
 from src.model.gwr import GWR
 from src.log.gwr_logger import GwrLogger
-from src.optimizer.ioptimizer import IOptimizer
+from src.optimizer.interfaces.ioptimizer import IOptimizer
 
 GwrBandwidthOptimizeMethod: TypeAlias = Literal['golden_section',
                                                 'grid_search', 'random_search']

@@ -3,7 +3,7 @@ from stable_baselines3 import PPO
 import pandas as pd
 
 from src.optimizer.reinforce.gwr_optimizer import GwrOptimizerRL
-from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.dataset.interfaces.spatial_dataset import FieldInfo
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.log.gwr_logger import GwrLogger
@@ -30,13 +30,13 @@ if __name__ == '__main__':
     georgia_data = pd.read_csv(r'./data/GData_utm.csv')
     spatialDataset = SpatialDataset(
         georgia_data,
-        IFieldInfo(
+        FieldInfo(
             predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
             response_field='PctBach',
             coordinate_x_field='Longitud',
             coordinate_y_field='Latitude'
         ),
-        logger,
+        logger=logger,
         isSpherical=True
     )
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
         None,
         TOTAL_TIMESTEPS,
         min_bandwidth=MIN_BANDWIDTH,
-        max_bandwidth=spatialDataset.x_matrix.shape[0],
+        max_bandwidth=spatialDataset.X.shape[0],
         min_action=MIN_ACTION,
         max_action=MAX_ACTION,
         max_steps=MAX_STEPS
