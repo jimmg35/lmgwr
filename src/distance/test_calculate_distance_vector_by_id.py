@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from src.dataset.spatial_dataset import SpatialDataset, FieldInfo
-from src.distance.get_2d_distance_vector import get_2d_distance_vector
+from src.distance.calculate_distance_vector_by_id import calculate_distance_vector_by_id
 from src.log.gwr_logger import GwrLogger
 
 
@@ -24,11 +24,9 @@ def euclidean_dataset():
         coordinate_x_field='coor_x',
         coordinate_y_field='coor_y'
     )
-    logger = GwrLogger()
     dataset = SpatialDataset(
         data_twd97,
         field_info,
-        logger,
         isSpherical=False
     )
     return dataset
@@ -50,25 +48,23 @@ def spherical_dataset():
         coordinate_x_field='coor_x',
         coordinate_y_field='coor_y'
     )
-    logger = GwrLogger()
     dataset = SpatialDataset(
         data_wgs84,
         field_info,
-        logger,
         isSpherical=True
     )
     return dataset
 
 
 def test_euclidean_distance(euclidean_dataset):
-    distances = get_2d_distance_vector(0, euclidean_dataset)
+    distances = calculate_distance_vector_by_id(0, euclidean_dataset)
     expected_distances = np.array([0., 1414.21, 2828.43,  707.11, 2121.32])
     np.testing.assert_array_almost_equal(
         distances, expected_distances, decimal=2)
 
 
 def test_haversine_distance(spherical_dataset):
-    distances = get_2d_distance_vector(0, spherical_dataset)
+    distances = calculate_distance_vector_by_id(0, spherical_dataset)
     expected_distances = np.array([0., 15, 30,  7.5, 22.5])
     np.testing.assert_array_almost_equal(
         distances, expected_distances, decimal=2)

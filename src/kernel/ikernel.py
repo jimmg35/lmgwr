@@ -4,7 +4,7 @@ import numpy.typing as npt
 from typing import Literal, TypeAlias, Dict
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.distance.get_2d_distance_vector import get_2d_distance_vector, get_2d_distance_vector_torch
+from src.distance.calculate_distance_vector_by_id import calculate_distance_vector_by_id
 from src.log.ilogger import ILogger
 
 KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
@@ -150,7 +150,7 @@ class IKernel:
             return self.distance_vector_cache[index]
 
         # or calculate and store the distance vector in the cache
-        distance_vector_i = get_2d_distance_vector(
+        distance_vector_i = calculate_distance_vector_by_id(
             index,
             self.dataset
         ).reshape(-1)

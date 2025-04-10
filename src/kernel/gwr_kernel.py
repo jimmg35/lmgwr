@@ -7,7 +7,7 @@ import numpy.typing as npt
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.spatial_dataset import FieldInfo
-from src.distance.get_2d_distance_vector import get_2d_distance_vector
+from src.distance.calculate_distance_vector_by_id import calculate_distance_vector_by_id
 from src.log.gwr_logger import GwrLogger
 from src.kernel.ikernel import IKernel, KernelFunctionType, KernelBandwidthType
 
