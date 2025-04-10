@@ -14,8 +14,8 @@ def fit_OLS(dataset):
     from sklearn.linear_model import LinearRegression
     from sklearn.metrics import r2_score
     model = LinearRegression()
-    model.fit(dataset.x_matrix, dataset.y)
-    y_pred = model.predict(dataset.x_matrix)
+    model.fit(dataset.X, dataset.y)
+    y_pred = model.predict(dataset.X)
     return r2_score(dataset.y, y_pred)
 
 

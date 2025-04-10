@@ -24,11 +24,10 @@ class IFieldInfo:
 
 @dataclass
 class IDataset:
-    dataPoints: List[IDataPoint] | None
-    fieldInfo: IFieldInfo | None
+    fieldInfo: IFieldInfo
 
-    def _verify_fields(self, data: DataFrame) -> None:
-        raise NotImplementedError()
+    # def _verify_fields(self, data: DataFrame) -> None:
+    #     raise NotImplementedError()
 
-    def _create_data_points(self, data: pd.DataFrame) -> List[IDataPoint]:
-        raise NotImplementedError()
+    # def _create_data_points(self, data: pd.DataFrame) -> List[IDataPoint]:
+    #     raise NotImplementedError()

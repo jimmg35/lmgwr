@@ -57,7 +57,7 @@ if __name__ == '__main__':
         None,
         TOTAL_TIMESTEPS,
         min_bandwidth=MIN_BANDWIDTH,
-        max_bandwidth=spatialDataset.x_matrix.shape[0],
+        max_bandwidth=spatialDataset.X.shape[0],
         min_action=MIN_ACTION,
         max_action=MAX_ACTION,
         max_steps=MAX_STEPS

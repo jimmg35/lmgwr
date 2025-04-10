@@ -10,6 +10,7 @@ from typing import List
 
 from src.dataset.interfaces.spatial_dataset import IDataPoint, IDataset, IFieldInfo
 from src.log.gwr_logger import GwrLogger
+from src.log.ilogger import ILogger
 
 
 class SpatialDataset(IDataset):
@@ -22,41 +23,31 @@ class SpatialDataset(IDataset):
     for geospatial modeling.
 
     Attributes:
-        dataPoints (List[IDataPoint] | None): A list of data points extracted from the dataset.
         fieldInfo (IFieldInfo | None): Information about the fields in the dataset, such as
                                        response and predictor fields, and coordinate fields.
         isSpherical (bool): A flag indicating whether the dataset is in spherical coordinates.
-        x_matrix (npt.NDArray[np.float64]): A matrix of predictor values extracted from the data points.
+        X (npt.NDArray[np.float64]): A matrix of predictor values extracted from the data points.
         y (npt.NDArray[np.float64]): A column vector of response values extracted from the data points.
     """
-    logger: GwrLogger
-
-    # Raw Data in Different formats.
-    dataPoints: List[IDataPoint] | None = None
-    fieldInfo: IFieldInfo | None = None
+    logger: ILogger
+    fieldInfo: IFieldInfo
     isSpherical: bool = False
+    useIntercept: bool = True
+    isStandardize: bool = True
 
-    x_matrix: npt.NDArray[np.float64]
+    X: npt.NDArray[np.float64]
     y: npt.NDArray[np.float64]
-
-    # x_matrix_torch: torch.Tensor
-    # y_torch: torch.Tensor
-
+    coordinates: npt.NDArray[np.float64]
     geometry: GeoDataFrame | None = None
-
-    # Estimated values
-    # betas: List[npt.NDArray[np.float64] | None]
-    # W: List[npt.NDArray[np.float64] | None]
-    # y_hats
-    # residules: NDArray[Any]
 
     def __init__(
         self,
         data: DataFrame,
         fieldInfo: IFieldInfo,
-        logger: GwrLogger | None = None,
+        logger: ILogger | None = None,
         isSpherical: bool = False,
-        intercept: bool = True,
+        useIntercept: bool = True,
+        isStandardize: bool = True,
         geometry: GeoDataFrame | None = None,
     ) -> None:
         """
@@ -75,45 +66,46 @@ class SpatialDataset(IDataset):
         Raises:
             ValueError: If any required fields specified in `fieldInfo` are missing from the dataset.
         """
-
+        # Register the state of the dataset
         if logger is not None:
             self.logger = logger
         self.geometry = geometry
-
-        # Parse Pandas dataframe into datapoint structure.
         self.fieldInfo = fieldInfo
-        self._verify_fields(data)
-        self.dataPoints = self._create_data_points(data)
-
-        # Indicates if the coordinates system of this dataset is projected or not.
         self.isSpherical = isSpherical
+        self.useIntercept = useIntercept
+        self.isStandardize = isStandardize
 
-        # Transforming the datapoints into the matrix form.
-        self.x_matrix = np.vstack(
-            [data_point.X for data_point in self.dataPoints])
-        self.y = np.array([[data_point.y] for data_point in self.dataPoints])
+        # verify the fields in the dataset
+        self.__verify_data_schema(data)
+        self.__prepare_data(data)
+
+    def __prepare_data(self, data: pd.DataFrame):
+        """
+        Prepares the dataset by extracting predictor and response variables, and coordinates.
+
+        Args:
+            data (pd.DataFrame): The dataset containing spatial data points.
+        """
+        # Transforming the data into matrix form.
+        self.X = data[self.fieldInfo.predictor_fields].to_numpy(
+            dtype=np.float64)
+        self.y = data[self.fieldInfo.response_field].to_numpy(dtype=np.float64)
+        self.coordinates = data[[self.fieldInfo.coordinate_x_field,
+                                 self.fieldInfo.coordinate_y_field]].to_numpy(dtype=np.float64)
 
         # Standardize the columns
-        self.x_matrix = (self.x_matrix - self.x_matrix.mean(axis=0)
-                         ) / self.x_matrix.std(axis=0)
+        self.X = (self.X - self.X.mean(axis=0)
+                  ) / self.X.std(axis=0)
         self.y = self.y.reshape((-1, 1))
         self.y = (self.y - self.y.mean(axis=0)) / self.y.std(axis=0)
 
-        if intercept:
-            # Add a column of ones as the first column for the intercept
-            self.x_matrix = np.hstack(
-                (np.ones((self.x_matrix.shape[0], 1)), self.x_matrix))
+        # Add a column of ones as the first column for the intercept
+        if self.useIntercept:
+            self.X = np.hstack(
+                (np.ones((self.X.shape[0], 1)), self.X)
+            )
 
-        # self.x_matrix_torch = torch.tensor(
-        #     self.x_matrix, requires_grad=True, dtype=torch.float32).to('cuda')
-        # self.y_torch = torch.tensor(
-        #     self.y, requires_grad=True, dtype=torch.float32).to('cuda')
-        # self.coordinates_torch = torch.tensor(
-        #     np.array([[data_point.coordinate_x, data_point.coordinate_y]
-        #              for data_point in self.dataPoints]),
-        #     requires_grad=True, dtype=torch.float32).to('cuda')
-
-    def _verify_fields(self, data: pd.DataFrame) -> None:
+    def __verify_data_schema(self, data: pd.DataFrame) -> None:
         """
         Verifies the presence of all required fields in the dataset based on `fieldInfo`.
 
@@ -149,55 +141,14 @@ class SpatialDataset(IDataset):
         self.logger.append_info(
             f"{self.__class__.__name__} : Data schema matchs with the data.")
 
-    # def graph(self):
-
-    def _create_data_points(self, data: pd.DataFrame) -> List[IDataPoint]:
-        """
-        Creates and populates a list of data points from the dataset for spatial analysis.
-
-        Iterates over each row in the dataset, extracts the response and predictor values
-        along with the coordinate fields, and creates `IDataPoint` objects for each row.
-
-        Args:
-            data (pd.DataFrame): The dataset containing spatial data points.
-
-        Returns:
-            List[IDataPoint]: A list of `IDataPoint` objects created from each row of the dataset.
-
-        Raises:
-            ValueError: If `fieldInfo` is not set.
-            Exception: If an error occurs while creating data points.
-        """
-        if self.fieldInfo is None:
-            raise ValueError("FieldInfo is not set")
-
-        try:
-            data_points = []
-            for _, row in data.iterrows():
-                # Extract response, predictors, and coordinates from the row
-                y = row[self.fieldInfo.response_field]
-                X = row[self.fieldInfo.predictor_fields].values
-                coordinate_x = row[self.fieldInfo.coordinate_x_field]
-                coordinate_y = row[self.fieldInfo.coordinate_y_field]
-
-                # Create an IDataPoint with extracted values
-                data_points.append(IDataPoint(y=y, X=np.array(
-                    X), coordinate_x=coordinate_x, coordinate_y=coordinate_y))
-
-            self.logger.append_info(
-                f"{self.__class__.__name__} : Data points created.")
-            return data_points
-        except Exception as e:
-
-            self.logger.append_info(
-                f"{self.__class__.__name__} : Error creating data points: {e}")
-            raise e
-
     def plot_map(self):
-        if self.geometry is not None:
-            fig, ax = plt.subplots(figsize=(10, 10))
-            self.geometry.plot(ax=ax, edgecolor='black', facecolor='white')
-            self.geometry.centroid.plot(ax=ax, c='black')
+        if self.geometry is None:
+            raise ValueError(
+                "Geometry is not set, please provide a GeoDataFrame")
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+        self.geometry.plot(ax=ax, edgecolor='black', facecolor='white')
+        self.geometry.centroid.plot(ax=ax, c='black')
 
 
 if __name__ == '__main__':
