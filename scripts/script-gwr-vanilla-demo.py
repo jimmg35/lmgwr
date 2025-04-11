@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.dataset.interfaces.spatial_dataset import FieldInfo
 from src.model.gwr import GWR
 from src.kernel.gwr_kernel import GwrKernel
 from src.optimizer.gwr_optimizer import GwrOptimizer
@@ -18,13 +18,13 @@ if __name__ == '__main__':
     georgia_data = pd.read_csv(r'./data/GData_utm.csv')
     spatialDataset = SpatialDataset(
         georgia_data,
-        IFieldInfo(
+        FieldInfo(
             predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
             response_field='PctBach',
             coordinate_x_field='X',
             coordinate_y_field='Y'
         ),
-        logger,
+        logger=logger,
         isSpherical=False
     )
 

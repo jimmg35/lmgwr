@@ -31,6 +31,11 @@ class LgwrOptimizerRL(gym.Env):
     optimized_r2: float | None
     optimized_bandwidth_vector: np.ndarray | None
 
+    aicc_records: list[float] = []
+    r2_records: list[float] = []
+    bandwidth_mean_records: list[float] = []
+    bandwidth_variance_records: list[float] = []
+
     def __init__(self,
                  lgwr: LGWR,
                  logger: ILogger,
@@ -60,13 +65,13 @@ class LgwrOptimizerRL(gym.Env):
         # Action space: vectorized bandwidth adjustment
         self.action_space = gym.spaces.Box(
             low=min_action, high=max_action,
-            shape=(self.lgwr.dataset.x_matrix.shape[0],), dtype=np.int64
+            shape=(self.lgwr.dataset.X.shape[0],), dtype=np.int64
         )
 
         # Observation space: vectorized bandwidth values
         self.observation_space = gym.spaces.Box(
             low=self.min_bandwidth, high=self.max_bandwidth,
-            shape=(self.lgwr.dataset.x_matrix.shape[0],), dtype=np.int64
+            shape=(self.lgwr.dataset.X.shape[0],), dtype=np.int64
         )
 
         # Initialize bandwidths and steps
@@ -125,6 +130,16 @@ class LgwrOptimizerRL(gym.Env):
             self.optimized_r2 = self.lgwr.r_squared
             self.optimized_bandwidth_vector = self.current_bandwidth_vector
 
+        # Record the process
+        self.aicc_records.append(self.lgwr.aicc)
+        self.r2_records.append(self.lgwr.r_squared)
+        self.bandwidth_mean_records.append(
+            float(np.mean(self.current_bandwidth_vector))
+        )
+        self.bandwidth_variance_records.append(
+            float(np.var(self.current_bandwidth_vector))
+        )
+
         if truncated:
             # self.logger.append_info(
             #     f"Episode {self.episode_count} truncated, took {self.current_step} steps, remain {self.remaining_steps} steps, reward(lowest AICc): {self.lowest_aicc}, r2: {self.lgwr.r_squared}."
@@ -140,15 +155,22 @@ class LgwrOptimizerRL(gym.Env):
                 '[' + ', '.join(map(str, self.optimized_bandwidth_vector)) + ']',
                 f"Episode {self.episode_count} truncated, took {self.current_step} steps, reward(lowest AICc): {self.lowest_aicc}, r2: {self.optimized_r2}"
             )
-
-        if done:
-            self.logger.append_bandwidth_optimization(
+            self.logger.append_training_process(
                 self.episode_count,
-                self.lgwr.aicc,
-                self.lgwr.r_squared,
-                '[' + ', '.join(map(str, self.current_bandwidth_vector)) + ']',
-                f"★ Episode {self.episode_count} done, took {self.current_step} steps, aicc: {self.lgwr.aicc}, r2: {self.lgwr.r_squared}"
+                self.aicc_records,
+                self.r2_records,
+                bandwidth_mean_records=self.bandwidth_mean_records,
+                bandwidth_variance_records=self.bandwidth_variance_records
             )
+
+        # if done:
+        #     self.logger.append_bandwidth_optimization(
+        #         self.episode_count,
+        #         self.lgwr.aicc,
+        #         self.lgwr.r_squared,
+        #         '[' + ', '.join(map(str, self.current_bandwidth_vector)) + ']',
+        #         f"★ Episode {self.episode_count} done, took {self.current_step} steps, aicc: {self.lgwr.aicc}, r2: {self.lgwr.r_squared}"
+        #     )
 
         return self.current_bandwidth_vector, self.reward, done, truncated, {}
 
@@ -161,13 +183,17 @@ class LgwrOptimizerRL(gym.Env):
         self.current_step = 0
         self.episode_count += 1
         self.lowest_aicc = None
+        self.aicc_records = []
+        self.r2_records = []
+        self.bandwidth_mean_records = []
+        self.bandwidth_variance_records = []
         return self.current_bandwidth_vector, {}
 
     def __init_bandwidth_vector(self) -> np.ndarray:
         """ Initialize the local bandwidth vector for LGWR with the same initial value. """
         initial_bandwidth = (self.min_bandwidth + self.max_bandwidth) // 2
         return np.full(
-            self.lgwr.dataset.x_matrix.shape[0], initial_bandwidth, dtype=np.int64
+            self.lgwr.dataset.X.shape[0], initial_bandwidth, dtype=np.int64
         )
 
     def __init_step(self, max_steps):

@@ -1,9 +1,9 @@
 import pandas as pd
 
 
-from src.dataset.spatial_dataset import IFieldInfo
+from src.dataset.spatial_dataset import FieldInfo
 from src.dataset.spatial_dataset import SpatialDataset
-from src.dataset.interfaces.spatial_dataset import IFieldInfo
+from src.dataset.interfaces.spatial_dataset import FieldInfo
 from src.model.gwr import GWR
 from src.kernel.gwr_kernel import GwrKernel
 from src.optimizer.gwr_optimizer import GwrOptimizer
@@ -14,8 +14,8 @@ def fit_OLS(dataset):
     from sklearn.linear_model import LinearRegression
     from sklearn.metrics import r2_score
     model = LinearRegression()
-    model.fit(dataset.x_matrix, dataset.y)
-    y_pred = model.predict(dataset.x_matrix)
+    model.fit(dataset.X, dataset.y)
+    y_pred = model.predict(dataset.X)
     return r2_score(dataset.y, y_pred)
 
 
@@ -34,13 +34,13 @@ if __name__ == '__main__':
     gwrLogger = GwrLogger()
     dataset = SpatialDataset(
         georgia_dataframe,
-        IFieldInfo(
+        FieldInfo(
             predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
             response_field='PctBach',
             coordinate_x_field='X',
             coordinate_y_field='Y'
         ),
-        gwrLogger,
+        logger=gwrLogger,
         isSpherical=False
     )
 

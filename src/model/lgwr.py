@@ -27,10 +27,10 @@ class LGWR(GWR):
         super().__init__(dataset, kernel, logger)
 
         self.y_hats = np.zeros(
-            self.dataset.x_matrix.shape[0], dtype=np.float64
+            self.dataset.X.shape[0], dtype=np.float64
         )
         self.residuals = np.zeros(
-            self.dataset.x_matrix.shape[0], dtype=np.float64
+            self.dataset.X.shape[0], dtype=np.float64
         )
 
     def update_local_bandwidth(self, index: int, bandwidth: float):
@@ -38,6 +38,6 @@ class LGWR(GWR):
         return self
 
     def update_local_bandwidth_vector(self, bandwidth_vector: np.ndarray):
-        for index in range(0, self.dataset.x_matrix.shape[0]):
+        for index in range(0, self.dataset.X.shape[0]):
             self.kernel.update_local_bandwidth(index, bandwidth_vector[index])
         return self

@@ -25,6 +25,12 @@ class ILogger:
             'R-squared adjusted': None
         },
     }
+    training_process = {
+        'aicc_records': None,
+        'r2_records': None,
+        'bandwidth_mean_records': None,
+        'bandwidth_variance_records': None
+    }
 
     def __init__(self):
         self.__init_storage()
@@ -68,9 +74,29 @@ class ILogger:
         print(msg)
         self.save_model_info_json()
 
+    def append_training_process(self,
+                                episode_count: int,
+                                aicc_records: list[float],
+                                r2_records: list[float],
+                                bandwidth_mean_records: list[float] | None,
+                                bandwidth_variance_records: list[float] | None
+                                ):
+        record = {
+            'aicc_records': '[' + ', '.join(map(str, aicc_records)) + ']',
+            'r2_records': '[' + ', '.join(map(str, r2_records)) + ']',
+            'bandwidth_mean_records': '[' + ', '.join(map(str, bandwidth_mean_records or [])) + ']',
+            'bandwidth_variance_records': '[' + ', '.join(map(str, bandwidth_variance_records or [])) + ']'
+        }
+        self.training_process = record
+        self.save_training_process(episode_count)
+
     def update_matrics(self, matrices_type: MatricesType, value: float):
         self.model_info['matrices'][matrices_type] = value
 
     def save_model_info_json(self):
         with open(os.path.join(self.log_path, 'model_info.json'), 'w') as f:
             json.dump(self.model_info, f, indent=1)
+
+    def save_training_process(self, episode_count: int):
+        with open(os.path.join(self.log_path, f'training_process_{episode_count}.json'), 'w') as f:
+            json.dump(self.training_process, f, indent=1)

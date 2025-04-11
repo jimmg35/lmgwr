@@ -17,8 +17,8 @@ class OLS():
         self.dataset = dataset
 
     def fit(self):
-        beta = self.__compute_betas(self.dataset.y, self.dataset.x_matrix)
-        y_hat = np.dot(self.dataset.x_matrix, beta)
+        beta = self.__compute_betas(self.dataset.y, self.dataset.X)
+        y_hat = np.dot(self.dataset.X, beta)
         residuels = self.dataset.y - y_hat
 
     def __compute_betas(self, y, x):

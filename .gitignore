@@ -1,4 +1,4 @@
 /data
 /logs
 /locked-logs
-
+**/__pycache__/
