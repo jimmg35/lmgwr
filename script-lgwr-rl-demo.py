@@ -42,7 +42,6 @@ if __name__ == '__main__':
     # Create a LGWR kernel and LGWR model.
     kernel = LgwrKernel(
         spatialDataset,
-        logger,
         kernel_type='bisquare',
         kernel_bandwidth_type='adaptive'
     )

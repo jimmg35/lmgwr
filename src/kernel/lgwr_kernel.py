@@ -15,14 +15,12 @@ class LgwrKernel(IKernel):
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 logger: LgwrLogger,
                  optimizeMode: Literal['cuda', 'cpu'] = 'cuda',
                  kernel_type: KernelFunctionType = 'bisquare',
                  kernel_bandwidth_type: KernelBandwidthType = 'adaptive'
                  ):
         super().__init__(
             dataset,
-            logger,
             optimizeMode,
             kernel_type,
             kernel_bandwidth_type
