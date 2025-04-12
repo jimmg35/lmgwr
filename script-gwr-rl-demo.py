@@ -43,7 +43,6 @@ if __name__ == '__main__':
     # Create a GWR kernel and GWR model.
     kernel = GwrKernel(
         spatialDataset,
-        logger,
         kernel_type='bisquare',
         kernel_bandwidth_type='adaptive'
     )

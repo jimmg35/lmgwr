@@ -186,6 +186,7 @@ class IKernel:
             )[int(self.bandwidth) - 1] * eps
 
         zs: npt.NDArray[np.float64] = distance_vector / operational_bandwidth
+
         if self.kernel_type == 'triangular':
             weighted_matrix = 1 - zs
         elif self.kernel_type == 'uniform':

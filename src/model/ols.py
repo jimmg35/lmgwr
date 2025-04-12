@@ -3,15 +3,13 @@ import numpy as np
 import numpy.typing as npt
 import numpy.linalg as la
 from scipy import sparse as sp
-from spreg.utils import spdot, spmultiply
+from spreg.utils import spdot
 from src.dataset.spatial_dataset import SpatialDataset
-# from src.estimates
 
 
 class OLS():
 
     dataset: SpatialDataset
-    estimates:
 
     def __init__(self, dataset: SpatialDataset) -> None:
         self.dataset = dataset
