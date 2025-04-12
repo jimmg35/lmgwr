@@ -3,7 +3,7 @@ from stable_baselines3 import PPO
 import pandas as pd
 
 from src.optimizer.reinforce.gwr_optimizer import GwrOptimizerRL
-from src.dataset.interfaces.spatial_dataset import FieldInfo
+from dataset.interfaces.idataset import FieldInfo
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.log.gwr_logger import GwrLogger

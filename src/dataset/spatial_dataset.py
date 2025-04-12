@@ -7,7 +7,7 @@ from pandas import DataFrame
 from geopandas import GeoDataFrame
 import matplotlib.pyplot as plt
 
-from src.dataset.interfaces.spatial_dataset import IDataset, FieldInfo
+from dataset.interfaces.idataset import IDataset, FieldInfo
 from src.log.ilogger import ILogger
 
 
@@ -33,9 +33,6 @@ class SpatialDataset(IDataset):
     useIntercept: bool = True
     isStandardize: bool = True
 
-    X: npt.NDArray[np.float64]
-    y: npt.NDArray[np.float64]
-    coordinates: npt.NDArray[np.float64]
     geometry: GeoDataFrame | None = None
 
     def __init__(

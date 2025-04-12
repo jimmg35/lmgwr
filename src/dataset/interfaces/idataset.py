@@ -16,4 +16,12 @@ class FieldInfo:
 
 @dataclass
 class IDataset:
-    fieldInfo: FieldInfo
+    X: npt.NDArray[np.float64]
+    y: npt.NDArray[np.float64]
+    coordinates: npt.NDArray[np.float64]
+
+    def __len____(self) -> int:
+        """
+        Returns the number of data points in the dataset.
+        """
+        raise NotImplementedError("Subclasses should implement this!")

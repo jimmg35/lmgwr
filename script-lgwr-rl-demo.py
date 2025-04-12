@@ -3,7 +3,7 @@ from stable_baselines3 import PPO
 import pandas as pd
 
 from src.optimizer.reinforce.lgwr_optimizer import LgwrOptimizerRL, LgwrRewardType
-from src.dataset.interfaces.spatial_dataset import FieldInfo
+from dataset.interfaces.idataset import FieldInfo
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.lgwr_kernel import LgwrKernel
 from src.log.lgwr_logger import LgwrLogger

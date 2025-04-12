@@ -6,7 +6,7 @@ import pandas as pd
 import numpy.typing as npt
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.dataset.interfaces.spatial_dataset import FieldInfo
+from dataset.interfaces.idataset import FieldInfo
 from src.kernel.ikernel import IKernel, KernelFunctionType, KernelBandwidthType
 
 
