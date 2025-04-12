@@ -7,7 +7,18 @@ from src.dataset.simulated_spatial_dataset import SimulatedSpatialDataset
 
 if __name__ == "__main__":
 
-    simulated_spatial_dataset = SimulatedSpatialDataset()
+    simulated_spatial_dataset = SimulatedSpatialDataset(
+        k=1
+    )
+    processes = simulated_spatial_dataset.generate_processes()
+
+    plot_s(
+        np.vstack([processes[0], processes[1]]),
+        [r"True $\beta_0$", r"True $\beta_1$"],
+        vmin=0,
+        vmax=4,
+        size=40
+    )
 
 
 # size = 40
@@ -33,12 +44,3 @@ if __name__ == "__main__":
 # # Print the summary of the model
 # print(ols_model.summary())
 # print(ols_model.params)
-
-
-# plot_s(
-#     np.vstack([b0, b1, b2]),
-#     [r"True $\beta_0$", r"True $\beta_1$", r"True $\beta_2$"],
-#     vmin=0,
-#     vmax=4,
-#     size=size
-# )
