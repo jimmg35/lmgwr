@@ -7,7 +7,7 @@ from pandas import DataFrame
 from geopandas import GeoDataFrame
 import matplotlib.pyplot as plt
 
-from dataset.interfaces.idataset import IDataset, FieldInfo
+from src.dataset.interfaces.idataset import IDataset, FieldInfo
 from src.log.ilogger import ILogger
 
 

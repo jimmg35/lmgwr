@@ -3,18 +3,24 @@ from src.dgp.simulation import generate_processes, generate_data
 from src.dgp.plot import plot_s
 import numpy as np
 from src.model.gwr import GWR
+from src.dataset.simulated_spatial_dataset import SimulatedSpatialDataset
 
-size = 40
+if __name__ == "__main__":
 
-# generate real processes
-b0, b1, b2 = generate_processes(size=size)
+    simulated_spatial_dataset = SimulatedSpatialDataset()
 
-# generate data
-X1, X2, coordinates = generate_data(size=size)
 
-# generate the ground truth
-err = np.random.randn(size * size)
-y = (b0 + b1 * X1 + b2 * X2 + err).reshape(-1, 1)
+# size = 40
+
+# # generate real processes
+# b0, b1, b2 = generate_processes(size=size)
+
+# # generate data
+# X1, X2, coordinates = generate_data(size=size)
+
+# # generate the ground truth
+# err = np.random.randn(size * size)
+# y = (b0 + b1 * X1 + b2 * X2 + err).reshape(-1, 1)
 
 
 # # Prepare the design matrix with an intercept

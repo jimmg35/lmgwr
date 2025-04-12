@@ -3,7 +3,7 @@ import pandas as pd
 
 from src.dataset.spatial_dataset import FieldInfo
 from src.dataset.spatial_dataset import SpatialDataset
-from dataset.interfaces.idataset import FieldInfo
+from src.dataset.interfaces.idataset import FieldInfo
 from src.model.gwr import GWR
 from src.kernel.gwr_kernel import GwrKernel
 from src.optimizer.gwr_optimizer import GwrOptimizer
@@ -20,7 +20,7 @@ def fit_OLS(dataset):
 
 
 def fit_GWR(dataset, logger):
-    kernel = GwrKernel(dataset, logger, 'bisquare')
+    kernel = GwrKernel(dataset, 'bisquare')
     gwr = GWR(dataset, kernel, logger)
     optimizer = GwrOptimizer(gwr, kernel, logger)
     optimal_bandwidth = optimizer.optimize()

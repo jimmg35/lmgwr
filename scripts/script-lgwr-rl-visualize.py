@@ -4,7 +4,7 @@ import pandas as pd
 import geopandas as gp
 
 from src.dataset.spatial_dataset import SpatialDataset
-from dataset.interfaces.idataset import FieldInfo
+from src.dataset.interfaces.idataset import FieldInfo
 from src.visualize.lgwr_visualizer import LgwrVisualizer
 from src.log.lgwr_logger import LgwrLogger
 

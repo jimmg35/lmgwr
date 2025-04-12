@@ -1,12 +1,10 @@
 
 # acknowledgements to Taylor Oshan for part of the source code
 
-import numpy as np
 import pandas as pd
-import numpy.typing as npt
 
 from src.dataset.spatial_dataset import SpatialDataset
-from dataset.interfaces.idataset import FieldInfo
+from src.dataset.interfaces.idataset import FieldInfo
 from src.kernel.ikernel import IKernel, KernelFunctionType, KernelBandwidthType
 
 
