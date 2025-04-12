@@ -14,14 +14,20 @@ class FieldInfo:
     coordinate_y_field: str
 
 
-@dataclass
+# @dataclass
+
 class IDataset:
     X: npt.NDArray[np.float64]
     y: npt.NDArray[np.float64]
-    coordinates: npt.NDArray[np.float64]
 
-    def __len____(self) -> int:
+    useIntercept: bool = True
+    isStandardize: bool = True
+
+    def __len__(self) -> int:
         """
         Returns the number of data points in the dataset.
+
+        Returns:
+            int: The number of data points in the dataset.
         """
-        raise NotImplementedError("Subclasses should implement this!")
+        return len(self.X)

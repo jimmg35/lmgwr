@@ -30,9 +30,8 @@ class SpatialDataset(IDataset):
     logger: ILogger | None = None
     fieldInfo: FieldInfo
     isSpherical: bool = False
-    useIntercept: bool = True
-    isStandardize: bool = True
 
+    coordinates: npt.NDArray[np.float64]
     geometry: GeoDataFrame | None = None
 
     def __init__(
@@ -73,15 +72,6 @@ class SpatialDataset(IDataset):
         # verify the fields in the dataset
         self.__verify_data_schema(data)
         self.__prepare_data(data)
-
-    def __len__(self) -> int:
-        """
-        Returns the number of data points in the dataset.
-
-        Returns:
-            int: The number of data points in the dataset.
-        """
-        return len(self.X)
 
     def __prepare_data(self, data: pd.DataFrame):
         """
