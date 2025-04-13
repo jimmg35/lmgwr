@@ -11,7 +11,6 @@ if __name__ == "__main__":
 
     logger = GwrLogger()
     field_size = 40
-    err = np.random.randn(field_size * field_size)
 
     dataset = SimulatedSpatialDataset(field_size=field_size)
     [b0, b1, b2] = dataset.generate_processes()
