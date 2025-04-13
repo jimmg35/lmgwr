@@ -5,7 +5,7 @@ from typing import Literal, TypeAlias, Dict
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.distance.calculate_distance_vector_by_id import calculate_distance_vector_by_id
-from src.log.ilogger import ILogger
+
 
 KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
                                         'quartic', 'gaussian', 'bisquare', 'exponential']
@@ -186,6 +186,7 @@ class IKernel:
             )[int(self.bandwidth) - 1] * eps
 
         zs: npt.NDArray[np.float64] = distance_vector / operational_bandwidth
+
         if self.kernel_type == 'triangular':
             weighted_matrix = 1 - zs
         elif self.kernel_type == 'uniform':

@@ -1,16 +1,18 @@
 
 from stable_baselines3 import PPO
 import pandas as pd
+import numpy as np
 
 from src.optimizer.reinforce.lgwr_optimizer import LgwrOptimizerRL, LgwrRewardType
-from src.dataset.interfaces.spatial_dataset import FieldInfo
+from src.dataset.interfaces.idataset import FieldInfo
 from src.dataset.spatial_dataset import SpatialDataset
+from src.dataset.simulated_spatial_dataset import SimulatedSpatialDataset
 from src.kernel.lgwr_kernel import LgwrKernel
 from src.log.lgwr_logger import LgwrLogger
 from src.model.lgwr import LGWR
 
 # Hyperparameters for PPO training
-MAX_STEPS = 50000
+MAX_STEPS = 50
 TOTAL_TIMESTEPS = MAX_STEPS * 1000
 MIN_ACTION = -10
 MAX_ACTION = 10
@@ -25,24 +27,15 @@ if __name__ == '__main__':
     # Create a logger to record the LGWR model's information.
     logger = LgwrLogger()
 
-    # Load the Georgia dataset and create a spatial dataset.
-    georgia_data = pd.read_csv(r'./data/GData_utm.csv')
-    spatialDataset = SpatialDataset(
-        georgia_data,
-        FieldInfo(
-            predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
-            response_field='PctBach',
-            coordinate_x_field='Longitud',
-            coordinate_y_field='Latitude'
-        ),
-        logger=logger,
-        isSpherical=True
-    )
+    # Create a simulated dataset.
+    field_size = 40
+    spatialDataset = SimulatedSpatialDataset(field_size=field_size)
+    [b0, b1, b2] = spatialDataset.generate_processes()
+    [X, y] = spatialDataset.fit_y(b0, b1, b2)
 
     # Create a LGWR kernel and LGWR model.
     kernel = LgwrKernel(
         spatialDataset,
-        logger,
         kernel_type='bisquare',
         kernel_bandwidth_type='adaptive'
     )

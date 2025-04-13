@@ -7,7 +7,7 @@ from pandas import DataFrame
 from geopandas import GeoDataFrame
 import matplotlib.pyplot as plt
 
-from src.dataset.interfaces.spatial_dataset import IDataset, FieldInfo
+from src.dataset.interfaces.idataset import IDataset, FieldInfo
 from src.log.ilogger import ILogger
 
 
@@ -30,11 +30,7 @@ class SpatialDataset(IDataset):
     logger: ILogger | None = None
     fieldInfo: FieldInfo
     isSpherical: bool = False
-    useIntercept: bool = True
-    isStandardize: bool = True
 
-    X: npt.NDArray[np.float64]
-    y: npt.NDArray[np.float64]
     coordinates: npt.NDArray[np.float64]
     geometry: GeoDataFrame | None = None
 
@@ -76,15 +72,6 @@ class SpatialDataset(IDataset):
         # verify the fields in the dataset
         self.__verify_data_schema(data)
         self.__prepare_data(data)
-
-    def __len__(self) -> int:
-        """
-        Returns the number of data points in the dataset.
-
-        Returns:
-            int: The number of data points in the dataset.
-        """
-        return len(self.X)
 
     def __prepare_data(self, data: pd.DataFrame):
         """
