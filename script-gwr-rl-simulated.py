@@ -12,7 +12,7 @@ from src.log.gwr_logger import GwrLogger
 from src.model.gwr import GWR
 
 # Hyperparameters for PPO training
-MAX_STEPS = 500
+MAX_STEPS = 50000
 TOTAL_TIMESTEPS = MAX_STEPS * 1000
 MIN_ACTION = -10
 MAX_ACTION = 10
