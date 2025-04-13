@@ -5,7 +5,7 @@ from typing import Literal, TypeAlias, Dict
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.distance.calculate_distance_vector_by_id import calculate_distance_vector_by_id
-from src.log.ilogger import ILogger
+
 
 KernelFunctionType: TypeAlias = Literal['triangular', 'uniform', 'quadratic',
                                         'quartic', 'gaussian', 'bisquare', 'exponential']

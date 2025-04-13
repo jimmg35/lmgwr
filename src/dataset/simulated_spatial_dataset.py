@@ -1,11 +1,14 @@
 import numpy as np
 import numpy.typing as npt
 from gstools import SRF, CovModel
+import matplotlib.pyplot as plt
+from matplotlib import colormaps
 
-from src.dataset.interfaces.idataset import IDataset
+# from src.dataset.interfaces.idataset import IDataset
+from src.dataset.spatial_dataset import SpatialDataset
 
 
-class SimulatedSpatialDataset(IDataset):
+class SimulatedSpatialDataset(SpatialDataset):
 
     field_size: int
     data_seed: int
@@ -31,11 +34,17 @@ class SimulatedSpatialDataset(IDataset):
         X_list = []
         for _ in range(self.k + 1):
             X_list.append(np.random.randn(self.field_size * self.field_size))
+        self.X = np.vstack(X_list).T
+        # Add a column of ones as the first column for the intercept
+        if self.useIntercept:
+            self.X = np.hstack(
+                (np.ones((self.X.shape[0], 1)), self.X)
+            )
+
         u = np.array([np.linspace(0, self.field_size-1,
                      num=self.field_size)]*self.field_size).reshape(-1)
         v = np.array([np.linspace(0, self.field_size-1,
                      num=self.field_size)]*self.field_size).T.reshape(-1)
-        self.X = np.vstack(X_list).T
         self.coordinates = np.array(list(zip(u, v)))
 
     def generate_processes(self):
@@ -62,3 +71,31 @@ class SimulatedSpatialDataset(IDataset):
         processes.append(b2)
 
         return processes
+
+    def fit_y(self, b0, b1, b2):
+        err = np.random.randn(self.field_size * self.field_size)
+        self.y = (b0 * self.X[:, 0] + b1 * self.X[:, 1] + b2 *
+                  self.X[:, 2] + err).reshape(-1, 1)
+        return [self.X, self.y]
+
+    def plot(self, b, sub_title=['', '', '', ''], size=40, vmin=None, vmax=None):
+        k = len(b)
+        fig, axs = plt.subplots(1, k, figsize=(6*k, 4))
+        for i in range(k):
+            if i == 0:
+                ax = axs[i].imshow(b[i].reshape(size, size),
+                                   cmap=colormaps['viridis'], vmin=vmin, vmax=vmax)
+            else:  # plt.cm.get_cmap('viridis', 21)
+                ax = axs[i].imshow(b[i].reshape(size, size),
+                                   cmap=colormaps['viridis'], vmin=vmin, vmax=vmax)
+            axs[i].set_title(sub_title[i], fontsize=16)
+            fig.colorbar(ax, ax=axs[i])
+
+            axs[i].set_xticks(np.arange(-0.5, 40, 5))
+            axs[i].set_yticks(np.arange(-0.5, 40, 5))
+            axs[i].set_xticklabels([])
+            axs[i].set_yticklabels([])
+
+            axs[i].tick_params(axis='x', colors=(0, 0, 0, 0))
+            axs[i].tick_params(axis='y', colors=(0, 0, 0, 0))
+        plt.show()

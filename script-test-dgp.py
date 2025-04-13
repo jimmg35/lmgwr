@@ -4,35 +4,49 @@ from src.dgp.plot import plot_s
 import numpy as np
 from src.model.gwr import GWR
 from src.dataset.simulated_spatial_dataset import SimulatedSpatialDataset
+from src.kernel.gwr_kernel import GwrKernel
+from src.model.gwr import GWR
+from src.optimizer.gwr_optimizer import GwrOptimizer
+from src.log.gwr_logger import GwrLogger
 
 if __name__ == "__main__":
 
+    logger = GwrLogger()
     field_size = 40
     err = np.random.randn(field_size * field_size)
 
     dataset = SimulatedSpatialDataset(field_size=field_size)
     [b0, b1, b2] = dataset.generate_processes()
-    yxxx = (b0 + b1 * dataset.X[:, 0] + b2 *
-            dataset.X[:, 1] + err).reshape(-1, 1)
+    [X, y] = dataset.fit_y(b0, b1, b2)
 
-    print(yxxx)
-    print("====================")
-    X1, X2, coordinates = generate_data(size=field_size)
-    b0, b1, b2 = generate_processes(size=field_size)
-    y = (b0 + b1 * X1 + b2 * X2 + err).reshape(-1, 1)
-
-    print(y)
-
-    # print(yxxx)
-    # print(y)
-
-    # plot_s(
-    #     np.vstack([b0, b1, b2]),
-    #     [r"True $\beta_0$", r"True $\beta_1$", r"True $\beta_2$"],
-    #     vmin=0,
-    #     vmax=4,
-    #     size=40
+    dataset.plot(
+        b=np.vstack([b0, b1, b2]),
+        sub_title=['b0', 'b1', 'b2'],
+        size=field_size
+    )
+    # dataset.plot(
+    #     b=np.vstack([X.T, y.T]),
+    #     sub_title=['intercept', 'X1', "X2", 'y'],
+    #     size=field_size
     # )
+
+    # Create a GWR kernel and GWR model.
+    kernel = GwrKernel(dataset, 'bisquare')
+    gwr = GWR(dataset, kernel, logger)
+
+    # Use the bandwidth optimizer to automatically find the optimal bandwidth.
+    optimizer = GwrOptimizer(gwr, kernel, logger)
+    optimal_bandwidth = optimizer.optimize()
+
+    [b0_gwr, b1_gwr, b2_gwr] = [gwr.betas[:, 0], gwr.betas[:, 1], gwr.betas[:, 2]]
+
+    dataset.plot(
+        b=np.vstack([b0_gwr, b1_gwr, b2_gwr]),
+        sub_title=['b0_gwr', 'b1_gwr', 'b2_gwr'],
+        size=field_size
+    )
+
+    # logger.save_model_info_json()
 
 
 # size = 40
