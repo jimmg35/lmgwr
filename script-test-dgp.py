@@ -7,31 +7,35 @@ from src.dataset.simulated_spatial_dataset import SimulatedSpatialDataset
 
 if __name__ == "__main__":
 
-    simulated_spatial_dataset = SimulatedSpatialDataset(
-        k=1
-    )
-    processes = simulated_spatial_dataset.generate_processes()
+    field_size = 40
+    err = np.random.randn(field_size * field_size)
 
-    plot_s(
-        np.vstack([processes[0], processes[1]]),
-        [r"True $\beta_0$", r"True $\beta_1$"],
-        vmin=0,
-        vmax=4,
-        size=40
-    )
+    dataset = SimulatedSpatialDataset(field_size=field_size)
+    [b0, b1, b2] = dataset.generate_processes()
+    yxxx = (b0 + b1 * dataset.X[:, 0] + b2 *
+            dataset.X[:, 1] + err).reshape(-1, 1)
+
+    print(yxxx)
+    print("====================")
+    X1, X2, coordinates = generate_data(size=field_size)
+    b0, b1, b2 = generate_processes(size=field_size)
+    y = (b0 + b1 * X1 + b2 * X2 + err).reshape(-1, 1)
+
+    print(y)
+
+    # print(yxxx)
+    # print(y)
+
+    # plot_s(
+    #     np.vstack([b0, b1, b2]),
+    #     [r"True $\beta_0$", r"True $\beta_1$", r"True $\beta_2$"],
+    #     vmin=0,
+    #     vmax=4,
+    #     size=40
+    # )
 
 
 # size = 40
-
-# # generate real processes
-# b0, b1, b2 = generate_processes(size=size)
-
-# # generate data
-# X1, X2, coordinates = generate_data(size=size)
-
-# # generate the ground truth
-# err = np.random.randn(size * size)
-# y = (b0 + b1 * X1 + b2 * X2 + err).reshape(-1, 1)
 
 
 # # Prepare the design matrix with an intercept

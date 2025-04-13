@@ -29,7 +29,7 @@ class SimulatedSpatialDataset(IDataset):
     def __generate_data(self):
         np.random.seed(self.data_seed)
         X_list = []
-        for _ in range(self.k):
+        for _ in range(self.k + 1):
             X_list.append(np.random.randn(self.field_size * self.field_size))
         u = np.array([np.linspace(0, self.field_size-1,
                      num=self.field_size)]*self.field_size).reshape(-1)
@@ -39,6 +39,7 @@ class SimulatedSpatialDataset(IDataset):
         self.coordinates = np.array(list(zip(u, v)))
 
     def generate_processes(self):
+        np.random.seed(self.data_seed)
 
         class GWR_gau(CovModel):
             def correlation(self, r):
@@ -49,12 +50,6 @@ class SimulatedSpatialDataset(IDataset):
             range(self.field_size)
         ]
 
-        # Intercept
-        # model_b0 = GWR_gau(dim=2, var=1, len_scale=6)
-        # srf_b0 = SRF(model_b0, mean=0, seed=self.process_seed[0])
-        # b0 = srf_b0.structured(coords).reshape(-1)
-        # b0 = (b0 - b0.mean()) / b0.std() + 2
-
         processes = []
         for i, seed in enumerate(self.process_seed):
             model = GWR_gau(dim=2, var=1, len_scale=6 * (i + 1))
@@ -63,6 +58,7 @@ class SimulatedSpatialDataset(IDataset):
             process = (process - process.mean()) / process.std() + 2
             processes.append(process)
 
-        # b2 = np.ones(field_size*field_size).reshape(-1)*2
+        b2 = np.ones(self.field_size * self.field_size).reshape(-1) * 2
+        processes.append(b2)
 
         return processes
