@@ -35,5 +35,3 @@ if __name__ == '__main__':
     # Use the bandwidth optimizer to automatically find the optimal bandwidth.
     optimizer = GwrOptimizer(gwr, kernel, logger)
     optimal_bandwidth = optimizer.optimize()
-
-    logger.save_model_info_json()
