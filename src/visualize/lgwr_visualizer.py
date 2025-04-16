@@ -57,7 +57,17 @@ class LgwrVisualizer():
         return result
 
     def basic_statistics(self, episode: int):
-        local_bandwidths = self._get_bandwidth_by_episode(episode)
+        is_scalar, local_bandwidths = self._get_bandwidth_by_episode(episode)
+        if is_scalar:
+            max_bandwidth = np.max(local_bandwidths)
+            min_bandwidth = np.min(local_bandwidths)
+            median_bandwidth = float(np.median(local_bandwidths))
+            mean_bandwidth = float(np.mean(local_bandwidths))
+            variance_bandwidth = float(np.var(local_bandwidths))
+            mob_bandwidth = float(
+                np.mean(np.abs(local_bandwidths - mean_bandwidth)))
+            return max_bandwidth, min_bandwidth, median_bandwidth, mean_bandwidth, variance_bandwidth, mob_bandwidth
+
         max_bandwidth = np.max(local_bandwidths)
         min_bandwidth = np.min(local_bandwidths)
         median_bandwidth = float(np.median(local_bandwidths))
@@ -121,58 +131,61 @@ class LgwrVisualizer():
             plt.show()
 
     def plot_training_process(self, episode: int) -> None:
-        with open(
-            os.path.join(
-                self.log_path, f'training_process_{episode}.json'), 'r'
-        ) as file:
-            training_process = json.load(file)
+        try:
+            with open(
+                os.path.join(
+                    self.log_path, f'training_process_{episode}.json'), 'r'
+            ) as file:
+                training_process = json.load(file)
 
-            aicc_records = json.loads(training_process["aicc_records"])
-            r2_records = json.loads(training_process["r2_records"])
-            bandwidth_mean_records = json.loads(
-                training_process["bandwidth_mean_records"])
-            bandwidth_variance_records = json.loads(
-                training_process["bandwidth_variance_records"])
+                aicc_records = json.loads(training_process["aicc_records"])
+                r2_records = json.loads(training_process["r2_records"])
+                bandwidth_mean_records = json.loads(
+                    training_process["bandwidth_mean_records"])
+                bandwidth_variance_records = json.loads(
+                    training_process["bandwidth_variance_records"])
 
-            fig, axs = plt.subplots(4, 1, figsize=(
-                8, 16), constrained_layout=True)
+                fig, axs = plt.subplots(4, 1, figsize=(
+                    8, 16), constrained_layout=True)
 
-            # Plot AICc records
-            axs[0].plot(range(len(aicc_records)), aicc_records,
-                        label='AICc', color='#377BAB')
-            axs[0].set_xlabel('Episode')
-            axs[0].set_ylabel('AICc')
-            axs[0].grid(True)
-            axs[0].set_title('AICc over Episodes')
+                # Plot AICc records
+                axs[0].plot(range(len(aicc_records)), aicc_records,
+                            label='AICc', color='#377BAB')
+                axs[0].set_xlabel('Episode')
+                axs[0].set_ylabel('AICc')
+                axs[0].grid(True)
+                axs[0].set_title('AICc over Episodes')
 
-            # Plot R2 records
-            axs[1].plot(range(len(r2_records)), r2_records,
-                        label='R2', color='#956A88')
-            axs[1].set_xlabel('Episode')
-            axs[1].set_ylabel('R2')
-            axs[1].grid(True)
-            axs[1].set_title('R2 over Episodes')
+                # Plot R2 records
+                axs[1].plot(range(len(r2_records)), r2_records,
+                            label='R2', color='#956A88')
+                axs[1].set_xlabel('Episode')
+                axs[1].set_ylabel('R2')
+                axs[1].grid(True)
+                axs[1].set_title('R2 over Episodes')
 
-            # Plot Bandwidth Mean records
-            axs[2].plot(range(len(bandwidth_mean_records)),
-                        bandwidth_mean_records, label='Bandwidth Mean', color='#8EA0CC')
-            axs[2].set_xlabel('Episode')
-            axs[2].set_ylabel('Bandwidth Mean')
-            axs[2].grid(True)
-            axs[2].set_title('Bandwidth Mean over Episodes')
+                # Plot Bandwidth Mean records
+                axs[2].plot(range(len(bandwidth_mean_records)),
+                            bandwidth_mean_records, label='Bandwidth Mean', color='#8EA0CC')
+                axs[2].set_xlabel('Episode')
+                axs[2].set_ylabel('Bandwidth Mean')
+                axs[2].grid(True)
+                axs[2].set_title('Bandwidth Mean over Episodes')
 
-            # Plot Bandwidth Variance records
-            axs[3].plot(range(len(bandwidth_variance_records)),
-                        bandwidth_variance_records, label='Bandwidth Variance', color='#CCB4D7')
-            axs[3].set_xlabel('Episode')
-            axs[3].set_ylabel('Bandwidth Variance')
-            axs[3].grid(True)
-            axs[3].set_title('Bandwidth Variance over Episodes')
+                # Plot Bandwidth Variance records
+                axs[3].plot(range(len(bandwidth_variance_records)),
+                            bandwidth_variance_records, label='Bandwidth Variance', color='#CCB4D7')
+                axs[3].set_xlabel('Episode')
+                axs[3].set_ylabel('Bandwidth Variance')
+                axs[3].grid(True)
+                axs[3].set_title('Bandwidth Variance over Episodes')
 
-            # Save the combined figure
-            plt.savefig(os.path.join(self.log_path,
-                        f'training_process_{episode}_combined.png'))
-            plt.close()
+                # Save the combined figure
+                plt.savefig(os.path.join(self.log_path,
+                            f'training_process_{episode}_combined.png'))
+                plt.close()
+        except FileNotFoundError:
+            print(f"Training process file for episode {episode} not found.")
 
     def __load_log_json(self) -> None:
         with open(
@@ -180,9 +193,12 @@ class LgwrVisualizer():
         ) as file:
             self.model_info = json.load(file)
 
-    def _get_bandwidth_by_episode(self, episode: int) -> np.ndarray:
+    def _get_bandwidth_by_episode(self, episode: int):
         info = next(filter(lambda x: x['episode'] == episode,
                     self.model_info['bandwidth_optimization']), None)
         if info is None:
             raise ValueError("Episode not found.")
-        return np.array(json.loads(info['bandwidth'])).reshape(-1)
+
+        if isinstance(info['bandwidth'], float):
+            return True, info['bandwidth']
+        return False, np.array(json.loads(info['bandwidth'])).reshape(-1)

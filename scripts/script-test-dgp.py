@@ -10,12 +10,11 @@ from src.log.gwr_logger import GwrLogger
 if __name__ == "__main__":
 
     logger = GwrLogger()
-    field_size = 40
 
+    field_size = 40
     dataset = SimulatedSpatialDataset(field_size=field_size)
     [b0, b1, b2] = dataset.generate_processes()
     [X, y] = dataset.fit_y(b0, b1, b2)
-
     dataset.plot(
         b=np.vstack([b0, b1, b2]),
         sub_title=['b0', 'b1', 'b2'],

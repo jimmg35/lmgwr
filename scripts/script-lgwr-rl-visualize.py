@@ -46,11 +46,11 @@ if __name__ == "__main__":
             for episode_record in model_info["bandwidth_optimization"]:
 
                 episode = episode_record['episode']
-                result = lgwr_visualizer.descriptive_statistics(episode)
-                lgwr_visualizer.plot_bandwidth_map_by_episode(
-                    episode, result, save=True
-                )
+                # result = lgwr_visualizer.descriptive_statistics(episode)
+                # lgwr_visualizer.plot_bandwidth_map_by_episode(
+                #     episode, result, save=True
+                # )
                 lgwr_visualizer.plot_training_process(
                     episode
                 )
-                print(result)
+                # print(result)
