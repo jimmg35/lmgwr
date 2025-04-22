@@ -3,7 +3,7 @@ from stable_baselines3 import PPO
 import pandas as pd
 
 from src.optimizer.reinforce.gwr_optimizer import GwrOptimizerRL
-from src.dataset.interfaces.spatial_dataset import FieldInfo
+from src.dataset.interfaces.idataset import FieldInfo
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.log.gwr_logger import GwrLogger
@@ -43,7 +43,6 @@ if __name__ == '__main__':
     # Create a GWR kernel and GWR model.
     kernel = GwrKernel(
         spatialDataset,
-        logger,
         kernel_type='bisquare',
         kernel_bandwidth_type='adaptive'
     )
