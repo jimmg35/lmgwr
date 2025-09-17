@@ -1,4 +1,3 @@
-from torch import Tensor
 
 # from src.kernel.gwr_kernel import GwrKernel
 from src.kernel.ikernel import IKernel

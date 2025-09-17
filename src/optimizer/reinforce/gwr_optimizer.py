@@ -8,7 +8,7 @@ from src.log.ilogger import ILogger
 
 class GwrOptimizerRL(gym.Env):
 
-    gwr: GWR
+    model: GWR
     logger: ILogger
     min_bandwidth: int
     max_bandwidth: int
@@ -30,7 +30,7 @@ class GwrOptimizerRL(gym.Env):
     # bandwidth_variance_records: list[float] = []
 
     def __init__(self,
-                 gwr: GWR,
+                 model: GWR,
                  logger: ILogger,
                  reward_threshold,
                  total_timesteps,
@@ -41,7 +41,7 @@ class GwrOptimizerRL(gym.Env):
                  max_action=10
                  ):
         super(GwrOptimizerRL, self).__init__()
-        self.gwr = gwr
+        self.model = model
         self.logger = logger
         self.reward_threshold = reward_threshold
         self.reward_threshold = reward_threshold
@@ -90,12 +90,13 @@ class GwrOptimizerRL(gym.Env):
         )
 
         # calculate the matrics of gwr with the updated bandwidth
-        self.gwr.update_bandwidth(self.current_bandwidth).fit()
+        self.model.update_bandwidth(self.current_bandwidth).fit()
 
-        # reward setting, maximize the R2
+        # reward setting, minimize the AICc
         self.reward = self.__calculate_reward()
 
-        # in this case, the episode stops when the R2 is greater than 0.75
+        # check if the reward is greater than the threshold
+        # if reward_threshold is None, then always False
         done = self.__if_hit_reward_threshold()
 
         # the maximum steps of training
@@ -106,22 +107,22 @@ class GwrOptimizerRL(gym.Env):
         # assign the initial AICc value to lowest_aicc
         if self.lowest_aicc is None:
             self.lowest_aicc = abs(self.reward)
-            self.optimized_r2 = self.gwr.r_squared
+            self.optimized_r2 = self.model.r_squared
             self.optimized_bandwidth = self.current_bandwidth
 
         # Update the lowest AICc value
         if abs(self.reward) < self.lowest_aicc:
             self.lowest_aicc = abs(self.reward)
-            self.optimized_r2 = self.gwr.r_squared
+            self.optimized_r2 = self.model.r_squared
             self.optimized_bandwidth = self.current_bandwidth
 
         # Record the process
-        self.aicc_records.append(self.gwr.aicc)
-        self.r2_records.append(self.gwr.r_squared)
+        self.aicc_records.append(self.model.aicc)
+        self.r2_records.append(self.model.r_squared)
 
         if truncated:
             # self.logger.append_info(
-            #     f"Episode {self.episode_count} truncated, took {self.current_step} steps, remain {self.remaining_steps} steps, reward: {self.reward}, r2: {self.gwr.r_squared}."
+            #     f"Episode {self.episode_count} truncated, took {self.current_step} steps, remain {self.remaining_steps} steps, reward: {self.reward}, r2: {self.model.r_squared}."
             # )
             if self.optimized_r2 is None or self.optimized_bandwidth is None:
                 raise ValueError(
@@ -145,10 +146,10 @@ class GwrOptimizerRL(gym.Env):
         # if done:
         #     self.logger.append_bandwidth_optimization(
         #         self.episode_count,
-        #         self.gwr.aicc,
-        #         self.gwr.r_squared,
+        #         self.model.aicc,
+        #         self.model.r_squared,
         #         int(self.current_bandwidth),
-        #         f"★ Episode {self.episode_count} done, took {self.current_step} steps, aicc: {self.gwr.aicc}, r2: {self.gwr.r_squared}"
+        #         f"★ Episode {self.episode_count} done, took {self.current_step} steps, aicc: {self.model.aicc}, r2: {self.model.r_squared}"
         #     )
 
         return np.array([self.current_bandwidth]), self.reward, done, truncated, {}
@@ -199,7 +200,7 @@ class GwrOptimizerRL(gym.Env):
         """ 
         Get the AICc of the GWR model.
         """
-        return -self.gwr.aicc
+        return -self.model.aicc
 
     def __if_hit_reward_threshold(self):
         """ 

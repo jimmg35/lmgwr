@@ -1,7 +1,5 @@
 
 from stable_baselines3 import PPO
-import numpy as np
-import pandas as pd
 
 from src.optimizer.reinforce.gwr_optimizer import GwrOptimizerRL
 from src.dataset.interfaces.idataset import FieldInfo
@@ -12,8 +10,8 @@ from src.log.gwr_logger import GwrLogger
 from src.model.gwr import GWR
 
 # Hyperparameters for PPO training
-MAX_STEPS = 50000
-TOTAL_TIMESTEPS = MAX_STEPS * 1000
+MAX_STEPS = 100
+TOTAL_TIMESTEPS = MAX_STEPS * 100
 MIN_ACTION = -10
 MAX_ACTION = 10
 
@@ -29,7 +27,7 @@ if __name__ == '__main__':
     logger = GwrLogger()
 
     # Create a simulated dataset.
-    field_size = 40
+    field_size = 10
     spatialDataset = SimulatedSpatialDataset(field_size=field_size)
     [b0, b1, b2] = spatialDataset.generate_processes()
     [X, y] = spatialDataset.fit_y(b0, b1, b2)

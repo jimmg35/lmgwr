@@ -1,8 +1,6 @@
 import numpy as np
 import numpy.typing as npt
 from scipy import linalg
-from torch import Tensor
-import torch
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.ikernel import IKernel

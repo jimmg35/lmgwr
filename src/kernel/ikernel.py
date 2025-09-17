@@ -210,33 +210,4 @@ class IKernel:
         # store the weighted matrix in the cache
         self.weighted_matrix_cache[index] = weighted_matrix.reshape(-1, 1)
 
-    # def __spatial_weights(self,
-    #                       zs: Tensor,
-    #                       distance_vector: Tensor,
-    #                       distance_bandwidth: Tensor
-    #                       ):
-    #     weighted_matrix_i = torch.zeros_like(
-    #         zs, dtype=torch.float32, requires_grad=True).to('cuda')
 
-    #     if self.kernel_type == 'triangular':
-    #         weighted_matrix_i = 1 - zs
-    #     elif self.kernel_type == 'uniform':
-    #         weighted_matrix_i = torch.ones(
-    #             zs.shape, dtype=torch.float32, requires_grad=True).to('cuda') * 0.5
-    #     elif self.kernel_type == 'quadratic':
-    #         weighted_matrix_i = (3. / 4) * (1 - zs**2)
-    #     elif self.kernel_type == 'quartic':
-    #         weighted_matrix_i = (15. / 16) * (1 - zs**2)**2
-    #     elif self.kernel_type == 'gaussian':
-    #         weighted_matrix_i = torch.exp(-0.5 * (zs)**2)
-    #     elif self.kernel_type == 'bisquare':
-    #         weighted_matrix_i = (1 - (zs)**2)**2
-    #     elif self.kernel_type == 'exponential':
-    #         weighted_matrix_i = torch.exp(-zs)
-    #     else:
-    #         raise ValueError('Unsupported kernel function')
-
-    #     if self.kernel_type == 'bisquare':
-    #         weighted_matrix_i[(distance_vector >= distance_bandwidth)] = 0
-
-    #     return weighted_matrix_i
