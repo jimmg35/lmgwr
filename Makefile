@@ -1,38 +1,50 @@
-.PHONY: unittest run exportCondaEnv importCondaEnv setup
+# ==========================================================
+# Project: LMGWR
+# Author : Jim Chang
+# ==========================================================
 
-# Author: Jim Chang
+.PHONY: demo env test setup
 
-# ================ Demo related commands ================
+# ╔════════════════════════════════════════╗
+# 🌍 Demo Commands
+# ╚════════════════════════════════════════╝
 
-# The vanilla GWR demo.
-gwrVanillaDemo:
-	python script-gwr-vanilla-demo.py
+## Run the vanilla GWR demo (Georgia dataset).
+demo-gwr:
+	python script-gwr-vanilla-georgia.py
 
-# The GWR demo with reinforcement learning.
-gwrRlDemo:
+## Run the GWR demo with reinforcement learning.
+demo-gwr-rl:
 	python script-gwr-rl-demo.py
 
-# The LGWR demo with reinforcement learning.
-lgwrRlDemo:
+## Run the LGWR demo with reinforcement learning.
+demo-lgwr-rl:
 	python script-lgwr-rl-demo.py
-lgwrRlVisualize:
+
+## Visualize the LGWR reinforcement learning results.
+demo-lgwr-rl-visual:
 	python script-lgwr-rl-visualize.py
 
-# ========== Conda Environment related commands ==========
+# ╔════════════════════════════════════════╗
+# 📦 Conda Environment
+# ╚════════════════════════════════════════╝
 
-# Export the conda environment to a file. 
-# (includes all dependencies and python version)
-exportCondaEnv:
+## Export the current conda environment (name: lmgwr).
+env-export:
 	conda env export -n lmgwr -f environment-linux.yml
-# Create a new conda environment from the file.
-importCondaEnv:
+
+## Import conda environment from file.
+env-import:
 	conda env create -f environment-linux.yml
-# Initialize the src directory (for absolute imports).
+
+## Install the source directory for absolute imports.
 setup:
 	pip install -e .
 
-# ================ Unit test related commands ================
+# ╔════════════════════════════════════════╗
+# 🧪 Unit Testing
+# ╚════════════════════════════════════════╝
 
-# Run unit test for all test scripts.
-unittest:
+## Run all unit tests with pytest.
+test:
 	export PYTHONPATH=$(PWD) && echo $(PYTHONPATH) && pytest
