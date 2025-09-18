@@ -19,8 +19,11 @@ setup:
 # ╚════════════════════════════════════════╝
 
 ## Run the vanilla GWR demo (Georgia dataset).
-demo-gwr:
+demo-gwr-vanilla-georgia:
 	python ./scripts/script-gwr-vanilla-georgia.py
+
+demo-gwr-vanilla-simulated:
+	python ./scripts/gwr/vanilla/script-gwr-vanilla-simulated.py
 
 ## Run the GWR demo with reinforcement learning.
 demo-gwr-rl:
