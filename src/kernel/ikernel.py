@@ -17,7 +17,6 @@ class IKernel:
 
     dataset: SpatialDataset | None = None
     bandwidth: float | None = None
-    optimizeMode: Literal['cuda', 'cpu'] = 'cuda'
     kernel_type: KernelFunctionType = "bisquare"
     kernel_bandwidth_type: KernelBandwidthType = "adaptive"
     weighted_matrix_cache: Dict[int, npt.NDArray[np.float64]] = {}
@@ -25,7 +24,6 @@ class IKernel:
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 optimizeMode: Literal['cuda', 'cpu'] = 'cuda',
                  kernel_type: KernelFunctionType = 'bisquare',
                  kernel_bandwidth_type: KernelBandwidthType = 'adaptive'
                  ) -> None:
@@ -39,7 +37,6 @@ class IKernel:
                 defaults to 'triangular'.
         """
         self.dataset = dataset
-        self.optimizeMode = optimizeMode
         self.kernel_type = kernel_type
         self.kernel_bandwidth_type = kernel_bandwidth_type
 
