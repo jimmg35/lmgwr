@@ -8,7 +8,7 @@ from src.kernel.gwr_kernel import GwrKernel
 from src.optimizer.gwr_optimizer import GwrOptimizer
 from src.log.gwr_logger import GwrLogger
 from src.dataset.simulated_spatial_dataset import SimulatedSpatialDataset
-from scipy import stats
+from src.utility.distribution_test import normal_distribution_test
 
 
 if __name__ == '__main__':
@@ -46,30 +46,6 @@ if __name__ == '__main__':
     #     sub_title=['prediction error'],
     #     size=field_size
     # )
+    normal_distribution_test(pred_err, title='Prediction Error', xlabel='Error')
 
-    import matplotlib.pyplot as plt
-
-    # Plot histogram of pred_err
-    plt.hist(pred_err, bins=30, density=True, alpha=0.6, color='g')
-    plt.title('Histogram of Prediction Error')
-    plt.xlabel('Error')
-    plt.ylabel('Density')
-
-    # Fit a normal distribution to the data
-    mu, std = stats.norm.fit(pred_err)
-
-    # Plot the PDF of the fitted normal distribution
-    xmin, xmax = plt.xlim()
-    x = np.linspace(xmin, xmax, 100)
-    p = stats.norm.pdf(x, mu, std)
-    plt.plot(x, p, 'k', linewidth=2)
-    plt.show()
-
-    # Perform normality test (Shapiro-Wilk)
-    stat, p_value = stats.shapiro(pred_err)
-    print(f'Shapiro-Wilk test statistic: {stat}, p-value: {p_value}')
-    if p_value > 0.05:
-        print("pred_err appears to be normally distributed (fail to reject H0)")
-    else:
-        print("pred_err does not appear to be normally distributed (reject H0)")
 
