@@ -4,3 +4,4 @@
 **/__pycache__/
 /gwr.egg-info
 /lmgwr.egg-info
+/scripts/notebook/logs

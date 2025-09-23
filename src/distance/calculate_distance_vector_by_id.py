@@ -1,9 +1,9 @@
-import torch
+
 import numpy as np
 import numpy.typing as npt
 from src.dataset.spatial_dataset import SpatialDataset
-from src.distance.haversine_distance.haversine_distance import haversine_distance, haversine_distance_torch
-from src.distance.euclidean_distance.euclidean_distance import euclidean_distance, euclidean_distance_torch
+from src.distance.haversine_distance.haversine_distance import haversine_distance
+from src.distance.euclidean_distance.euclidean_distance import euclidean_distance
 
 
 def calculate_distance_vector_by_id(index: int, dataset: SpatialDataset) -> npt.NDArray[np.float64]:

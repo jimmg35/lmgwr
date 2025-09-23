@@ -73,14 +73,16 @@ class SimulatedSpatialDataset(SpatialDataset):
         return processes
 
     def fit_y(self, b0, b1, b2):
-        err = np.random.randn(self.field_size * self.field_size)
+        self.err = np.random.randn(self.field_size * self.field_size)
         self.y = (b0 * self.X[:, 0] + b1 * self.X[:, 1] + b2 *
-                  self.X[:, 2] + err).reshape(-1, 1)
-        return [self.X, self.y]
+                  self.X[:, 2] + self.err).reshape(-1, 1)
+        return [self.X, self.y, self.err]
 
     def plot(self, b, sub_title=['', '', '', ''], size=40, vmin=None, vmax=None):
         k = len(b)
         fig, axs = plt.subplots(1, k, figsize=(6*k, 4))
+        if k == 1:
+            axs = [axs]
         for i in range(k):
             if i == 0:
                 ax = axs[i].imshow(b[i].reshape(size, size),
