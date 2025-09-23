@@ -20,26 +20,31 @@ setup:
 
 ## Run the vanilla GWR demo (Georgia dataset).
 demo-gwr-vanilla-georgia:
-	python ./scripts/script-gwr-vanilla-georgia.py
+	python ./scripts/gwr/vanilla/script-gwr-vanilla-georgia.py
 
 demo-gwr-vanilla-simulated:
 	python ./scripts/gwr/vanilla/script-gwr-vanilla-simulated.py
 
-## Run the GWR demo with reinforcement learning.
-demo-gwr-rl:
-	python ./scripts/script-gwr-rl-demo.py
-
 ## Run the GWR demo with reinforcement learning on simulated data.
 demo-gwr-rl-simulated:
-	python ./scripts/script-gwr-rl-simulated.py
+	python ./scripts/gwr/rl/script-gwr-rl-simulated.py
+
+## Run the LGWR demo with reinforcement learning on simulated data.
+demo-lgwr-rl-simulated:
+	python ./scripts/lgwr/rl/script-lgwr-rl-simulated.py
+
+## Run the GWR demo with reinforcement learning.
+demo-gwr-rl:
+	python ./scripts/gwr/rl/script-gwr-rl-georgia.py
+
 
 ## Run the LGWR demo with reinforcement learning.
 demo-lgwr-rl:
-	python ./scripts/script-lgwr-rl-demo.py
+	python ./scripts/lgwr/rl/script-lgwr-rl-georgia.py
 
 ## Visualize the LGWR reinforcement learning results.
 demo-lgwr-rl-visual:
-	python ./scripts/script-lgwr-rl-visualize.py
+	python ./scripts/lgwr/visualize/script-lgwr-rl-visualize.py
 
 
 
