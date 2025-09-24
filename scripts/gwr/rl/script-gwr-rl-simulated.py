@@ -46,8 +46,6 @@ if __name__ == '__main__':
     env = GwrOptimizerRL(
         gwr,
         logger,
-        # REWARD_THRESHOLD,
-        None,
         TOTAL_TIMESTEPS,
         min_bandwidth=MIN_BANDWIDTH,
         max_bandwidth=dataset.X.shape[0],
