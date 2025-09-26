@@ -17,9 +17,6 @@ MAX_ACTION = 10
 
 MIN_BANDWIDTH = 30
 
-# REWARD_TYPE = LgwrRewardType.AICC
-# REWARD_THRESHOLD = 300
-
 
 if __name__ == '__main__':
 
@@ -52,8 +49,6 @@ if __name__ == '__main__':
     env = GwrOptimizerRL(
         gwr,
         logger,
-        # REWARD_THRESHOLD,
-        None,
         TOTAL_TIMESTEPS,
         min_bandwidth=MIN_BANDWIDTH,
         max_bandwidth=spatialDataset.X.shape[0],

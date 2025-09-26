@@ -46,7 +46,8 @@ demo-lgwr-rl:
 demo-lgwr-rl-visual:
 	python ./scripts/lgwr/visualize/script-lgwr-rl-visualize.py
 
-
+demo-test-dgp:
+	python ./scripts/.unclassified/script-test-dgp.py
 
 # ╔════════════════════════════════════════╗
 # 🧪 Unit Testing

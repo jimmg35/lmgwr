@@ -13,28 +13,32 @@ class SimulatedSpatialDataset(SpatialDataset):
     field_size: int
     data_seed: int
     process_seed: list[int]
+    error_seed: int
     k: int
     coordinates: npt.NDArray[np.float64]
 
     def __init__(self,
                  field_size=40,
                  data_seed=222,
-                 process_seed=[555, 888],
-                 k=1
+                 process_seed=[555, 888, 111],
+                 error_seed=333,
+                 k=2
                  ) -> None:
         self.field_size = field_size
         self.data_seed = data_seed
         self.process_seed = process_seed
+        self.error_seed = error_seed
         self.k = k
 
-        self.__generate_data()
-
-    def __generate_data(self):
+    def generate_data(self):
         np.random.seed(self.data_seed)
         X_list = []
-        for _ in range(self.k + 1):
-            X_list.append(np.random.randn(self.field_size * self.field_size))
+        for _ in range(self.k):
+            X_list.append(
+                np.random.randn(self.field_size * self.field_size)
+            )
         self.X = np.vstack(X_list).T
+
         # Add a column of ones as the first column for the intercept
         if self.useIntercept:
             self.X = np.hstack(
@@ -47,8 +51,9 @@ class SimulatedSpatialDataset(SpatialDataset):
                      num=self.field_size)]*self.field_size).T.reshape(-1)
         self.coordinates = np.array(list(zip(u, v)))
 
+        return [self.X]
+
     def generate_processes(self):
-        np.random.seed(self.data_seed)
 
         class GWR_gau(CovModel):
             def correlation(self, r):
@@ -60,23 +65,31 @@ class SimulatedSpatialDataset(SpatialDataset):
         ]
 
         processes = []
-        for i, seed in enumerate(self.process_seed):
+        process_k = self.k
+        if self.useIntercept:
+            process_k = self.k + 1  # add one for intercept
+
+        for i in range(process_k):
             model = GWR_gau(dim=2, var=1, len_scale=6 * (i + 1))
-            srf = SRF(model, mean=0, seed=seed)
+            srf = SRF(
+                model,
+                mean=0,
+                seed=self.process_seed[i]
+            )
             process = srf.structured(coords).reshape(-1)
             process = (process - process.mean()) / process.std() + 2
             processes.append(process)
 
-        b2 = np.ones(self.field_size * self.field_size).reshape(-1) * 2
-        processes.append(b2)
+        return [np.array(processes).T]
 
-        return processes
-
-    def fit_y(self, b0, b1, b2):
+    def fit_y(self, X, beta):
+        """
+        Fit the response variable y based on the design matrix X and coefficients b0, b1, b2.
+        """
+        np.random.seed(self.error_seed)
         self.err = np.random.randn(self.field_size * self.field_size)
-        self.y = (b0 * self.X[:, 0] + b1 * self.X[:, 1] + b2 *
-                  self.X[:, 2] + self.err).reshape(-1, 1)
-        return [self.X, self.y, self.err]
+        self.y = np.sum(X * beta, axis=1) + self.err
+        return [self.y, self.err]
 
     def plot(self, b, sub_title=['', '', '', ''], size=40, vmin=None, vmax=None):
         k = len(b)

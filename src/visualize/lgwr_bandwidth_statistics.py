@@ -35,7 +35,7 @@ class LgwrBandwidthStatistics:
             f"{'Mean':<25} | {self.mean_bandwidth:.4f}\n"
             f"{'Variance':<25} | {self.variance_bandwidth:.4f}\n"
             f"{'Mean Absolute Deviation':<25} | {self.mean_absolute_deviation:.4f}\n"
-            f"{'Moran\'s I':<25} | {self.moran_i:.4f}\n"
+            f"{'Morans I':<25} | {self.moran_i:.4f}\n"
             f"{'Moran p-value':<25} | {self.moran_p_value:.4f}\n"
             f"{'-'*40}"
         )

@@ -3,7 +3,7 @@ import pandas as pd
 import geopandas as gp
 
 from src.dataset.spatial_dataset import SpatialDataset
-from src.dataset.interfaces.spatial_dataset import FieldInfo
+from src.dataset.interfaces.idataset import FieldInfo
 
 
 def test_spatial_dataset():
