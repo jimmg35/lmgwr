@@ -17,9 +17,6 @@ MAX_ACTION = 10
 
 MIN_BANDWIDTH = 30
 
-# REWARD_TYPE = LgwrRewardType.AICC
-# REWARD_THRESHOLD = 300
-
 
 if __name__ == '__main__':
 

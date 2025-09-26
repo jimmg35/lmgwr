@@ -1,5 +1,4 @@
 
-import numpy as np
 from stable_baselines3 import PPO
 
 from src.optimizer.reinforce.gwr_optimizer import GwrOptimizerRL
@@ -75,12 +74,12 @@ if __name__ == '__main__':
     # )
 
     pred_y = (b0_gwr * dataset.X[:, 0] + b1_gwr * dataset.X[:, 1] + b2_gwr *
-                dataset.X[:, 2] + dataset.err).reshape(-1, 1)
+              dataset.X[:, 2] + dataset.err).reshape(-1, 1)
     pred_err = pred_y - y
     # dataset.plot(
     #     b=np.vstack(pred_err.T),
     #     sub_title=['prediction error'],
     #     size=field_size
     # )
-    normal_distribution_test(pred_err, title='Prediction Error', xlabel='Error')
-
+    normal_distribution_test(
+        pred_err, title='Prediction Error', xlabel='Error')
