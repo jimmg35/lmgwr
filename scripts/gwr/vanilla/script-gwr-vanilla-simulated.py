@@ -11,6 +11,10 @@ from src.dataset.simulated_spatial_dataset import SimulatedSpatialDataset
 from src.utility.distribution_test import normal_distribution_test
 
 
+from mgwr.gwr import GWR as OfficialGWR
+from mgwr.sel_bw import Sel_BW
+
+
 if __name__ == '__main__':
 
     # Create a logger to record the GWR model's information.
