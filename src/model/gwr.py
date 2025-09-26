@@ -43,7 +43,8 @@ class GWR(IModel):
             self._local_fit(index)
 
         # update estimates (outside of loop for calculations)
-        self.residuals = self.dataset.y - self.y_hats.reshape(-1, 1)
+        self.residuals = self.dataset.y.reshape(-1, 1) - \
+            self.y_hats.reshape(-1, 1)
 
         super()._calculate_r_squared()
         super()._calculate_aic_aicc()

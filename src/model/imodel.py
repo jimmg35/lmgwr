@@ -169,6 +169,6 @@ class IModel:
         trS = np.sum(self.S)
         llf = -0.5 * n * (np.log(2.0 * np.pi * sigma2) + 1)
         AIC = -2.0 * llf + 2.0 * (trS + 1)
-        AICc = AIC + (2.0 * trS * (trS + 1.0)) / (n - trS - 2.0)
+        AICc = -2.0 * llf + 2.0 * n * (trS + 1) / (n - trS - 2.0)
         self.aic = AIC
         self.aicc = AICc
