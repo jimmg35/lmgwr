@@ -9,24 +9,19 @@ from src.log.gwr_logger import GwrLogger
 
 if __name__ == "__main__":
 
-
-    ## Create a simulated dataset.
+    # Create a simulated dataset.
     field_size = 40
     dataset = SimulatedSpatialDataset(field_size=field_size)
-    [b0, b1, b2] = dataset.generate_processes()
-    [X, y, err] = dataset.fit_y(b0, b1, b2)
-    # dataset.plot(
-    #     b=np.vstack([b0, b1, b2]),
-    #     sub_title=['b0', 'b1', 'b2'],
-    #     size=field_size
-    # )
+    [X] = dataset.generate_data()
+    [beta] = dataset.generate_processes()
+    [y, err] = dataset.fit_y(X, beta)
 
-    ## Create a GWR kernel and GWR model.
+    # Create a GWR kernel and GWR model.
     logger = GwrLogger()
     kernel = GwrKernel(dataset, 'bisquare')
     gwr = GWR(dataset, kernel, logger)
 
-    ## Use the vanilla bandwidth optimizer to automatically find the optimal bandwidth.
+    # Use the vanilla bandwidth optimizer to automatically find the optimal bandwidth.
     optimizer = GwrOptimizer(gwr, kernel, logger)
     optimal_bandwidth = optimizer.optimize()
 
