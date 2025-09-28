@@ -18,6 +18,9 @@ setup:
 # 🌍 Demo Commands
 # ╚════════════════════════════════════════╝
 
+demo-test:
+	python ./scripts/test_gwr_equivalence.py
+
 ## Run the vanilla GWR demo (Georgia dataset).
 demo-gwr-vanilla-georgia:
 	python ./scripts/gwr/vanilla/script-gwr-vanilla-georgia.py
