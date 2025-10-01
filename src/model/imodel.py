@@ -13,10 +13,10 @@ class IModel:
     logger: ILogger
 
     # estimates for each data point
-    betas: npt.NDArray[np.float64]  # | Tensor
-    y_hats: npt.NDArray[np.float64]  # | Tensor
-    S: npt.NDArray[np.float64]  # | Tensor  # hat matrix
-    residuals: npt.NDArray[np.float64]  # | Tensor
+    betas: npt.NDArray[np.float64]
+    y_hats: npt.NDArray[np.float64]
+    S: npt.NDArray[np.float64]
+    residuals: npt.NDArray[np.float64]
 
     # matrices for the GWR model
     r_squared: float
