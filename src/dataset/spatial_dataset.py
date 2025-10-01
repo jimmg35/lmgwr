@@ -27,12 +27,14 @@ class SpatialDataset(IDataset):
         X (npt.NDArray[np.float64]): A matrix of predictor values extracted from the data points.
         y (npt.NDArray[np.float64]): A column vector of response values extracted from the data points.
     """
-    logger: ILogger | None = None
     fieldInfo: FieldInfo
     isSpherical: bool = False
 
     coordinates: npt.NDArray[np.float64]
     geometry: GeoDataFrame | None = None
+
+    k: int
+    n: int
 
     def __init__(
         self,
@@ -94,6 +96,8 @@ class SpatialDataset(IDataset):
             self.X = np.hstack(
                 (np.ones((self.X.shape[0], 1)), self.X)
             )
+
+        self.n, self.k = self.X.shape
 
     def __verify_data_schema(self, data: pd.DataFrame) -> None:
         """

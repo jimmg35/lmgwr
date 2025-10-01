@@ -6,6 +6,7 @@ from tqdm import tqdm
 from src.model.base import Base
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
+from src.kernel.lgwr_kernel import LgwrKernel
 from src.log.gwr_logger import GwrLogger
 from src.kernel.ikernel import IKernel
 from src.log.ilogger import ILogger
@@ -26,7 +27,7 @@ class GWR(Base):
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 kernel: IKernel) -> None:
+                 kernel: GwrKernel | LgwrKernel) -> None:
         super().__init__(dataset, kernel)
 
     def fit(self) -> None:

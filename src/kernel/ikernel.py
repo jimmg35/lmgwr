@@ -44,13 +44,13 @@ class IKernel:
 
     def update_bandwidth(self, bandwidth: float) -> None:
         """
-            for gwr
+            for gwr, mgwr
         """
         raise NotImplementedError("Method not implemented")
 
     def update_local_bandwidth(self, index: int, bandwidth: float):
         """
-            for lgwr
+            for lgwr, lmgwr
         """
         raise NotImplementedError("Method not implemented")
 
@@ -206,5 +206,3 @@ class IKernel:
 
         # store the weighted matrix in the cache
         self.weighted_matrix_cache[index] = weighted_matrix.reshape(-1, 1)
-
-

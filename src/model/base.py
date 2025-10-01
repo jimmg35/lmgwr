@@ -51,6 +51,10 @@ class Base:
         """ GWR"""
         raise NotImplementedError("Method not implemented")
 
+    # def update_bandwidth_set(self, bandwidth: float):
+    #     """ MGWR"""
+    #     raise NotImplementedError("Method not implemented")
+
     def update_local_bandwidth(self, index: int, bandwidth: float):
         """ LGWR """
         raise NotImplementedError("Method not implemented")
