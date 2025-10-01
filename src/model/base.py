@@ -1,10 +1,10 @@
 import numpy as np
 import numpy.typing as npt
 from scipy import linalg
+from typing import List
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.ikernel import IKernel
-from src.log.ilogger import ILogger
 
 
 class Base:
@@ -39,7 +39,7 @@ class Base:
             f"{self.__class__.__name__} : {self.__class__.__name__} model is initialized."
         )
 
-    def fit(self) -> None:
+    def fit(self):
         """
         Fit the GWR model with the provided dataset and spatial weights based on the kernel.
         This method iterates over each data point in the dataset and calculates local regression
@@ -51,9 +51,9 @@ class Base:
         """ GWR"""
         raise NotImplementedError("Method not implemented")
 
-    # def update_bandwidth_set(self, bandwidth: float):
-    #     """ MGWR"""
-    #     raise NotImplementedError("Method not implemented")
+    def update_bandwidth_set(self, bandwidth_set: List[float]):
+        """ MGWR"""
+        raise NotImplementedError("Method not implemented")
 
     def update_local_bandwidth(self, index: int, bandwidth: float):
         """ LGWR """

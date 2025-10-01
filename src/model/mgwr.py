@@ -10,13 +10,13 @@ from src.kernel.gwr_kernel import GwrKernel
 
 class MGWR(Base):
 
-    bandwidth_set: list[float]
+    bandwidth_set: list[float] | None
 
     def __init__(self,
                  dataset: SpatialDataset,
                  kernel: GwrKernel) -> None:
         super().__init__(dataset, kernel)
-        self.bandwidth_set = []
+        self.bandwidth_set = None
 
     def exact_fit(self) -> None:
         """ 
@@ -27,15 +27,25 @@ class MGWR(Base):
 
         if not isinstance(self.kernel, GwrKernel):
             raise TypeError("kernel must be of type GwrKernel")
+        if self.bandwidth_set is None:
+            raise ValueError(
+                "bandwidth_set must be provided before fitting the model")
 
-        P = []
-        Q = []
-        I = np.eye(self.dataset.n)
-        self.kernel
-        # for j_1 in range(self.dataset.n):
+        # P = []
+        # Q = []
+        # I = np.eye(self.dataset.n)
+        b = []
+        for j_1 in range(self.dataset.k):
+            self.dataset.use_column(j_1)
+            gwr = GWR(self.dataset, self.kernel).update_bandwidth(
+                self.bandwidth_set[j_1]).fit()
+            b.append(gwr.betas)
 
-        #     Aj = GWR(self.dataset, self.kernel).update_bandwidth()
-        #     Pj = []
+        comB = np.hstack(b)
+
+        print(comB)
+        # Pj = []
 
     def update_bandwidth_set(self, bandwidth_set):
         self.bandwidth_set = bandwidth_set
+        return self

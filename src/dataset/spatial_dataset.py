@@ -27,6 +27,9 @@ class SpatialDataset(IDataset):
         X (npt.NDArray[np.float64]): A matrix of predictor values extracted from the data points.
         y (npt.NDArray[np.float64]): A column vector of response values extracted from the data points.
     """
+    X: npt.NDArray[np.float64]
+    X_original: npt.NDArray[np.float64]
+    y: npt.NDArray[np.float64]
     fieldInfo: FieldInfo
     isSpherical: bool = False
 
@@ -98,6 +101,7 @@ class SpatialDataset(IDataset):
             )
 
         self.n, self.k = self.X.shape
+        self.X_original = self.X.copy()
 
     def __verify_data_schema(self, data: pd.DataFrame) -> None:
         """
@@ -143,6 +147,10 @@ class SpatialDataset(IDataset):
         fig, ax = plt.subplots(figsize=(10, 10))
         self.geometry.plot(ax=ax, edgecolor='black', facecolor='white')
         self.geometry.centroid.plot(ax=ax, c='black')
+
+    def use_column(self, index: int):
+        self.X = self.X_original.copy()
+        self.X = self.X[:, index].reshape(-1, 1)
 
 
 if __name__ == '__main__':

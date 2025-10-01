@@ -30,7 +30,7 @@ class GWR(Base):
                  kernel: GwrKernel | LgwrKernel) -> None:
         super().__init__(dataset, kernel)
 
-    def fit(self) -> None:
+    def fit(self):
         """ 
         Fit the GWR model with the provided dataset and spatial weights based on the kernel.
         This method iterates over each data point in the dataset and calculates local regression
@@ -48,6 +48,9 @@ class GWR(Base):
 
         super()._calculate_r_squared()
         super()._calculate_aic_aicc()
+        print("GWR : GWR model fitting is complete.")
+
+        return self
 
     def update_bandwidth(self, bandwidth: float):
         """
