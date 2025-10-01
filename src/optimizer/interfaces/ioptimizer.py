@@ -1,17 +1,17 @@
 from src.kernel.ikernel import IKernel
-from src.model.imodel import IModel
+from src.model.base import Base
 from src.log.ilogger import ILogger
 
 
 class IOptimizer:
-    model: IModel
+    model: Base
     kernel: IKernel
     logger: ILogger
 
     search_range: tuple
 
     def __init__(self,
-                 model: IModel,
+                 model: Base,
                  kernel: IKernel,
                  logger: ILogger) -> None:
         self.model = model

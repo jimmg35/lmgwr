@@ -40,7 +40,6 @@ if __name__ == '__main__':
             coordinate_x_field='X',
             coordinate_y_field='Y'
         ),
-        logger=gwrLogger,
         isSpherical=False
     )
 

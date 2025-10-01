@@ -7,7 +7,7 @@ from src.kernel.ikernel import IKernel
 from src.log.ilogger import ILogger
 
 
-class IModel:
+class Base:
     dataset: SpatialDataset
     kernel: IKernel
     logger: ILogger
@@ -147,7 +147,6 @@ class IModel:
         ss_total = np.sum((self.dataset.y - y_bar) ** 2)
         ss_res = np.sum(self.residuals ** 2)
         self.r_squared = float(1 - ss_res / ss_total)
-        # self.logger.update_matrics('R-squared', self.r_squared)
 
     def _calculate_aic_aicc(self) -> None:
         """

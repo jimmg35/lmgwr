@@ -3,7 +3,7 @@ import numpy.typing as npt
 from scipy import linalg
 from tqdm import tqdm
 
-from src.model.imodel import IModel
+from src.model.base import Base
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.log.gwr_logger import GwrLogger
@@ -11,7 +11,7 @@ from src.kernel.ikernel import IKernel
 from src.log.ilogger import ILogger
 
 
-class GWR(IModel):
+class GWR(Base):
     """
     A class for performing Geographically Weighted Regression (GWR) using a spatial dataset.
 
