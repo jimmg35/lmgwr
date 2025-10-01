@@ -6,7 +6,6 @@ import geopandas as gp
 from src.dataset.spatial_dataset import SpatialDataset
 from src.dataset.interfaces.idataset import FieldInfo
 from src.visualize.lgwr_visualizer import LgwrVisualizer
-from src.log.lgwr_logger import LgwrLogger
 
 
 if __name__ == "__main__":
@@ -14,7 +13,6 @@ if __name__ == "__main__":
     log_dir = r'./locked-logs/georgia/03-super-large-episode'
     lgwr_log_files = os.listdir(log_dir)
 
-    logger = LgwrLogger()
     georgia_data = pd.read_csv(r'./data/GData_utm.csv')
     georgia_shp = gp.read_file(r'./data/G_utm.shp')
     spatialDataset = SpatialDataset(

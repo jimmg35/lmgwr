@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     # Create a GWR kernel and GWR model.
     kernel = GwrKernel(dataset, 'bisquare')
-    gwr = GWR(dataset, kernel, logger)
+    gwr = GWR(dataset, kernel)
 
     gwr.update_bandwidth(100).fit()
 

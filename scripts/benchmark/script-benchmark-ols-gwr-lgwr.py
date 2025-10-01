@@ -21,7 +21,7 @@ def fit_OLS(dataset):
 
 def fit_GWR(dataset, logger):
     kernel = GwrKernel(dataset, 'bisquare')
-    gwr = GWR(dataset, kernel, logger)
+    gwr = GWR(dataset, kernel)
     optimizer = GwrOptimizer(gwr, kernel, logger)
     optimal_bandwidth = optimizer.optimize()
     return gwr.r_squared, optimal_bandwidth

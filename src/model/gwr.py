@@ -26,9 +26,8 @@ class GWR(Base):
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 kernel: IKernel,
-                 logger: ILogger) -> None:
-        super().__init__(dataset, kernel, logger)
+                 kernel: IKernel) -> None:
+        super().__init__(dataset, kernel)
 
     def fit(self) -> None:
         """ 

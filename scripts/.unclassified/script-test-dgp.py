@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # Create a GWR kernel and GWR model.
     logger = GwrLogger()
     kernel = GwrKernel(dataset, 'bisquare')
-    gwr = GWR(dataset, kernel, logger)
+    gwr = GWR(dataset, kernel)
 
     # Use the vanilla bandwidth optimizer to automatically find the optimal bandwidth.
     optimizer = GwrOptimizer(gwr, kernel, logger)

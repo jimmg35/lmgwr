@@ -10,7 +10,6 @@ from src.log.ilogger import ILogger
 class Base:
     dataset: SpatialDataset
     kernel: IKernel
-    logger: ILogger
 
     # estimates for each data point
     betas: npt.NDArray[np.float64]
@@ -25,8 +24,7 @@ class Base:
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 kernel: IKernel,
-                 logger: ILogger) -> None:
+                 kernel: IKernel) -> None:
         """
         Initializes the GWR model with the specified spatial dataset and kernel.
 
@@ -36,10 +34,10 @@ class Base:
         """
         self.dataset = dataset
         self.kernel = kernel
-        self.logger = logger
 
-        self.logger.append_info(
-            f"{self.__class__.__name__} : {self.__class__.__name__} model is initialized.")
+        print(
+            f"{self.__class__.__name__} : {self.__class__.__name__} model is initialized."
+        )
 
     def fit(self) -> None:
         """

@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     # Create a GWR kernel and GWR model.
     kernel = GwrKernel(spatialDataset, 'bisquare')
-    gwr = GWR(spatialDataset, kernel, logger)
+    gwr = GWR(spatialDataset, kernel)
 
     # Use the bandwidth optimizer to automatically find the optimal bandwidth.
     optimizer = GwrOptimizer(gwr, kernel, logger)

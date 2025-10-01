@@ -44,7 +44,7 @@ if __name__ == '__main__':
         kernel_type='bisquare',
         kernel_bandwidth_type='adaptive'
     )
-    lgwr = LGWR(spatialDataset, kernel, logger)
+    lgwr = LGWR(spatialDataset, kernel)
 
     # Initialize lgwr gym environment
     env = LgwrOptimizerRL(

@@ -38,7 +38,6 @@ class SpatialDataset(IDataset):
         self,
         data: DataFrame,
         fieldInfo: FieldInfo,
-        # logger: ILogger | None = None,
         geometry: GeoDataFrame | None = None,
         isSpherical: bool = False,
         useIntercept: bool = True,
@@ -60,9 +59,6 @@ class SpatialDataset(IDataset):
         Raises:
             ValueError: If any required fields specified in `fieldInfo` are missing from the dataset.
         """
-        # Register the state of the dataset
-        # if logger is not None:
-        #     self.logger = logger
         self.geometry = geometry
         self.fieldInfo = fieldInfo
         self.isSpherical = isSpherical
@@ -133,10 +129,6 @@ class SpatialDataset(IDataset):
             )
 
         print(f"{self.__class__.__name__} : Data schema is verified.")
-
-        # if self.logger is not None:
-        #     self.logger.append_info(
-        #         f"{self.__class__.__name__} : Data schema is verified.")
 
     def plot_map(self):
         if self.geometry is None:
