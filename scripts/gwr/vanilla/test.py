@@ -30,12 +30,12 @@ if __name__ == '__main__':
 
     # Create a GWR kernel and GWR model.
     kernel = GwrKernel(spatialDataset, 'bisquare')
-    gwr = GWR(spatialDataset, kernel)
-    gwr.update_bandwidth(30).fit()
+    # gwr = GWR(spatialDataset, kernel)
+    # gwr.update_bandwidth(30).fit()
 
-    print(gwr.S)
+    # print(gwr.S)
 
-    # mgwr = MGWR(spatialDataset, kernel)
-    # mgwr.update_bandwidth_set(
-    #     [30, 30, 30, 30]
-    # ).exact_fit()
+    mgwr = MGWR(spatialDataset, kernel)
+    mgwr.update_bandwidth_set(
+        [92, 101, 136, 158]
+    ).exact_fit()

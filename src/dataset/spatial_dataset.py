@@ -152,6 +152,9 @@ class SpatialDataset(IDataset):
         self.X = self.X_original.copy()
         self.X = self.X[:, index].reshape(-1, 1)
 
+    def reset_columns(self):
+        self.X = self.X_original.copy()
+
 
 if __name__ == '__main__':
     synthetic_data = pd.read_csv(r'./data/synthetic_dataset.csv')

@@ -31,20 +31,42 @@ class MGWR(Base):
             raise ValueError(
                 "bandwidth_set must be provided before fitting the model")
 
-        # P = []
-        # Q = []
-        # I = np.eye(self.dataset.n)
-        b = []
+        P = []
+        Q = []
+        I = np.eye(self.dataset.n)
         for j_1 in range(self.dataset.k):
             self.dataset.use_column(j_1)
-            gwr = GWR(self.dataset, self.kernel).update_bandwidth(
-                self.bandwidth_set[j_1]).fit()
-            b.append(gwr.betas)
+            Aj = GWR(self.dataset, self.kernel).update_bandwidth(
+                self.bandwidth_set[j_1]).fit().S
+            Pj = []
+            for j_2 in range(self.dataset.k):
+                if j_1 == j_2:
+                    Pj.append(I)
+                else:
+                    Pj.append(Aj)
+            P.append(Pj)
+            Q.append([Aj])
 
-        comB = np.hstack(b)
+        P = np.block(P)
+        Q = np.block(Q)
+        R = np.linalg.solve(P, Q)
+        f = R.dot(self.dataset.y)
 
-        print(comB)
-        # Pj = []
+        self.dataset.reset_columns()
+        params = f / self.dataset.X.T.reshape(-1, 1)
+        params = params.reshape(-1, self.dataset.n).T
+
+        print(params)
+
+        R = np.stack(np.split(R, self.dataset.k), axis=2)
+        ENP_j = np.trace(R, axis1=0, axis2=1)
+        predy = np.sum(self.dataset.X * params, axis=1).reshape(-1, 1)
+        w = np.ones(self.dataset.n)
+
+        CCT = np.zeros((self.dataset.n, self.dataset.k))
+        for j in range(self.dataset.k):
+            CCT[:, j] = (
+                (R[:, :, j] / self.dataset.X[:, j].reshape(-1, 1))**2).sum(axis=1)
 
     def update_bandwidth_set(self, bandwidth_set):
         self.bandwidth_set = bandwidth_set
