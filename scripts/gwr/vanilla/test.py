@@ -33,9 +33,9 @@ if __name__ == '__main__':
     gwr = GWR(spatialDataset, kernel)
     gwr.update_bandwidth(30).fit()
 
-    # print(gwr.betas)
+    print(gwr.S)
 
-    mgwr = MGWR(spatialDataset, kernel)
-    mgwr.update_bandwidth_set(
-        [30, 30, 30, 30]
-    ).exact_fit()
+    # mgwr = MGWR(spatialDataset, kernel)
+    # mgwr.update_bandwidth_set(
+    #     [30, 30, 30, 30]
+    # ).exact_fit()
