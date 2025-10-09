@@ -69,7 +69,7 @@ class Base:
         """
         self.betas = np.zeros((len(self.dataset), self.dataset.X.shape[1]))
         self.y_hats = np.zeros(len(self.dataset))
-        self.S = np.zeros(len(self.dataset))
+        self.S = np.zeros((self.dataset.n, self.dataset.n))
         self.residuals = np.zeros(len(self.dataset))
 
     def _local_fit(self, index: int) -> None:
@@ -87,16 +87,12 @@ class Base:
             ValueError: If there is an error in matrix calculations.
         """
 
-        beta, _, wi = self._estimate_beta_by_index(index)
-
-        # calculate elements for estimates and matrices
-        XtWX = self.dataset.X.T @ (wi * self.dataset.X)
-        xi = self.dataset.X[index, :].reshape(1, -1)
-        S_ii = xi @ np.linalg.inv(XtWX) @ xi.T
+        beta, xtx_inv_xt, wi = self._estimate_beta_by_index(index)
+        xi = self.dataset.X[index, :].reshape(-1)
 
         self.betas[index, :] = beta.flatten()
         self.y_hats[index] = self.dataset.X[index, :] @ beta
-        self.S[index] = S_ii.flatten()[0]
+        self.S[index] = np.dot(xi, xtx_inv_xt).reshape(-1)
 
     def _estimate_beta_by_index(self, index: int):
         """
