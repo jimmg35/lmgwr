@@ -33,7 +33,6 @@ if __name__ == '__main__':
             coordinate_x_field='Longitud',
             coordinate_y_field='Latitude'
         ),
-        logger=logger,
         isSpherical=True
     )
 
@@ -43,7 +42,7 @@ if __name__ == '__main__':
         kernel_type='bisquare',
         kernel_bandwidth_type='adaptive'
     )
-    gwr = GWR(spatialDataset, kernel, logger)
+    gwr = GWR(spatialDataset, kernel)
 
     # Initial gwr gym environment
     env = GwrOptimizerRL(

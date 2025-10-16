@@ -7,12 +7,13 @@ from src.model.gwr import GWR
 from src.kernel.gwr_kernel import GwrKernel
 from src.optimizer.gwr_optimizer import GwrOptimizer
 from src.log.gwr_logger import GwrLogger
+from src.model.mgwr import MGWR
 
 
 if __name__ == '__main__':
 
     # Create a logger to record the GWR model's information.
-    logger = GwrLogger()
+    # logger = GwrLogger()
 
     # Load the Georgia dataset and create a spatial dataset.
     georgia_data = pd.read_csv(r'../../../data/GData_utm.csv')
@@ -29,8 +30,12 @@ if __name__ == '__main__':
 
     # Create a GWR kernel and GWR model.
     kernel = GwrKernel(spatialDataset, 'bisquare')
-    gwr = GWR(spatialDataset, kernel)
+    # gwr = GWR(spatialDataset, kernel)
+    # gwr.update_bandwidth(30).fit()
 
-    # Use the bandwidth optimizer to automatically find the optimal bandwidth.
-    optimizer = GwrOptimizer(gwr, kernel, logger)
-    optimal_bandwidth = optimizer.optimize()
+    # print(gwr.S)
+
+    mgwr = MGWR(spatialDataset, kernel)
+    mgwr.update_bandwidth_set(
+        [92, 101, 136, 158]
+    ).exact_fit()

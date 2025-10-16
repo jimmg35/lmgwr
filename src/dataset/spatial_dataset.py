@@ -27,18 +27,22 @@ class SpatialDataset(IDataset):
         X (npt.NDArray[np.float64]): A matrix of predictor values extracted from the data points.
         y (npt.NDArray[np.float64]): A column vector of response values extracted from the data points.
     """
-    logger: ILogger | None = None
+    X: npt.NDArray[np.float64]
+    X_original: npt.NDArray[np.float64]
+    y: npt.NDArray[np.float64]
     fieldInfo: FieldInfo
     isSpherical: bool = False
 
     coordinates: npt.NDArray[np.float64]
     geometry: GeoDataFrame | None = None
 
+    k: int
+    n: int
+
     def __init__(
         self,
         data: DataFrame,
         fieldInfo: FieldInfo,
-        logger: ILogger | None = None,
         geometry: GeoDataFrame | None = None,
         isSpherical: bool = False,
         useIntercept: bool = True,
@@ -60,9 +64,6 @@ class SpatialDataset(IDataset):
         Raises:
             ValueError: If any required fields specified in `fieldInfo` are missing from the dataset.
         """
-        # Register the state of the dataset
-        if logger is not None:
-            self.logger = logger
         self.geometry = geometry
         self.fieldInfo = fieldInfo
         self.isSpherical = isSpherical
@@ -99,6 +100,9 @@ class SpatialDataset(IDataset):
                 (np.ones((self.X.shape[0], 1)), self.X)
             )
 
+        self.n, self.k = self.X.shape
+        self.X_original = self.X.copy()
+
     def __verify_data_schema(self, data: pd.DataFrame) -> None:
         """
         Verifies the presence of all required fields in the dataset based on `fieldInfo`.
@@ -132,9 +136,7 @@ class SpatialDataset(IDataset):
                 f"Missing fields in the dataset: {', '.join(missing_fields)}"
             )
 
-        if self.logger is not None:
-            self.logger.append_info(
-                f"{self.__class__.__name__} : Data schema is verified.")
+        print(f"{self.__class__.__name__} : Data schema is verified.")
 
     def plot_map(self):
         if self.geometry is None:
@@ -145,6 +147,13 @@ class SpatialDataset(IDataset):
         fig, ax = plt.subplots(figsize=(10, 10))
         self.geometry.plot(ax=ax, edgecolor='black', facecolor='white')
         self.geometry.centroid.plot(ax=ax, c='black')
+
+    def use_column(self, index: int):
+        self.X = self.X_original.copy()
+        self.X = self.X[:, index].reshape(-1, 1)
+
+    def reset_columns(self):
+        self.X = self.X_original.copy()
 
 
 if __name__ == '__main__':

@@ -1,16 +1,17 @@
 import numpy as np
 import numpy.typing as npt
 from scipy import linalg
+from typing import List
+from spglm.family import Gaussian, Binomial, Poisson
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.ikernel import IKernel
-from src.log.ilogger import ILogger
 
 
-class IModel:
+class Base:
+    model_type: str = "Base"
     dataset: SpatialDataset
     kernel: IKernel
-    logger: ILogger
 
     # estimates for each data point
     betas: npt.NDArray[np.float64]
@@ -22,11 +23,11 @@ class IModel:
     r_squared: float
     aic: float
     aicc: float
+    ENP_j: npt.NDArray[np.float64]
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 kernel: IKernel,
-                 logger: ILogger) -> None:
+                 kernel: IKernel) -> None:
         """
         Initializes the GWR model with the specified spatial dataset and kernel.
 
@@ -36,12 +37,14 @@ class IModel:
         """
         self.dataset = dataset
         self.kernel = kernel
-        self.logger = logger
+        self.family = Gaussian()
+        self.model_type = "Base"
 
-        self.logger.append_info(
-            f"{self.__class__.__name__} : {self.__class__.__name__} model is initialized.")
+        print(
+            f"{self.__class__.__name__} : {self.__class__.__name__} model is initialized."
+        )
 
-    def fit(self) -> None:
+    def fit(self):
         """
         Fit the GWR model with the provided dataset and spatial weights based on the kernel.
         This method iterates over each data point in the dataset and calculates local regression
@@ -51,6 +54,10 @@ class IModel:
 
     def update_bandwidth(self, bandwidth: float):
         """ GWR"""
+        raise NotImplementedError("Method not implemented")
+
+    def update_bandwidth_set(self, bandwidth_set: List[float]):
+        """ MGWR"""
         raise NotImplementedError("Method not implemented")
 
     def update_local_bandwidth(self, index: int, bandwidth: float):
@@ -67,7 +74,7 @@ class IModel:
         """
         self.betas = np.zeros((len(self.dataset), self.dataset.X.shape[1]))
         self.y_hats = np.zeros(len(self.dataset))
-        self.S = np.zeros(len(self.dataset))
+        self.S = np.zeros((self.dataset.n, self.dataset.n))
         self.residuals = np.zeros(len(self.dataset))
 
     def _local_fit(self, index: int) -> None:
@@ -85,16 +92,12 @@ class IModel:
             ValueError: If there is an error in matrix calculations.
         """
 
-        beta, _, wi = self._estimate_beta_by_index(index)
-
-        # calculate elements for estimates and matrices
-        XtWX = self.dataset.X.T @ (wi * self.dataset.X)
-        xi = self.dataset.X[index, :].reshape(1, -1)
-        S_ii = xi @ np.linalg.inv(XtWX) @ xi.T
+        beta, xtx_inv_xt, wi = self._estimate_beta_by_index(index)
+        xi = self.dataset.X[index, :].reshape(-1)
 
         self.betas[index, :] = beta.flatten()
         self.y_hats[index] = self.dataset.X[index, :] @ beta
-        self.S[index] = S_ii.flatten()[0]
+        self.S[index] = np.dot(xi, xtx_inv_xt).reshape(-1)
 
     def _estimate_beta_by_index(self, index: int):
         """
@@ -133,6 +136,29 @@ class IModel:
         # wi:         (number of data, 1)
         return beta, xtx_inv_xt, wi
 
+    def _calculate_residuals(self) -> None:
+        """
+        Calculate residuals between observed values and local predictions.
+
+        This separates the shared residual computation so subclasses can reuse it
+        before running downstream diagnostics.
+        """
+        self.residuals = self.dataset.y.reshape(-1, 1) - self.y_hats.reshape(-1, 1)
+
+    def _calculate_mu(self) -> None:
+        self.mu = self.dataset.y - self.residuals
+    
+    def _calculate_llf(self) -> None:
+        self.llf = self.family.loglike(self.dataset.y, self.mu)[0]
+
+    def _calculate_tr_S(self) -> None:
+        if self.model_type == "MGWR":
+            self.tr_S = np.sum(self.ENP_j)
+        else:
+            self.tr_S = np.trace(self.S)
+
+        # np.sum(self.ENP_j)
+
     def _calculate_r_squared(self) -> None:
         """
         Calculate the R-squared value for the GWR model.
@@ -147,7 +173,6 @@ class IModel:
         ss_total = np.sum((self.dataset.y - y_bar) ** 2)
         ss_res = np.sum(self.residuals ** 2)
         self.r_squared = float(1 - ss_res / ss_total)
-        # self.logger.update_matrics('R-squared', self.r_squared)
 
     def _calculate_aic_aicc(self) -> None:
         """
@@ -164,11 +189,8 @@ class IModel:
         """
 
         n = len(self.dataset)
-        RSS = np.sum(self.residuals ** 2)
-        sigma2 = RSS / n
-        trS = np.sum(self.S)
-        llf = -0.5 * n * (np.log(2.0 * np.pi * sigma2) + 1)
-        AIC = -2.0 * llf + 2.0 * (trS + 1)
-        AICc = -2.0 * llf + 2.0 * n * (trS + 1) / (n - trS - 2.0)
+        # RSS = np.sum(self.residuals ** 2)
+        AIC = -2.0 * self.llf + 2.0 * (self.tr_S + 1)
+        AICc = -2.0 * self.llf + 2.0 * n * (self.tr_S + 1.0) / (n - self.tr_S - 2.0)
         self.aic = AIC
         self.aicc = AICc

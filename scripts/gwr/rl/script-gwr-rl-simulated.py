@@ -39,7 +39,7 @@ if __name__ == '__main__':
         kernel_type='bisquare',
         kernel_bandwidth_type='adaptive'
     )
-    gwr = GWR(dataset, kernel, logger)
+    gwr = GWR(dataset, kernel)
 
     # Initial gwr gym environment
     env = GwrOptimizerRL(

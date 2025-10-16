@@ -3,15 +3,16 @@ import numpy.typing as npt
 from scipy import linalg
 from tqdm import tqdm
 
-from src.model.imodel import IModel
+from src.model.base import Base
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
+from src.kernel.lgwr_kernel import LgwrKernel
 from src.log.gwr_logger import GwrLogger
 from src.kernel.ikernel import IKernel
 from src.log.ilogger import ILogger
 
 
-class GWR(IModel):
+class GWR(Base):
     """
     A class for performing Geographically Weighted Regression (GWR) using a spatial dataset.
 
@@ -26,11 +27,11 @@ class GWR(IModel):
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 kernel: IKernel,
-                 logger: ILogger) -> None:
-        super().__init__(dataset, kernel, logger)
+                 kernel: GwrKernel | LgwrKernel) -> None:
+        super().__init__(dataset, kernel)
+        self.model_type = "GWR"
 
-    def fit(self) -> None:
+    def fit(self):
         """ 
         Fit the GWR model with the provided dataset and spatial weights based on the kernel.
         This method iterates over each data point in the dataset and calculates local regression
@@ -42,12 +43,16 @@ class GWR(IModel):
         for index in range(len(self.dataset)):
             self._local_fit(index)
 
-        # update estimates (outside of loop for calculations)
-        self.residuals = self.dataset.y.reshape(-1, 1) - \
-            self.y_hats.reshape(-1, 1)
-
+        
+        super()._calculate_residuals()
+        super()._calculate_mu()
+        super()._calculate_llf()
+        super()._calculate_tr_S()
         super()._calculate_r_squared()
         super()._calculate_aic_aicc()
+        print("GWR : GWR model fitting is complete.")
+
+        return self
 
     def update_bandwidth(self, bandwidth: float):
         """

@@ -10,21 +10,19 @@ class LGWR(GWR):
 
     def __init__(self,
                  dataset: SpatialDataset,
-                 kernel: LgwrKernel,
-                 logger: ILogger) -> None:
+                 kernel: LgwrKernel) -> None:
         """
-        Initialize the LGWR model with the provided dataset, kernel, and logger.
+        Initialize the LGWR model with the provided dataset and kernel.
 
         Args:
             dataset (SpatialDataset): The spatial dataset used for the LGWR analysis.
             kernel (LgwrKernel): The kernel function that defines spatial weights for each location.
-            logger (ILogger): The logger object used to record information about the LGWR model.
 
         Raises:
             ValueError: If the dataset or kernel is not set up in the LGWR model.
         """
 
-        super().__init__(dataset, kernel, logger)
+        super().__init__(dataset, kernel)
 
         self.y_hats = np.zeros(
             self.dataset.X.shape[0], dtype=np.float64
