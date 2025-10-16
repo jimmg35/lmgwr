@@ -18,19 +18,17 @@ class LgwrOptimizerRL(gym.Env):
     logger: ILogger
     min_bandwidth: int
     max_bandwidth: int
-
-    reward_type: LgwrRewardType
-    reward_threshold: float | None
+    eta: float
 
     episode_count: int
     reward: float
-
     remaining_steps: int
 
+    # for tracking the best result of each episode
     lowest_aicc: float | None
     optimized_r2: float | None
     optimized_bandwidth_vector: np.ndarray | None
-
+    # for tracking the process of each episode
     aicc_records: list[float] = []
     r2_records: list[float] = []
     bandwidth_mean_records: list[float] = []
@@ -39,21 +37,19 @@ class LgwrOptimizerRL(gym.Env):
     def __init__(self,
                  lgwr: LGWR,
                  logger: ILogger,
-                 reward_threshold,
                  total_timesteps,
-                 reward_type=LgwrRewardType.R2,
                  min_bandwidth=10,
                  max_bandwidth=300,
-                 max_steps=100,
-                 min_action=-10,
-                 max_action=10
+                 max_steps_per_episode=100,
+                 min_action=-1.0,
+                 max_action=1.0,
+                 eta = 0.05
                  ):
         super(LgwrOptimizerRL, self).__init__()
         self.lgwr = lgwr
         self.logger = logger
-        self.reward_type = reward_type
-        self.reward_threshold = reward_threshold
         self.remaining_steps = total_timesteps
+        self.eta = eta
         self.lowest_aicc = None
         self.optimized_r2 = None
         self.optimized_bandwidth_vector = None
@@ -76,29 +72,25 @@ class LgwrOptimizerRL(gym.Env):
 
         # Initialize bandwidths and steps
         self.current_bandwidth_vector = self.__init_bandwidth_vector()
-        self.__init_step(max_steps)
+        self.__init_step(max_steps_per_episode)
 
         self.logger.append_info(
             "LgwrOptimizerRL: LgwrOptimizerRL environment is initialized."
         )
 
-        if self.reward_type == LgwrRewardType.R2:
-            self.logger.append_info(
-                "LgwrOptimizerRL: Using R2 as the reward."
-            )
-        elif self.reward_type == LgwrRewardType.AICC:
-            self.logger.append_info(
-                "LgwrOptimizerRL: Using AICC as the reward."
-            )
+        self.logger.append_info(
+            "LgwrOptimizerRL: Using AICC as the reward."
+        )
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]:
         print(f"- Episode: {self.episode_count} Step {self.current_step}")
+
         # Ensure every action is an integer
-        action = np.round(action).astype(int)
+        delta = self.__convert_ppo_action_to_bandwidth_adjustment(action)
 
         # Update the bandwidth vector with the action
         self.current_bandwidth_vector = np.clip(
-            self.current_bandwidth_vector + action,
+            self.current_bandwidth_vector + delta,
             self.min_bandwidth, self.max_bandwidth
         )
 
@@ -110,13 +102,10 @@ class LgwrOptimizerRL(gym.Env):
         # Compute reward
         self.reward = self.__calculate_reward()
 
-        # Stop episode if reward threshold is met
-        done = self.__if_hit_reward_threshold()
-
         # Maximum step constraint
         self.current_step += 1
         self.remaining_steps -= 1
-        truncated = self.current_step >= self.max_steps
+        is_max_step_reached = self.current_step >= self.max_steps_per_episode
 
         # assign the initial AICc value to lowest_aicc
         if self.lowest_aicc is None:
@@ -140,14 +129,14 @@ class LgwrOptimizerRL(gym.Env):
             float(np.var(self.current_bandwidth_vector))
         )
 
-        if truncated:
-            # self.logger.append_info(
-            #     f"Episode {self.episode_count} truncated, took {self.current_step} steps, remain {self.remaining_steps} steps, reward(lowest AICc): {self.lowest_aicc}, r2: {self.lgwr.r_squared}."
-            # )
+        if is_max_step_reached:
             if self.optimized_r2 is None or self.optimized_bandwidth_vector is None:
                 raise ValueError(
                     "Optimized R2 or bandwidth is None. Please check the optimization process."
                 )
+            
+            # Record the optimized AICc, R2, and bandwidth sets of this episode
+            # the bandwidth set could be restored and use to fit the LGWR model again
             self.logger.append_bandwidth_optimization(
                 self.episode_count,
                 self.lowest_aicc,
@@ -155,6 +144,9 @@ class LgwrOptimizerRL(gym.Env):
                 '[' + ', '.join(map(str, self.optimized_bandwidth_vector)) + ']',
                 f"Episode {self.episode_count} truncated, took {self.current_step} steps, reward(lowest AICc): {self.lowest_aicc}, r2: {self.optimized_r2}"
             )
+
+            # Record the overall details of this episode 
+            # (this can be used for plotting the trend in this episode)
             self.logger.append_training_process(
                 self.episode_count,
                 self.aicc_records,
@@ -163,16 +155,7 @@ class LgwrOptimizerRL(gym.Env):
                 bandwidth_variance_records=self.bandwidth_variance_records
             )
 
-        # if done:
-        #     self.logger.append_bandwidth_optimization(
-        #         self.episode_count,
-        #         self.lgwr.aicc,
-        #         self.lgwr.r_squared,
-        #         '[' + ', '.join(map(str, self.current_bandwidth_vector)) + ']',
-        #         f"★ Episode {self.episode_count} done, took {self.current_step} steps, aicc: {self.lgwr.aicc}, r2: {self.lgwr.r_squared}"
-        #     )
-
-        return self.current_bandwidth_vector, self.reward, done, truncated, {}
+        return self.current_bandwidth_vector, self.reward, False, is_max_step_reached, {}
 
     def reset(self,  # type: ignore
               seed: Optional[int] = None
@@ -187,7 +170,13 @@ class LgwrOptimizerRL(gym.Env):
         self.r2_records = []
         self.bandwidth_mean_records = []
         self.bandwidth_variance_records = []
+        print("*** Episode reset ***")
         return self.current_bandwidth_vector, {}
+
+    def __convert_ppo_action_to_bandwidth_adjustment(self, action: np.ndarray) -> np.ndarray:
+        """ Convert the PPO action to a bandwidth adjustment value. """
+        delta = action * (self.max_bandwidth - self.min_bandwidth) * self.eta
+        return np.rint(delta).astype(int)
 
     def __init_bandwidth_vector(self) -> np.ndarray:
         """ Initialize the local bandwidth vector for LGWR with the same initial value. """
@@ -196,28 +185,13 @@ class LgwrOptimizerRL(gym.Env):
             self.lgwr.dataset.X.shape[0], initial_bandwidth, dtype=np.int64
         )
 
-    def __init_step(self, max_steps):
+    def __init_step(self, max_steps_per_episode):
         """ Initialize step counters. """
-        self.max_steps = max_steps
+        self.max_steps_per_episode = max_steps_per_episode
         self.current_step = 0
         self.episode_count = 0
 
     def __calculate_reward(self) -> float:
-        """ Compute R2 as the reward. """
-        if self.reward_type == LgwrRewardType.R2:
-            return self.lgwr.r_squared
-        elif self.reward_type == LgwrRewardType.AICC:
-            return -self.lgwr.aicc
-        else:
-            raise ValueError("Invalid reward type.")
+        """ Use AICc as the reward. """
+        return -self.lgwr.aicc
 
-    def __if_hit_reward_threshold(self):
-        """ Define the reward type. """
-        if self.reward_threshold is None:
-            return False
-        if self.reward_type == LgwrRewardType.R2:
-            return self.reward >= self.reward_threshold
-        elif self.reward_type == LgwrRewardType.AICC:
-            return abs(self.reward) <= self.reward_threshold
-        else:
-            raise ValueError("Invalid reward type.")

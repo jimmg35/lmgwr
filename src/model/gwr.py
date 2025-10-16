@@ -50,7 +50,6 @@ class GWR(Base):
         super()._calculate_tr_S()
         super()._calculate_r_squared()
         super()._calculate_aic_aicc()
-        print("GWR : GWR model fitting is complete.")
 
         return self
 

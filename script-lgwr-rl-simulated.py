@@ -1,26 +1,17 @@
 
 from stable_baselines3 import PPO
-import pandas as pd
-import numpy as np
-
-from src.optimizer.reinforce.lgwr_optimizer import LgwrOptimizerRL, LgwrRewardType
-from src.dataset.interfaces.idataset import FieldInfo
-from src.dataset.spatial_dataset import SpatialDataset
+from src.optimizer.reinforce.lgwr_optimizer import LgwrOptimizerRL
 from src.dataset.simulated_spatial_dataset import SimulatedSpatialDataset
 from src.kernel.lgwr_kernel import LgwrKernel
 from src.log.lgwr_logger import LgwrLogger
 from src.model.lgwr import LGWR
 
 # Hyperparameters for PPO training
-MAX_STEPS = 50000
+MAX_STEPS = 100
 TOTAL_TIMESTEPS = MAX_STEPS * 1000
-MIN_ACTION = -10
-MAX_ACTION = 10
-
+MIN_ACTION = -1.0
+MAX_ACTION = 1.0
 MIN_BANDWIDTH = 30
-
-REWARD_TYPE = LgwrRewardType.AICC
-# REWARD_THRESHOLD = 300
 
 if __name__ == '__main__':
 
@@ -30,8 +21,9 @@ if __name__ == '__main__':
     # Create a simulated dataset.
     field_size = 40
     spatialDataset = SimulatedSpatialDataset(field_size=field_size)
-    [b0, b1, b2] = spatialDataset.generate_processes()
-    [X, y] = spatialDataset.fit_y(b0, b1, b2)
+    [X] = spatialDataset.generate_data()
+    [beta] = spatialDataset.generate_processes()
+    [y, err] = spatialDataset.fit_y(X, beta)
 
     # Create a LGWR kernel and LGWR model.
     kernel = LgwrKernel(
@@ -45,15 +37,12 @@ if __name__ == '__main__':
     env = LgwrOptimizerRL(
         lgwr,
         logger,
-        # REWARD_THRESHOLD,
-        None,
         TOTAL_TIMESTEPS,
-        reward_type=REWARD_TYPE,
         min_bandwidth=MIN_BANDWIDTH,
         max_bandwidth=spatialDataset.X.shape[0],
         min_action=MIN_ACTION,
         max_action=MAX_ACTION,
-        max_steps=MAX_STEPS
+        max_steps_per_episode=MAX_STEPS
     )
 
     # Using PPO to optimize the bandwidth vector
