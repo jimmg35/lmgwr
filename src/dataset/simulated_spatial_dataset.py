@@ -15,6 +15,7 @@ class SimulatedSpatialDataset(SpatialDataset):
     process_seed: list[int]
     error_seed: int
     k: int
+    n: int
     coordinates: npt.NDArray[np.float64]
 
     def __init__(self,
@@ -29,6 +30,7 @@ class SimulatedSpatialDataset(SpatialDataset):
         self.process_seed = process_seed
         self.error_seed = error_seed
         self.k = k
+        self.n = field_size * field_size    
 
     def generate_data(self):
         np.random.seed(self.data_seed)

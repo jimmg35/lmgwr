@@ -56,8 +56,6 @@ class MGWR(Base):
         params = f / self.dataset.X.T.reshape(-1, 1)
         params = params.reshape(-1, self.dataset.n).T
 
-        print(params)
-
         R = np.stack(np.split(R, self.dataset.k), axis=2)
         ENP_j = np.trace(R, axis1=0, axis2=1)
         predy = np.sum(self.dataset.X * params, axis=1).reshape(-1, 1)
@@ -67,6 +65,18 @@ class MGWR(Base):
         for j in range(self.dataset.k):
             CCT[:, j] = (
                 (R[:, :, j] / self.dataset.X[:, j].reshape(-1, 1))**2).sum(axis=1)
+        
+        self.S = CCT
+        self.y_hats = predy
+        self.betas = params
+        
+        super()._calculate_residuals()
+        super()._calculate_mu()
+        super()._calculate_llf()
+        super()._calculate_tr_S()
+        super()._calculate_r_squared()
+        super()._calculate_aic_aicc()
+        print("MGWR : MGWR model fitting is complete.")
 
     def update_bandwidth_set(self, bandwidth_set):
         self.bandwidth_set = bandwidth_set

@@ -42,10 +42,11 @@ class GWR(Base):
         for index in range(len(self.dataset)):
             self._local_fit(index)
 
-        # update estimates (outside of loop for calculations)
-        self.residuals = self.dataset.y.reshape(-1, 1) - \
-            self.y_hats.reshape(-1, 1)
-
+        
+        super()._calculate_residuals()
+        super()._calculate_mu()
+        super()._calculate_llf()
+        super()._calculate_tr_S()
         super()._calculate_r_squared()
         super()._calculate_aic_aicc()
         print("GWR : GWR model fitting is complete.")

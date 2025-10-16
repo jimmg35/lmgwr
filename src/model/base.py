@@ -2,6 +2,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy import linalg
 from typing import List
+from spglm.family import Gaussian, Binomial, Poisson
 
 from src.dataset.spatial_dataset import SpatialDataset
 from src.kernel.ikernel import IKernel
@@ -34,6 +35,7 @@ class Base:
         """
         self.dataset = dataset
         self.kernel = kernel
+        self.family = Gaussian()
 
         print(
             f"{self.__class__.__name__} : {self.__class__.__name__} model is initialized."
@@ -131,6 +133,24 @@ class Base:
         # wi:         (number of data, 1)
         return beta, xtx_inv_xt, wi
 
+    def _calculate_residuals(self) -> None:
+        """
+        Calculate residuals between observed values and local predictions.
+
+        This separates the shared residual computation so subclasses can reuse it
+        before running downstream diagnostics.
+        """
+        self.residuals = self.dataset.y.reshape(-1, 1) - self.y_hats.reshape(-1, 1)
+
+    def _calculate_mu(self) -> None:
+        self.mu = self.dataset.y - self.residuals
+    
+    def _calculate_llf(self) -> None:
+        self.llf = self.family.loglike(self.dataset.y, self.mu)[0]
+
+    def _calculate_tr_S(self) -> None:
+        self.tr_S = np.trace(self.S)
+
     def _calculate_r_squared(self) -> None:
         """
         Calculate the R-squared value for the GWR model.
@@ -161,11 +181,8 @@ class Base:
         """
 
         n = len(self.dataset)
-        RSS = np.sum(self.residuals ** 2)
-        sigma2 = RSS / n
-        trS = np.sum(self.S)
-        llf = -0.5 * n * (np.log(2.0 * np.pi * sigma2) + 1)
-        AIC = -2.0 * llf + 2.0 * (trS + 1)
-        AICc = -2.0 * llf + 2.0 * n * (trS + 1) / (n - trS - 2.0)
+        # RSS = np.sum(self.residuals ** 2)
+        AIC = -2.0 * self.llf + 2.0 * (self.tr_S + 1)
+        AICc = -2.0 * self.llf + 2.0 * n * (self.tr_S + 1.0) / (n - self.tr_S - 2.0)
         self.aic = AIC
         self.aicc = AICc
