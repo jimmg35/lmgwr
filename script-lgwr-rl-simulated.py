@@ -7,7 +7,7 @@ from src.log.lgwr_logger import LgwrLogger
 from src.model.lgwr import LGWR
 
 # Hyperparameters for PPO training
-MAX_STEPS = 2000
+MAX_STEPS = 1000
 TOTAL_TIMESTEPS = MAX_STEPS * 1000
 MIN_ACTION = -1.0
 MAX_ACTION = 1.0
