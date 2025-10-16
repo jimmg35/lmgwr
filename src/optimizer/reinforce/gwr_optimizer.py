@@ -41,6 +41,7 @@ class GwrOptimizerRL(gym.Env):
         self.model = model
         self.logger = logger
         self.remaining_steps = total_timesteps
+        self.eta = eta
         self.lowest_aicc = None
         self.optimized_r2 = None
         self.optimized_bandwidth = None
