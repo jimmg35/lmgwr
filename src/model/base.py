@@ -9,6 +9,7 @@ from src.kernel.ikernel import IKernel
 
 
 class Base:
+    model_type: str = "Base"
     dataset: SpatialDataset
     kernel: IKernel
 
@@ -22,6 +23,7 @@ class Base:
     r_squared: float
     aic: float
     aicc: float
+    ENP_j: npt.NDArray[np.float64]
 
     def __init__(self,
                  dataset: SpatialDataset,
@@ -36,6 +38,7 @@ class Base:
         self.dataset = dataset
         self.kernel = kernel
         self.family = Gaussian()
+        self.model_type = "Base"
 
         print(
             f"{self.__class__.__name__} : {self.__class__.__name__} model is initialized."
@@ -149,7 +152,12 @@ class Base:
         self.llf = self.family.loglike(self.dataset.y, self.mu)[0]
 
     def _calculate_tr_S(self) -> None:
-        self.tr_S = np.trace(self.S)
+        if self.model_type == "MGWR":
+            self.tr_S = np.sum(self.ENP_j)
+        else:
+            self.tr_S = np.trace(self.S)
+
+        # np.sum(self.ENP_j)
 
     def _calculate_r_squared(self) -> None:
         """

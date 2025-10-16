@@ -16,6 +16,7 @@ class MGWR(Base):
                  dataset: SpatialDataset,
                  kernel: GwrKernel) -> None:
         super().__init__(dataset, kernel)
+        self.model_type = "MGWR"
         self.bandwidth_set = None
 
     def exact_fit(self) -> None:
@@ -66,9 +67,10 @@ class MGWR(Base):
             CCT[:, j] = (
                 (R[:, :, j] / self.dataset.X[:, j].reshape(-1, 1))**2).sum(axis=1)
         
-        self.S = CCT
+        self.S = np.sum(R, axis=2)
         self.y_hats = predy
         self.betas = params
+        self.ENP_j = ENP_j
         
         super()._calculate_residuals()
         super()._calculate_mu()

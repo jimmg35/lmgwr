@@ -29,6 +29,7 @@ class GWR(Base):
                  dataset: SpatialDataset,
                  kernel: GwrKernel | LgwrKernel) -> None:
         super().__init__(dataset, kernel)
+        self.model_type = "GWR"
 
     def fit(self):
         """ 
