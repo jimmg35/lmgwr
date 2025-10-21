@@ -2,12 +2,12 @@
 from stable_baselines3 import PPO
 import pandas as pd
 
-from src.optimizer.reinforce.lgwr_optimizer import LgwrOptimizerRL, LgwrRewardType
+from src.optimizer.reinforce.mgwr_optimizer import MgwrOptimizerRL
 from src.dataset.interfaces.idataset import FieldInfo
 from src.dataset.spatial_dataset import SpatialDataset
-from src.kernel.lgwr_kernel import LgwrKernel
-from src.log.lgwr_logger import LgwrLogger
-from src.model.lgwr import LGWR
+from src.kernel.gwr_kernel import GwrKernel
+from src.log.mgwr_logger import MgwrLogger
+from src.model.mgwr import MGWR
 
 # Hyperparameters for PPO training
 MAX_STEPS = 50000
@@ -17,13 +17,10 @@ MAX_ACTION = 10
 
 MIN_BANDWIDTH = 30
 
-REWARD_TYPE = LgwrRewardType.AICC
-# REWARD_THRESHOLD = 300
-
 if __name__ == '__main__':
 
-    # Create a logger to record the LGWR model's information.
-    logger = LgwrLogger()
+    # Create a logger to record the MGWR model's information.
+    logger = MgwrLogger()
 
     # Load the Georgia dataset and create a spatial dataset.
     georgia_data = pd.read_csv(r'./data/GData_utm.csv')
@@ -38,17 +35,17 @@ if __name__ == '__main__':
         isSpherical=True
     )
 
-    # Create a LGWR kernel and LGWR model.
-    kernel = LgwrKernel(
+    # Create a MGWR kernel and MGWR model.
+    kernel = GwrKernel(
         spatialDataset,
         kernel_type='bisquare',
         kernel_bandwidth_type='adaptive'
     )
-    lgwr = LGWR(spatialDataset, kernel)
+    mgwr = MGWR(spatialDataset, kernel)
 
-    # Initialize lgwr gym environment
-    env = LgwrOptimizerRL(
-        lgwr,
+    # Initialize MGWR gym environment
+    env = MgwrOptimizerRL(
+        mgwr,
         logger,
         TOTAL_TIMESTEPS,
         min_bandwidth=MIN_BANDWIDTH,
