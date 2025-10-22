@@ -55,21 +55,10 @@ class MGWR(Base):
         Q = np.block(Q)
         R = np.linalg.solve(P, Q)
         f = R.dot(self.dataset.y).reshape(-1, 1)
-        print("===================")
-        print(P.shape)
-        print(Q.shape)
-        print(R.shape)
-        print(f.shape)
-        print(self.dataset.y.shape)
         
-        
-
         self.dataset.reset_columns()
         params = f / self.dataset.X_original.T.reshape(-1, 1)
-        print(params.shape)
         params = params.reshape(-1, self.dataset.n).T
-        print(params.shape)
-
 
         R = np.stack(np.split(R, process_k), axis=2)
         ENP_j = np.trace(R, axis1=0, axis2=1)

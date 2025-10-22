@@ -42,6 +42,9 @@ class LMGWR(Base):
             raise ValueError(
                 "bandwidth_matrix must have shape (n, k) matching the dataset dimensions."
             )
+        
+        print(self.bandwidth_matrix.shape)
+        print("----------------------")
 
         P_blocks: list[list[np.ndarray]] = []
         Q_blocks: list[list[np.ndarray]] = []
