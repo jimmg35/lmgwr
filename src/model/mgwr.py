@@ -35,12 +35,15 @@ class MGWR(Base):
         P = []
         Q = []
         I = np.eye(self.dataset.n)
-        for j_1 in range(self.dataset.k):
+        print(self.dataset.n)
+        print(self.dataset.k)
+        process_k = self.dataset.k + 1 if self.dataset.useIntercept else self.dataset.k
+        for j_1 in range(process_k):
             self.dataset.use_column(j_1)
             Aj = GWR(self.dataset, self.kernel).update_bandwidth(
                 self.bandwidth_set[j_1]).fit().S
             Pj = []
-            for j_2 in range(self.dataset.k):
+            for j_2 in range(process_k):
                 if j_1 == j_2:
                     Pj.append(I)
                 else:
@@ -51,21 +54,32 @@ class MGWR(Base):
         P = np.block(P)
         Q = np.block(Q)
         R = np.linalg.solve(P, Q)
-        f = R.dot(self.dataset.y)
+        f = R.dot(self.dataset.y).reshape(-1, 1)
+        print("===================")
+        print(P.shape)
+        print(Q.shape)
+        print(R.shape)
+        print(f.shape)
+        print(self.dataset.y.shape)
+        
+        
 
         self.dataset.reset_columns()
-        params = f / self.dataset.X.T.reshape(-1, 1)
+        params = f / self.dataset.X_original.T.reshape(-1, 1)
+        print(params.shape)
         params = params.reshape(-1, self.dataset.n).T
+        print(params.shape)
 
-        R = np.stack(np.split(R, self.dataset.k), axis=2)
+
+        R = np.stack(np.split(R, process_k), axis=2)
         ENP_j = np.trace(R, axis1=0, axis2=1)
-        predy = np.sum(self.dataset.X * params, axis=1).reshape(-1, 1)
+        predy = np.sum(self.dataset.X_original * params, axis=1).reshape(-1, 1)
         w = np.ones(self.dataset.n)
 
-        CCT = np.zeros((self.dataset.n, self.dataset.k))
-        for j in range(self.dataset.k):
+        CCT = np.zeros((self.dataset.n, process_k))
+        for j in range(process_k):
             CCT[:, j] = (
-                (R[:, :, j] / self.dataset.X[:, j].reshape(-1, 1))**2).sum(axis=1)
+                (R[:, :, j] / self.dataset.X_original[:, j].reshape(-1, 1))**2).sum(axis=1)
         
         self.S = np.sum(R, axis=2)
         self.y_hats = predy

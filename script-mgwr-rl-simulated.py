@@ -34,27 +34,30 @@ if __name__ == '__main__':
     )
     mgwr = MGWR(spatialDataset, kernel)
 
-    # Initialize MGWR gym environment
-    env = MgwrOptimizerRL(
-        mgwr,
-        logger,
-        TOTAL_TIMESTEPS,
-        min_bandwidth=MIN_BANDWIDTH,
-        max_bandwidth=spatialDataset.X.shape[0],
-        min_action=MIN_ACTION,
-        max_action=MAX_ACTION,
-        max_steps_per_episode=MAX_STEPS
-    )
+    
+    mgwr.update_bandwidth_set([46., 102., 93.]).exact_fit()
 
-    # Using PPO to optimize the bandwidth set
-    model = PPO(
-        "MlpPolicy",
-        env,
-        verbose=1,
-        device='cpu'
-    )
-    model.learn(
-        total_timesteps=TOTAL_TIMESTEPS
-    )
-    logger.append_info("PPO: PPO finished training.")
+    # # Initialize MGWR gym environment
+    # env = MgwrOptimizerRL(
+    #     mgwr,
+    #     logger,
+    #     TOTAL_TIMESTEPS,
+    #     min_bandwidth=MIN_BANDWIDTH,
+    #     max_bandwidth=spatialDataset.X.shape[0],
+    #     min_action=MIN_ACTION,
+    #     max_action=MAX_ACTION,
+    #     max_steps_per_episode=MAX_STEPS
+    # )
+
+    # # Using PPO to optimize the bandwidth set
+    # model = PPO(
+    #     "MlpPolicy",
+    #     env,
+    #     verbose=1,
+    #     device='cpu'
+    # )
+    # model.learn(
+    #     total_timesteps=TOTAL_TIMESTEPS
+    # )
+    # logger.append_info("PPO: PPO finished training.")
 
