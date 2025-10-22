@@ -1,10 +1,10 @@
 from stable_baselines3 import PPO
 
-from src.optimizer.reinforce.lmgwr_optimizer import LmgwrOptimizerRL
+from src.optimizer.reinforce.mgwr_optimizer import MgwrOptimizerRL
 from src.dataset.simulated_spatial_dataset import SimulatedSpatialDataset
-from src.kernel.lgwr_kernel import LgwrKernel
-from src.log.lmgwr_logger import LmgwrLogger
-from src.model.lmgwr import LMGWR
+from src.kernel.gwr_kernel import GwrKernel
+from src.log.mgwr_logger import MgwrLogger
+from src.model.mgwr import MGWR
 
 # Hyperparameters for PPO training
 MAX_STEPS = 1000
@@ -16,27 +16,27 @@ MIN_BANDWIDTH = 30
 
 if __name__ == '__main__':
 
-    # Create a logger to record the LMGWR model's information.
-    logger = LmgwrLogger()
+    # Create a logger to record the MGWR model's information.
+    logger = MgwrLogger()
 
     # Create a simulated dataset.
     field_size = 40
-    spatialDataset = SimulatedSpatialDataset(field_size=field_size, k=3)
+    spatialDataset = SimulatedSpatialDataset(field_size=field_size)
     [X] = spatialDataset.generate_data()
     [beta] = spatialDataset.generate_processes()
     [y, err] = spatialDataset.fit_y(X, beta)
 
-    # Create a LMGWR kernel and LMGWR model.
-    kernel = LgwrKernel(
+    # Create an MGWR kernel and MGWR model.
+    kernel = GwrKernel(
         spatialDataset,
         kernel_type='bisquare',
         kernel_bandwidth_type='adaptive'
     )
-    lmgwr = LMGWR(spatialDataset, kernel)
+    mgwr = MGWR(spatialDataset, kernel)
 
-    # Initialize LMGWR gym environment
-    env = LmgwrOptimizerRL(
-        lmgwr,
+    # Initialize MGWR gym environment
+    env = MgwrOptimizerRL(
+        mgwr,
         logger,
         TOTAL_TIMESTEPS,
         min_bandwidth=MIN_BANDWIDTH,
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         max_steps_per_episode=MAX_STEPS
     )
 
-    # Using PPO to optimize the bandwidth matrix
+    # Using PPO to optimize the bandwidth set
     model = PPO(
         "MlpPolicy",
         env,

@@ -53,6 +53,8 @@ class SimulatedSpatialDataset(SpatialDataset):
                      num=self.field_size)]*self.field_size).T.reshape(-1)
         self.coordinates = np.array(list(zip(u, v)))
 
+        self.X_original = self.X.copy()
+
         return [self.X]
 
     def generate_processes(self):

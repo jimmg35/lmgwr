@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     # Create a simulated dataset.
     field_size = 40
-    spatialDataset = SimulatedSpatialDataset(field_size=field_size, k=3)
+    spatialDataset = SimulatedSpatialDataset(field_size=field_size)
     [X] = spatialDataset.generate_data()
     [beta] = spatialDataset.generate_processes()
     [y, err] = spatialDataset.fit_y(X, beta)
