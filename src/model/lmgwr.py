@@ -36,15 +36,16 @@ class LMGWR(Base):
             raise TypeError("Kernel must be of type LgwrKernel for LMGWR.")
 
         if self.bandwidth_matrix is None:
-            raise ValueError("bandwidth_matrix must be provided before fitting the model.")
+            raise ValueError(
+                "bandwidth_matrix must be provided before fitting the model.")
 
         if self.bandwidth_matrix.shape != (self.dataset.n, self.dataset.k):
             raise ValueError(
                 "bandwidth_matrix must have shape (n, k) matching the dataset dimensions."
             )
-        
-        print(self.bandwidth_matrix.shape)
-        print("----------------------")
+
+        # print(self.bandwidth_matrix.shape)
+        # print("----------------------")
 
         P_blocks: list[list[np.ndarray]] = []
         Q_blocks: list[list[np.ndarray]] = []
@@ -68,7 +69,8 @@ class LMGWR(Base):
 
             row_blocks = []
             for inner_index in range(self.dataset.k):
-                row_blocks.append(identity if column_index == inner_index else Aj)
+                row_blocks.append(identity if column_index ==
+                                  inner_index else Aj)
 
             P_blocks.append(row_blocks)
             Q_blocks.append([Aj])
@@ -117,4 +119,3 @@ class LMGWR(Base):
 
         self.bandwidth_matrix = matrix
         return self
-

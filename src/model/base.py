@@ -40,9 +40,9 @@ class Base:
         self.family = Gaussian()
         self.model_type = "Base"
 
-        print(
-            f"{self.__class__.__name__} : {self.__class__.__name__} model is initialized."
-        )
+        # print(
+        #     f"{self.__class__.__name__} : {self.__class__.__name__} model is initialized."
+        # )
 
     def fit(self):
         """
@@ -143,11 +143,12 @@ class Base:
         This separates the shared residual computation so subclasses can reuse it
         before running downstream diagnostics.
         """
-        self.residuals = self.dataset.y.reshape(-1, 1) - self.y_hats.reshape(-1, 1)
+        self.residuals = self.dataset.y.reshape(-1, 1) - \
+            self.y_hats.reshape(-1, 1)
 
     def _calculate_mu(self) -> None:
         self.mu = self.dataset.y - self.residuals
-    
+
     def _calculate_llf(self) -> None:
         self.llf = self.family.loglike(self.dataset.y, self.mu)[0]
 
@@ -191,6 +192,7 @@ class Base:
         n = len(self.dataset)
         # RSS = np.sum(self.residuals ** 2)
         AIC = -2.0 * self.llf + 2.0 * (self.tr_S + 1)
-        AICc = -2.0 * self.llf + 2.0 * n * (self.tr_S + 1.0) / (n - self.tr_S - 2.0)
+        AICc = -2.0 * self.llf + 2.0 * n * \
+            (self.tr_S + 1.0) / (n - self.tr_S - 2.0)
         self.aic = AIC
         self.aicc = AICc
