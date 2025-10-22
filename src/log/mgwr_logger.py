@@ -6,7 +6,6 @@ class MgwrLogger(GwrLogger):
 
     def __init__(self):
         super().__init__()
-
         self.model_info = {
             'model_type': self.model_type,
             'bandwidth_optimization': [],
@@ -18,4 +17,3 @@ class MgwrLogger(GwrLogger):
                 'R-squared adjusted': None
             }
         }
-

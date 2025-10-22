@@ -16,7 +16,6 @@ MAX_ACTION = 10
 
 MIN_BANDWIDTH = 30
 
-
 if __name__ == '__main__':
 
     # Create a logger to record the MGWR model's information.

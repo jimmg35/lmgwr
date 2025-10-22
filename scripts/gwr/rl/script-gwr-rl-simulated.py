@@ -1,20 +1,16 @@
-
 from stable_baselines3 import PPO
-import pandas as pd
 
 from src.optimizer.reinforce.gwr_optimizer import GwrOptimizerRL
-from src.dataset.interfaces.idataset import FieldInfo
-from src.dataset.spatial_dataset import SpatialDataset
+from src.dataset.simulated_spatial_dataset import SimulatedSpatialDataset
 from src.kernel.gwr_kernel import GwrKernel
 from src.log.gwr_logger import GwrLogger
 from src.model.gwr import GWR
 
 # Hyperparameters for PPO training
-MAX_STEPS = 50000
+MAX_STEPS = 1000
 TOTAL_TIMESTEPS = MAX_STEPS * 1000
-MIN_ACTION = -10
-MAX_ACTION = 10
-
+MIN_ACTION = -1.0
+MAX_ACTION = 1.0
 MIN_BANDWIDTH = 30
 
 
@@ -23,18 +19,12 @@ if __name__ == '__main__':
     # Create a logger to record the GWR model's information.
     logger = GwrLogger()
 
-    # Load the Georgia dataset and create a spatial dataset.
-    georgia_data = pd.read_csv(r'./data/GData_utm.csv')
-    spatialDataset = SpatialDataset(
-        georgia_data,
-        FieldInfo(
-            predictor_fields=['PctFB', 'PctBlack', 'PctRural'],
-            response_field='PctBach',
-            coordinate_x_field='Longitud',
-            coordinate_y_field='Latitude'
-        ),
-        isSpherical=True
-    )
+    # Create a simulated dataset and generate spatial samples.
+    field_size = 40
+    spatialDataset = SimulatedSpatialDataset(field_size=field_size)
+    [X] = spatialDataset.generate_data()
+    [beta] = spatialDataset.generate_processes()
+    [y, err] = spatialDataset.fit_y(X, beta)
 
     # Create a GWR kernel and GWR model.
     kernel = GwrKernel(
@@ -44,7 +34,7 @@ if __name__ == '__main__':
     )
     gwr = GWR(spatialDataset, kernel)
 
-    # Initial gwr gym environment
+    # Initialize GWR gym environment
     env = GwrOptimizerRL(
         gwr,
         logger,
@@ -52,7 +42,8 @@ if __name__ == '__main__':
         min_bandwidth=MIN_BANDWIDTH,
         max_bandwidth=spatialDataset.X.shape[0],
         min_action=MIN_ACTION,
-        max_action=MAX_ACTION
+        max_action=MAX_ACTION,
+        max_steps_per_episode=MAX_STEPS
     )
 
     # Using PPO to optimize the bandwidth
