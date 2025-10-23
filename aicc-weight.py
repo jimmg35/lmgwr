@@ -7,6 +7,7 @@ from matplotlib import colormaps
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
 
+
 def aicc_weights_from_model_info(path: str) -> pd.DataFrame:
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -35,6 +36,7 @@ def aicc_weights_from_model_info(path: str) -> pd.DataFrame:
     df["weight"] = lik / lik.sum()
     return df[["episode", "AICc", "Delta", "weight", "bandwidth"]]
 
+
 def plot(b, sub_title=['', ''], size=40, vmin=None, vmax=None):
     k = len(b)
     fig, axs = plt.subplots(1, k, figsize=(6*k, 4))
@@ -54,6 +56,8 @@ def plot(b, sub_title=['', ''], size=40, vmin=None, vmax=None):
     plt.show()
 
 # Compute the global Moran's I using rook contiguity on the grid.
+
+
 def global_morans_i(grid: np.ndarray) -> float:
     arr = np.asarray(grid, dtype=float)
     mask = ~np.isnan(arr)
@@ -71,12 +75,14 @@ def global_morans_i(grid: np.ndarray) -> float:
     # horizontal neighbors
     horiz_mask = mask[:, :-1] & mask[:, 1:]
     if np.any(horiz_mask):
-        pair_sum += np.sum(centered[:, :-1][horiz_mask] * centered[:, 1:][horiz_mask])
+        pair_sum += np.sum(centered[:, :-1][horiz_mask]
+                           * centered[:, 1:][horiz_mask])
         num_pairs += np.sum(horiz_mask)
     # vertical neighbors
     vert_mask = mask[:-1, :] & mask[1:, :]
     if np.any(vert_mask):
-        pair_sum += np.sum(centered[:-1, :][vert_mask] * centered[1:, :][vert_mask])
+        pair_sum += np.sum(centered[:-1, :][vert_mask]
+                           * centered[1:, :][vert_mask])
         num_pairs += np.sum(vert_mask)
     if num_pairs == 0:
         return np.nan
@@ -85,6 +91,8 @@ def global_morans_i(grid: np.ndarray) -> float:
     return (n / s0) * (numerator / denom)
 
 # Render the bandwidth grids as 3D surfaces for extra depth cues.
+
+
 def plot_surface_3d(b, sub_title=['', ''], size=40, vmin=None, vmax=None):
     k = len(b)
     fig = plt.figure(figsize=(6*k, 5))
@@ -108,9 +116,12 @@ def plot_surface_3d(b, sub_title=['', ''], size=40, vmin=None, vmax=None):
     plt.tight_layout()
     plt.show()
 
+
 # Load the model info and sort table by aicc weight (descending)
-aicc_weights = aicc_weights_from_model_info(r"./logs/lgwr-2025-10-16-14-19-29-log/model_info.json")
-sorted_df = aicc_weights.sort_values('weight', ascending=False).reset_index(drop=True)
+aicc_weights = aicc_weights_from_model_info(
+    r"./logs/lgwr-2025-10-16-14-19-29-log/model_info.json")
+sorted_df = aicc_weights.sort_values(
+    'weight', ascending=False).reset_index(drop=True)
 
 # Calculate the cummulation weight, and find the episodes resulting in exceeding .95 threshold.
 sorted_df['cumulation'] = sorted_df['weight'].cumsum()
@@ -123,7 +134,7 @@ bandwidth_array = np.array(result_df["bandwidth"].tolist())
 lower = bandwidth_array.min(axis=0)
 upper = bandwidth_array.max(axis=0)
 df_bw = pd.DataFrame({
-    "lower": [lower.tolist()], 
+    "lower": [lower.tolist()],
     "upper": [upper.tolist()],
     "lowest_aicc_bandwidth": [bandwidth_array[0].tolist()]
 })
@@ -135,7 +146,8 @@ lowest_aicc_bandwidth_list = df_bw["lowest_aicc_bandwidth"].to_list()
 size = 40
 lower_2d = np.array(lower_list).reshape(size, size)
 upper_2d = np.array(upper_list).reshape(size, size)
-lowest_aicc_bandwidth_2d = np.array(lowest_aicc_bandwidth_list).reshape(size, size)
+lowest_aicc_bandwidth_2d = np.array(
+    lowest_aicc_bandwidth_list).reshape(size, size)
 
 # Set global vmin and vmax for consistent coloring
 all_data = [lower_2d, upper_2d, lowest_aicc_bandwidth_2d]
@@ -144,13 +156,13 @@ global_vmax = max(np.nanmax(arr) for arr in all_data)
 morans_values = [global_morans_i(arr) for arr in all_data]
 
 plot([lower_2d, upper_2d, lowest_aicc_bandwidth_2d],
-    sub_title=[f"Local Bandwidth Lower Bound (Moran's I={morans_values[0]:.3f})",
-               f"Local Bandwidth Upper Bound (Moran's I={morans_values[1]:.3f})",
-               f"Lowest AICc Bandwidth (Moran's I={morans_values[2]:.3f})"],
-    size=size, vmin=global_vmin, vmax=global_vmax)
+     sub_title=[f"Local Bandwidth Lower Bound (Moran's I={morans_values[0]:.3f})",
+                f"Local Bandwidth Upper Bound (Moran's I={morans_values[1]:.3f})",
+                f"Lowest AICc Bandwidth (Moran's I={morans_values[2]:.3f})"],
+     size=size, vmin=global_vmin, vmax=global_vmax)
 
 plot_surface_3d([lower_2d, upper_2d, lowest_aicc_bandwidth_2d],
-    sub_title=[f"Local Bandwidth Lower Bound (3D, Moran's I={morans_values[0]:.3f})",
-               f"Local Bandwidth Upper Bound (3D, Moran's I={morans_values[1]:.3f})",
-               f"Lowest AICc Bandwidth (3D, Moran's I={morans_values[2]:.3f})"],
-    size=size, vmin=global_vmin, vmax=global_vmax)
+                sub_title=[f"Local Bandwidth Lower Bound (3D, Moran's I={morans_values[0]:.3f})",
+                           f"Local Bandwidth Upper Bound (3D, Moran's I={morans_values[1]:.3f})",
+                           f"Lowest AICc Bandwidth (3D, Moran's I={morans_values[2]:.3f})"],
+                size=size, vmin=global_vmin, vmax=global_vmax)
