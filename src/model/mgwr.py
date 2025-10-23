@@ -35,8 +35,6 @@ class MGWR(Base):
         P = []
         Q = []
         I = np.eye(self.dataset.n)
-        print(self.dataset.n)
-        print(self.dataset.k)
         process_k = self.dataset.k + 1 if self.dataset.useIntercept else self.dataset.k
         for j_1 in range(process_k):
             self.dataset.use_column(j_1)
@@ -55,7 +53,7 @@ class MGWR(Base):
         Q = np.block(Q)
         R = np.linalg.solve(P, Q)
         f = R.dot(self.dataset.y).reshape(-1, 1)
-        
+
         self.dataset.reset_columns()
         params = f / self.dataset.X_original.T.reshape(-1, 1)
         params = params.reshape(-1, self.dataset.n).T
@@ -69,19 +67,19 @@ class MGWR(Base):
         for j in range(process_k):
             CCT[:, j] = (
                 (R[:, :, j] / self.dataset.X_original[:, j].reshape(-1, 1))**2).sum(axis=1)
-        
+
         self.S = np.sum(R, axis=2)
         self.y_hats = predy
         self.betas = params
         self.ENP_j = ENP_j
-        
+
         super()._calculate_residuals()
         super()._calculate_mu()
         super()._calculate_llf()
         super()._calculate_tr_S()
         super()._calculate_r_squared()
         super()._calculate_aic_aicc()
-        print("MGWR : MGWR model fitting is complete.")
+        # print("MGWR : MGWR model fitting is complete.")
 
     def update_bandwidth_set(self, bandwidth_set):
         self.bandwidth_set = bandwidth_set

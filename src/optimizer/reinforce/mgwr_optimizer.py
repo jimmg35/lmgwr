@@ -59,6 +59,8 @@ class MgwrOptimizerRL(gym.Env):
         self.max_bandwidth = max_bandwidth
 
         feature_count = self.mgwr.dataset.k
+        if self.mgwr.dataset.useIntercept:
+            feature_count += 1
 
         self.action_space = gym.spaces.Box(
             low=min_action,
@@ -155,6 +157,8 @@ class MgwrOptimizerRL(gym.Env):
               seed: Optional[int] = None) -> Tuple[np.ndarray, dict]:
         super().reset(seed=seed)
         feature_count = self.mgwr.dataset.k
+        if self.mgwr.dataset.useIntercept:
+            feature_count += 1
         self.current_bandwidth_set = self.__init_bandwidth_set(feature_count)
         self.current_step = 0
         self.episode_count += 1
