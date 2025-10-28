@@ -50,7 +50,8 @@ if __name__ == '__main__':
         max_bandwidth=dataset_turbulence.X.shape[0],
         min_action=MIN_ACTION,
         max_action=MAX_ACTION,
-        max_steps_per_episode=MAX_STEPS
+        max_steps_per_episode=MAX_STEPS,
+        initial_bandwidth=44
     )
 
     # Using PPO to optimize the bandwidth vector
