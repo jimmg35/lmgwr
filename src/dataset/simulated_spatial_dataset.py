@@ -13,6 +13,7 @@ class SimulatedSpatialDataset(SpatialDataset):
     field_size: int
     data_seed: int
     process_seed: list[int]
+    len_scale_seed: list[int]
     error_seed: int
     k: int
     n: int
@@ -22,15 +23,19 @@ class SimulatedSpatialDataset(SpatialDataset):
                  field_size=40,
                  data_seed=222,
                  process_seed=[555, 888, 111],
+                 len_scale_seed=[6, 12, 18],
                  error_seed=333,
-                 k=2
+                 k=2,
+                 useIntercept=True
                  ) -> None:
         self.field_size = field_size
         self.data_seed = data_seed
         self.process_seed = process_seed
+        self.len_scale_seed = len_scale_seed
         self.error_seed = error_seed
         self.k = k
-        self.n = field_size * field_size    
+        self.n = field_size * field_size
+        self.useIntercept = useIntercept
 
     def generate_data(self):
         np.random.seed(self.data_seed)
@@ -74,14 +79,29 @@ class SimulatedSpatialDataset(SpatialDataset):
             process_k = self.k + 1  # add one for intercept
 
         for i in range(process_k):
-            model = GWR_gau(dim=2, var=1, len_scale=6 * (i + 1))
-            srf = SRF(
-                model,
+            # model = GWR_gau(dim=2, var=1, len_scale=6 * (i + 1))
+            # srf = SRF(
+            #     model,
+            #     mean=0,
+            #     seed=self.process_seed[i]
+            # )
+            # process = srf.structured(coords).reshape(-1)
+            # process = (process - process.mean()) / process.std() + 2
+            # processes.append(process)
+
+            model_L = GWR_gau(
+                dim=2,
+                var=1.0,
+                len_scale=self.len_scale_seed[i]
+            )
+            srf_L = SRF(
+                model_L,
                 mean=0,
                 seed=self.process_seed[i]
             )
-            process = srf.structured(coords).reshape(-1)
-            process = (process - process.mean()) / process.std() + 2
+            process = srf_L.structured(coords).reshape(-1)
+
+            process = (process - process.mean()) / process.std() + 2.0
             processes.append(process)
 
         return [np.array(processes).T]
