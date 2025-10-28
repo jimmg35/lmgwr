@@ -115,7 +115,7 @@ class SimulatedSpatialDataset(SpatialDataset):
         self.y = np.sum(X * beta, axis=1) + self.err
         return [self.y, self.err]
 
-    def plot(self, b, sub_title=['', '', '', ''], size=40, vmin=None, vmax=None):
+    def plot(self, b, sub_title=['', '', '', ''], size=40, vmin=None, vmax=None, palette='viridis'):
         k = len(b)
         fig, axs = plt.subplots(1, k, figsize=(6*k, 4))
         if k == 1:
@@ -123,10 +123,10 @@ class SimulatedSpatialDataset(SpatialDataset):
         for i in range(k):
             if i == 0:
                 ax = axs[i].imshow(b[i].reshape(size, size),
-                                   cmap=colormaps['viridis'], vmin=vmin, vmax=vmax)
+                                   cmap=colormaps[palette], vmin=vmin, vmax=vmax)
             else:  # plt.cm.get_cmap('viridis', 21)
                 ax = axs[i].imshow(b[i].reshape(size, size),
-                                   cmap=colormaps['viridis'], vmin=vmin, vmax=vmax)
+                                   cmap=colormaps[palette], vmin=vmin, vmax=vmax)
             axs[i].set_title(sub_title[i], fontsize=16)
             fig.colorbar(ax, ax=axs[i])
 
