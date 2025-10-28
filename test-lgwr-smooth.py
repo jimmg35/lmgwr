@@ -1,11 +1,4 @@
-import numpy as np
 
-from mgwr.gwr import GWR as OfficialGWR
-from mgwr.sel_bw import Sel_BW
-
-from src.log.gwr_logger import GwrLogger
-from src.kernel.gwr_kernel import GwrKernel
-from src.model.gwr import GWR
 from src.dataset.simulated_spatial_dataset import SimulatedSpatialDataset
 from src.model.lgwr import LGWR
 from src.kernel.lgwr_kernel import LgwrKernel
