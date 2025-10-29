@@ -195,15 +195,15 @@ class Base:
         AICc = -2.0 * self.llf + 2.0 * n * (self.tr_S + 1.0) / (n - self.tr_S - 2.0)
         self.aic = AIC
         self.aicc = AICc
-        # print("======================")
-        # print(f"llf: {self.llf}")
-        # print(f"tr_S: {self.tr_S}")
-        # print("----------------------")
-        # print(f"first: {-2.0 * self.llf}")
-        # print(f"second: {2.0 * n * (self.tr_S + 1.0) / (n - self.tr_S - 2.0)}")
-        # print("----------------------")
-        # print(f"up: {2.0 * n * (self.tr_S + 1.0)}")
-        # print(f"down: {n - self.tr_S - 2.0}")
-        # print(f"AICc: {AICc} \n")
+        print("======================")
+        print(f"llf: {self.llf}")
+        print(f"tr_S: {self.tr_S}")
+        print("----------------------")
+        print(f"first: {-2.0 * self.llf}")
+        print(f"second: {2.0 * n * (self.tr_S + 1.0) / (n - self.tr_S - 2.0)}")
+        print("----------------------")
+        print(f"up: {2.0 * n * (self.tr_S + 1.0)}")
+        print(f"down: {n - self.tr_S - 2.0}")
+        print(f"AICc: {AICc} \n")
 
 
