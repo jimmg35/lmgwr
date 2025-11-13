@@ -115,26 +115,46 @@ class SimulatedSpatialDataset(SpatialDataset):
         self.y = np.sum(X * beta, axis=1) + self.err
         return [self.y, self.err]
 
-    def plot(self, b, sub_title=['', '', '', ''], size=40, vmin=None, vmax=None, palette='viridis'):
+    def plot(self, b, sub_title=['', '', '', ''], size=40,
+            vmin=None, vmax=None, palette='viridis',
+            points=None):
+        """
+        points: list or array of 1D indices to mark on the surface.
+                Example: points=[idx1, idx2]
+        """
         k = len(b)
         fig, axs = plt.subplots(1, k, figsize=(6*k, 4))
         if k == 1:
             axs = [axs]
-        for i in range(k):
-            if i == 0:
-                ax = axs[i].imshow(b[i].reshape(size, size),
-                                   cmap=colormaps[palette], vmin=vmin, vmax=vmax)
-            else:  # plt.cm.get_cmap('viridis', 21)
-                ax = axs[i].imshow(b[i].reshape(size, size),
-                                   cmap=colormaps[palette], vmin=vmin, vmax=vmax)
-            axs[i].set_title(sub_title[i], fontsize=16)
-            fig.colorbar(ax, ax=axs[i])
 
-            axs[i].set_xticks(np.arange(-0.5, 40, 5))
-            axs[i].set_yticks(np.arange(-0.5, 40, 5))
+        # convert points to (row, col)
+        coords = []
+        if points is not None:
+            for p in points:
+                r, c = divmod(int(p), size)
+                coords.append((r, c))
+
+        for i in range(k):
+            ax_img = axs[i].imshow(
+                b[i].reshape(size, size),
+                cmap=colormaps[palette],
+                vmin=vmin, vmax=vmax
+            )
+
+            axs[i].set_title(sub_title[i], fontsize=16)
+            fig.colorbar(ax_img, ax=axs[i])
+
+            # grid
+            axs[i].set_xticks(np.arange(-0.5, size, 5))
+            axs[i].set_yticks(np.arange(-0.5, size, 5))
             axs[i].set_xticklabels([])
             axs[i].set_yticklabels([])
-
             axs[i].tick_params(axis='x', colors=(0, 0, 0, 0))
             axs[i].tick_params(axis='y', colors=(0, 0, 0, 0))
+
+            # plot selected points
+            if points is not None:
+                for (rr, cc) in coords:
+                    axs[i].scatter(cc, rr, c='red', s=60, marker='x')
+
         plt.show()
