@@ -109,6 +109,9 @@ class LMGWR(Base):
         if matrix.ndim != 2:
             raise ValueError("bandwidth_matrix must be a 2-D array.")
 
+        print(self.dataset.n, self.dataset.k)
+        print(matrix.shape)
+        print("==================")
         if matrix.shape != (self.dataset.n, self.dataset.k):
             raise ValueError(
                 "bandwidth_matrix must have shape (n, k) matching the dataset dimensions."

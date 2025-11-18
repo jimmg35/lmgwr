@@ -3,6 +3,7 @@ import numpy.typing as npt
 from gstools import SRF, CovModel
 import matplotlib.pyplot as plt
 from matplotlib import colormaps
+import gstools as gs
 
 # from src.dataset.interfaces.idataset import IDataset
 from src.dataset.spatial_dataset import SpatialDataset
@@ -79,15 +80,49 @@ class SimulatedSpatialDataset(SpatialDataset):
             process_k = self.k + 1  # add one for intercept
 
         for i in range(process_k):
-            # model = GWR_gau(dim=2, var=1, len_scale=6 * (i + 1))
-            # srf = SRF(
-            #     model,
-            #     mean=0,
-            #     seed=self.process_seed[i]
-            # )
-            # process = srf.structured(coords).reshape(-1)
-            # process = (process - process.mean()) / process.std() + 2
-            # processes.append(process)
+            
+            if i == 1:
+
+                len_smooth = 100
+                model_smooth = gs.Gaussian(
+                    dim=2,
+                    var=1.0,
+                    len_scale=len_smooth,
+                )
+                srf_smooth = SRF(
+                    model_smooth,
+                    mean=0.0,
+                    seed=self.process_seed[i]
+                )
+                field_smooth_2d = srf_smooth.structured(coords).reshape(-1)
+
+                # 3.2 Rough component (short length scale)
+                len_rough = 5.0
+                model_rough = gs.Gaussian(
+                    dim=2,
+                    var=1.0,
+                    len_scale=len_rough,
+                )
+                srf_rough = gs.SRF(
+                    model_rough,
+                    mean=0.0,
+                    seed=self.process_seed[i]
+                )
+                field_rough_2d = srf_rough.structured(coords).reshape(-1)
+
+
+                x = np.arange(self.field_size)
+                y = np.arange(self.field_size)
+
+                # for making spatially varying weights later
+                xx, yy = np.meshgrid(x, y, indexing="xy")
+                w = (xx / (self.field_size - 1)) ** 2
+                w = w.reshape(-1)
+
+                process = field_smooth_2d + w * field_rough_2d
+                process = (process - process.mean()) / process.std() + 2.0
+                processes.append(process)
+                continue
 
             model_L = GWR_gau(
                 dim=2,
@@ -100,7 +135,6 @@ class SimulatedSpatialDataset(SpatialDataset):
                 seed=self.process_seed[i]
             )
             process = srf_L.structured(coords).reshape(-1)
-
             process = (process - process.mean()) / process.std() + 2.0
             processes.append(process)
 
