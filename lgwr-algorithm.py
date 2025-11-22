@@ -25,6 +25,17 @@ dataset = SimulatedSpatialDataset(
     X, beta
 )
 
+dataset.plot(
+    b=np.vstack([
+        beta.T
+    ]),
+    sub_title=[
+        r"True $\beta_0$",
+        r"True $\beta_1$"
+    ],
+    size=field_size
+)
+
 ## Find the global optimal bandwidth
 g_X = dataset.X[:, 1:]
 g_y = dataset.y.reshape(-1, 1)
