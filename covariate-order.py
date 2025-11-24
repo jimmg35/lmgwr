@@ -214,7 +214,7 @@ def run_permutation_test(coords, y, X):
             
             results_list.append(result)
             
-            print(f"Completed {i + 1}/{len(all_permutations)} permutations. Current BWs: {bws[:3]}...")
+            print(f"Completed {i + 1}/{len(all_permutations)} permutations. Current BWs: {bws}...")
                 
         except Exception as e:
             # Handle potential convergence errors during the search
