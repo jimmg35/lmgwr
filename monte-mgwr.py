@@ -9,7 +9,7 @@ from src.model.mgwr import MGWR
 from src.dataset.interfaces.idataset import FieldInfo
 from src.dataset.spatial_dataset import SpatialDataset
 
-
+# aaa
 # georgia_data = pd.read_csv(r'./data/GData_utm.csv')
 # # georgia_geometry = gp.read_file(r'../../../data/G_utm.shp')
 # dataset = SpatialDataset(
